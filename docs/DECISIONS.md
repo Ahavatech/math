@@ -27,6 +27,7 @@ Decisions below are settled. Do not reopen them without asking. Add new decision
 | 21 | 2026-10-05 | Rate limiting (login, forgot-password, token consumption) is an in-memory sliding window, single process only. It does not share state across multiple instances. If the app is ever deployed behind more than one Node instance, this must move to a shared store (e.g. Redis) behind the same RateLimiter interface in src/lib/rate-limit.ts. |
 | 22 | 2026-10-05 | In development, with no RESEND_API_KEY set, outgoing email is printed to the console instead of sent. This fallback throws instead of silently no-op-ing when NODE_ENV is production, so it cannot accidentally reach production. |
 | 23 | 2026-10-05 | /admin/users is restricted to the SUPER_ADMIN role specifically (not the users.manage permission in the abstract), enforced server-side in the page itself, not just hidden from the nav. |
+| 24 | 2026-10-05 | HOD holds every content permission. users.manage stays SUPER_ADMIN only. |
 
 ## Open questions
 - Does the university frontend hosting run Node.js? If not, the whole Next.js app runs on the KVM 1 and the university host only handles the domain or a redirect.
