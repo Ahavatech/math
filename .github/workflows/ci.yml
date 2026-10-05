@@ -16,6 +16,10 @@ jobs:
       AUTH_SECRET: ci-placeholder-secret-not-used-for-anything-real
       AUTH_URL: http://localhost:3000
       EMAIL_FROM: ci-placeholder@example.com
+      # `next build` always sets NODE_ENV=production internally, which
+      # triggers env.ts's "RESEND_API_KEY required in production"
+      # check. This placeholder is never used to actually send mail.
+      RESEND_API_KEY: ci-placeholder-resend-key-not-used-for-anything-real
     steps:
       - uses: actions/checkout@v4
 
