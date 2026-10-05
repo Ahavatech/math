@@ -9,19 +9,47 @@ if (db === null) {
   );
 }
 
+/**
+ * Tracks exactly what each test creates, so afterEach can clean up only
+ * those rows. TEST_DATABASE_URL is a shared database that seed.test.ts
+ * also writes to, and Vitest runs test files in parallel by default, so
+ * a blanket deleteMany() here would race with (and wipe) the other
+ * file's seeded rows instead of just this file's own fixtures.
+ */
+let createdUserIds: string[] = [];
+let createdProgrammeIds: string[] = [];
+let createdManuscriptIds: string[] = [];
+
 describe.skipIf(db === null)("relational constraints", () => {
   afterEach(async () => {
-    // Clean up in dependency order (children before parents).
-    await db!.userToken.deleteMany();
-    await db!.userRole.deleteMany();
-    await db!.reviewAssignment.deleteMany();
-    await db!.review.deleteMany();
-    await db!.manuscriptRound.deleteMany();
-    await db!.manuscript.deleteMany();
-    await db!.editorialDecision.deleteMany();
-    await db!.lecturerProfile.deleteMany();
-    await db!.user.deleteMany();
-    await db!.programme.deleteMany();
+    // Children before parents; restricted deletes must clear the rows
+    // that reference them first.
+    await db!.reviewAssignment.deleteMany({
+      where: { manuscriptId: { in: createdManuscriptIds } },
+    });
+    await db!.editorialDecision.deleteMany({
+      where: { manuscriptId: { in: createdManuscriptIds } },
+    });
+    await db!.manuscriptRound.deleteMany({
+      where: { manuscriptId: { in: createdManuscriptIds } },
+    });
+    await db!.manuscript.deleteMany({
+      where: { id: { in: createdManuscriptIds } },
+    });
+    await db!.userToken.deleteMany({
+      where: { userId: { in: createdUserIds } },
+    });
+    await db!.userRole.deleteMany({
+      where: { userId: { in: createdUserIds } },
+    });
+    await db!.user.deleteMany({ where: { id: { in: createdUserIds } } });
+    await db!.programme.deleteMany({
+      where: { id: { in: createdProgrammeIds } },
+    });
+
+    createdUserIds = [];
+    createdProgrammeIds = [];
+    createdManuscriptIds = [];
   });
 
   afterAll(async () => {
@@ -32,6 +60,7 @@ describe.skipIf(db === null)("relational constraints", () => {
     const user = await db!.user.create({
       data: { email: "constraints-role@example.com", name: "Test User" },
     });
+    createdUserIds.push(user.id);
 
     await db!.userRole.create({ data: { userId: user.id, role: "LECTURER" } });
 
@@ -48,7 +77,7 @@ describe.skipIf(db === null)("relational constraints", () => {
   });
 
   it("rejects a duplicate slug on a public entity", async () => {
-    await db!.programme.create({
+    const programme = await db!.programme.create({
       data: {
         slug: "duplicate-slug-test",
         level: "BSC",
@@ -59,6 +88,7 @@ describe.skipIf(db === null)("relational constraints", () => {
         admissionRequirements: "r",
       },
     });
+    createdProgrammeIds.push(programme.id);
 
     await expect(
       db!.programme.create({
@@ -77,11 +107,15 @@ describe.skipIf(db === null)("relational constraints", () => {
 
   it("rejects a duplicate ReviewAssignment and a second Review on the same assignment", async () => {
     const reviewer = await db!.user.create({
-      data: { email: "reviewer@example.com", name: "Reviewer" },
+      data: { email: "reviewer-constraint-test@example.com", name: "Reviewer" },
     });
+    createdUserIds.push(reviewer.id);
+
     const manuscript = await db!.manuscript.create({
       data: { title: "Test manuscript", abstract: "abstract", keywords: [] },
     });
+    createdManuscriptIds.push(manuscript.id);
+
     const round = await db!.manuscriptRound.create({
       data: { manuscriptId: manuscript.id, number: 1, submittedAt: new Date() },
     });
@@ -119,6 +153,7 @@ describe.skipIf(db === null)("relational constraints", () => {
     const user = await db!.user.create({
       data: { email: "cascade-user@example.com", name: "Cascade User" },
     });
+
     await db!.userRole.create({ data: { userId: user.id, role: "LECTURER" } });
     await db!.userToken.create({
       data: {
@@ -130,6 +165,7 @@ describe.skipIf(db === null)("relational constraints", () => {
     });
 
     await db!.user.delete({ where: { id: user.id } });
+    // Deleted (not tracked for afterEach cleanup); assert the cascade worked.
 
     const roles = await db!.userRole.findMany({ where: { userId: user.id } });
     const tokens = await db!.userToken.findMany({ where: { userId: user.id } });
@@ -144,9 +180,13 @@ describe.skipIf(db === null)("relational constraints", () => {
     const editor = await db!.user.create({
       data: { email: "restrict-editor@example.com", name: "Restricted Editor" },
     });
+    createdUserIds.push(reviewer.id, editor.id);
+
     const manuscript = await db!.manuscript.create({
       data: { title: "Restrict test", abstract: "abstract", keywords: [] },
     });
+    createdManuscriptIds.push(manuscript.id);
+
     const round = await db!.manuscriptRound.create({
       data: { manuscriptId: manuscript.id, number: 1, submittedAt: new Date() },
     });
