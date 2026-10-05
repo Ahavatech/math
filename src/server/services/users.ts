@@ -12,12 +12,40 @@ export class SelfActionError extends Error {
   }
 }
 
+/**
+ * Explicit select, not include: never return passwordHash or any other
+ * sensitive column. This result is passed straight to a client
+ * component on /admin/users, and a Server->Client Component prop is
+ * serialized into the page's RSC payload — an `include` here would ship
+ * every user's password hash to the browser.
+ */
 export async function listUsers(db: PrismaClient) {
-  return db.user.findMany({
-    include: { roles: true },
+  const users = await db.user.findMany({
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      isActive: true,
+      createdAt: true,
+      updatedAt: true,
+      lastLoginAt: true,
+      passwordHash: true,
+      roles: true,
+    },
     orderBy: { createdAt: "desc" },
   });
+
+  // passwordHash is selected only to derive this boolean ("invite still
+  // pending" vs "password set") and is stripped before returning, since
+  // this result is passed to a client component and a Server->Client
+  // Component prop is serialized into the page's RSC payload.
+  return users.map(({ passwordHash, ...user }) => ({
+    ...user,
+    hasPassword: passwordHash !== null,
+  }));
 }
+
+export type SafeUser = Awaited<ReturnType<typeof listUsers>>[number];
 
 export async function inviteUser(
   db: PrismaClient,

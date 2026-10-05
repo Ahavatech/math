@@ -1,8 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
-import type { User, UserRole } from "@prisma/client";
 import { editUserRolesAction } from "@/server/actions/admin-users";
+import type { SafeUser } from "@/server/services/users";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { RoleCheckboxes } from "./role-checkboxes";
 
-export function EditRolesDialog({ user }: { user: User & { roles: UserRole[] } }) {
+export function EditRolesDialog({ user }: { user: SafeUser }) {
   const [state, formAction, pending] = useActionState(editUserRolesAction, undefined);
 
   return (

@@ -1,7 +1,7 @@
 "use client";
 
-import type { User, UserRole } from "@prisma/client";
 import { resendInviteAction, setUserActiveAction } from "@/server/actions/admin-users";
+import type { SafeUser } from "@/server/services/users";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,13 +14,11 @@ import {
 } from "@/components/ui/table";
 import { EditRolesDialog } from "./edit-roles-dialog";
 
-type UserWithRoles = User & { roles: UserRole[] };
-
 export function UsersTable({
   users,
   currentUserId,
 }: {
-  users: UserWithRoles[];
+  users: SafeUser[];
   currentUserId: string;
 }) {
   return (
@@ -55,7 +53,7 @@ export function UsersTable({
                 <Badge variant={user.isActive ? "default" : "destructive"}>
                   {user.isActive ? "Active" : "Deactivated"}
                 </Badge>
-                {!user.passwordHash ? (
+                {!user.hasPassword ? (
                   <Badge variant="outline" className="ml-1">
                     Invite pending
                   </Badge>
@@ -63,7 +61,7 @@ export function UsersTable({
               </TableCell>
               <TableCell className="flex justify-end gap-2">
                 <EditRolesDialog user={user} />
-                {!user.passwordHash ? (
+                {!user.hasPassword ? (
                   <form action={resendInviteAction}>
                     <input type="hidden" name="userId" value={user.id} />
                     <Button type="submit" size="sm" variant="outline">
