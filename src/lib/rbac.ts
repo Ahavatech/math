@@ -1,4 +1,5 @@
 import type { Role } from "@prisma/client";
+import { auth } from "@/auth";
 
 export const PERMISSIONS = [
   "users.manage",
@@ -50,6 +51,31 @@ export type SessionUser = {
   roles: Role[];
   isActive: boolean;
 };
+
+/**
+ * Reads the current session's user, or null when signed out. This is
+ * the only place in the app that should read `auth()` directly for
+ * authorization purposes; everything else should go through this or
+ * the require* helpers below.
+ */
+export async function getCurrentUser(): Promise<SessionUser | null> {
+  const session = await auth();
+  if (!session?.user) return null;
+  return {
+    id: session.user.id,
+    roles: session.user.roles,
+    isActive: session.user.isActive,
+  };
+}
+
+/** Throws UnauthorizedError when signed out or inactive. */
+export async function requireUser(): Promise<SessionUser> {
+  const user = await getCurrentUser();
+  if (!user || !user.isActive) {
+    throw new UnauthorizedError();
+  }
+  return user;
+}
 
 export function hasRole(user: SessionUser, role: Role | Role[]): boolean {
   const roles = Array.isArray(role) ? role : [role];
