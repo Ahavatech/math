@@ -3,7 +3,7 @@
 Tick items as they are completed and note the AUDIT.md entry number.
 
 - [x] 01 Foundation: scaffold, tooling, folder structure, CI, security workflow (Entry 001)
-- [ ] 02 Database: Prisma schema for all modules, migrations, seed, AuditLog
+- [x] 02 Database: Prisma schema for all modules, migrations, seed, AuditLog (Entry 002 — migration generated offline, not yet applied to a live database; see Open issues)
 - [ ] 03 Auth and admin shell: Auth.js, roles, RBAC, invite and reset flows with Resend, admin layout
 - [ ] 04 Design system and public layout: Impeccable direction, header, footer, navigation from settings
 - [ ] 05 Media pipeline and site content: Cloudinary upload with compression, site settings editor, homepage, about, HOD address

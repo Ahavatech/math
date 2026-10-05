@@ -2,6 +2,8 @@ import { z } from "zod";
 
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
+  TEST_DATABASE_URL: z.string().min(1).optional(),
+  SEED_ADMIN_EMAIL: z.string().email().optional(),
   AUTH_SECRET: z.string().min(1).optional(),
   AUTH_URL: z.string().url().optional(),
   CLOUDINARY_CLOUD_NAME: z.string().min(1).optional(),
