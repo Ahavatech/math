@@ -22,6 +22,12 @@ Decisions below are settled. Do not reopen them without asking. Add new decision
 | 16 | 2026-10-05 | Stage 02's first Prisma migration was generated offline with `prisma migrate diff --from-empty` because this machine had neither Docker nor a local PostgreSQL server at the time. Resolved in Stage 02b: Docker Desktop and docker-compose.yml's local Postgres are now running, the migration applied cleanly with no drift, and the seed and database-backed tests all run and pass against it. |
 | 17 | 2026-10-05 | Article.issueId is onDelete: Restrict, not Cascade. A JournalIssue cannot be deleted while it still has articles attached, since a published article's record must not disappear as a side effect of deleting its issue. |
 | 18 | 2026-10-05 | CoursePrerequisite and CourseLecturer are implicit many-to-many relations (named via Prisma's @relation(...), which also names the underlying join table), not explicit join models, since the spec lists no extra fields on either join. |
+| 19 | 2026-10-05 | Passwords are hashed with argon2id (@node-rs/argon2), which built and ran natively on this machine, so no bcryptjs fallback was needed. |
+| 20 | 2026-10-05 | Sessions are JWT-only (decision #13); the jwt callback re-checks isActive and roles from the database at most every 5 minutes, so a deactivated user or a role change takes effect within 5 minutes without requiring a fresh sign-in. |
+| 21 | 2026-10-05 | Rate limiting (login, forgot-password, token consumption) is an in-memory sliding window, single process only. It does not share state across multiple instances. If the app is ever deployed behind more than one Node instance, this must move to a shared store (e.g. Redis) behind the same RateLimiter interface in src/lib/rate-limit.ts. |
+| 22 | 2026-10-05 | In development, with no RESEND_API_KEY set, outgoing email is printed to the console instead of sent. This fallback throws instead of silently no-op-ing when NODE_ENV is production, so it cannot accidentally reach production. |
+| 23 | 2026-10-05 | /admin/users is restricted to the SUPER_ADMIN role specifically (not the users.manage permission in the abstract), enforced server-side in the page itself, not just hidden from the nav. |
+| 24 | 2026-10-05 | HOD holds every content permission. users.manage stays SUPER_ADMIN only. |
 
 ## Open questions
 - Does the university frontend hosting run Node.js? If not, the whole Next.js app runs on the KVM 1 and the university host only handles the domain or a redirect.

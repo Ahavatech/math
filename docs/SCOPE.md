@@ -164,7 +164,7 @@ Every editable part of the site is behind a login, and each role sees only what 
 | Role | Can do |
 | --- | --- |
 | Super admin | Everything, including users, roles and site settings |
-| HOD | Edit all site content and settings, approve alumni, manage lecturers |
+| HOD | Edit all site content and settings, including news and events, approve alumni, manage lecturers |
 | Department admin | Manage news, events, lecturers, alumni approvals, handbook and downloads |
 | Lecturer | Edit their own portfolio and upload their own course materials only |
 | Journal Editor-in-Chief and Editor | Screen submissions, assign reviewers, decide, and publish issues |
