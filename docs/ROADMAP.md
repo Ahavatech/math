@@ -15,4 +15,4 @@ Tick items as they are completed and note the AUDIT.md entry number.
 - [ ] 11 Journal public side: landing, issues, articles, editorial board, private file storage
 - [ ] 12 Journal submission and peer review: authors, editors, reviewers, rounds, notifications
 - [ ] 13 Search, SEO, accessibility and performance, end-to-end tests
-- [ ] 14 Hardening and deployment: security pass, backups, Nginx, process manager, docs, training and handover
+- [ ] 14 Hardening and deployment: security pass, backups, Nginx, process manager, docs, training and handover. Also add the Content-Security-Policy header (deferred from Stage 03, which added the other baseline security headers in next.config.ts).
