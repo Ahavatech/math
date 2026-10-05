@@ -19,7 +19,9 @@ Decisions below are settled. Do not reopen them without asking. Add new decision
 | 13 | 2026-10-05 | Auth.js uses the Credentials provider with JWT sessions. There are no Auth.js Account, Session or VerificationToken tables; our own User/UserRole/UserToken models are the full account model. |
 | 14 | 2026-10-05 | Every image reference on a content model is a nullable relation to MediaAsset, never a raw URL column. |
 | 15 | 2026-10-05 | Public content is never hard-deleted. Removing it sets ContentStatus to ARCHIVED instead. |
-| 16 | 2026-10-05 | Stage 02's first Prisma migration was generated offline with `prisma migrate diff --from-empty` because this machine has neither Docker nor a local PostgreSQL server. The migration has not been applied to any database and must be run with `prisma migrate deploy` (or `migrate dev` in development) once a database is reachable, before Stage 03 begins. |
+| 16 | 2026-10-05 | Stage 02's first Prisma migration was generated offline with `prisma migrate diff --from-empty` because this machine had neither Docker nor a local PostgreSQL server at the time. Resolved in Stage 02b: Docker Desktop and docker-compose.yml's local Postgres are now running, the migration applied cleanly with no drift, and the seed and database-backed tests all run and pass against it. |
+| 17 | 2026-10-05 | Article.issueId is onDelete: Restrict, not Cascade. A JournalIssue cannot be deleted while it still has articles attached, since a published article's record must not disappear as a side effect of deleting its issue. |
+| 18 | 2026-10-05 | CoursePrerequisite and CourseLecturer are implicit many-to-many relations (named via Prisma's @relation(...), which also names the underlying join table), not explicit join models, since the spec lists no extra fields on either join. |
 
 ## Open questions
 - Does the university frontend hosting run Node.js? If not, the whole Next.js app runs on the KVM 1 and the university host only handles the domain or a redirect.
