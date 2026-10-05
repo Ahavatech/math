@@ -90,7 +90,15 @@ export async function forgotPasswordAction(
   const user = await db.user.findUnique({ where: { email: parsed.data.email } });
   if (user && user.isActive) {
     const { token } = await issueToken(db, user.id, "PASSWORD_RESET");
-    await sendPasswordResetEmail({ to: user.email, token });
+    try {
+      await sendPasswordResetEmail({ to: user.email, token });
+    } catch (error) {
+      // Must not throw past this point: a thrown error here would
+      // produce a different response than the generic message below,
+      // which would leak exactly the "does this email exist" signal
+      // this flow exists to hide.
+      console.error(`Failed to send password reset email for user ${user.id}:`, error);
+    }
   }
 
   return { message: GENERIC_FORGOT_PASSWORD_MESSAGE };

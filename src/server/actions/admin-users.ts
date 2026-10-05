@@ -46,7 +46,8 @@ export async function inviteUserAction(
     if (error instanceof Error && error.message.includes("Unique constraint")) {
       return { error: "A user with that email already exists." };
     }
-    throw error;
+    console.error("inviteUserAction failed:", error);
+    return { error: "Something went wrong while inviting this user." };
   }
 
   revalidatePath("/admin/users");

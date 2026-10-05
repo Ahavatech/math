@@ -51,7 +51,16 @@ export async function inviteUser(
   });
 
   const { token } = await issueToken(db, user.id, "INVITE");
-  await sendInviteEmail({ to: user.email, name: user.name, token });
+  // The user row and its token are already durably created at this
+  // point; a failed send (bad Resend config, provider outage) should
+  // not surface as if the whole invite failed, since the admin can
+  // already recover with "Resend invite". Log it loudly instead of
+  // throwing, so it is not silently lost either.
+  try {
+    await sendInviteEmail({ to: user.email, name: user.name, token });
+  } catch (error) {
+    console.error(`Failed to send invite email for user ${user.id}:`, error);
+  }
 
   return user;
 }
@@ -64,7 +73,11 @@ export async function resendInvite(
 ) {
   const user = await db.user.findUniqueOrThrow({ where: { id: userId } });
   const { token } = await issueToken(db, user.id, "INVITE");
-  await sendInviteEmail({ to: user.email, name: user.name, token });
+  try {
+    await sendInviteEmail({ to: user.email, name: user.name, token });
+  } catch (error) {
+    console.error(`Failed to resend invite email for user ${user.id}:`, error);
+  }
 
   await logAction(
     db,
