@@ -1,5 +1,4 @@
 import type { Role } from "@prisma/client";
-import { auth } from "@/auth";
 
 export const PERMISSIONS = [
   "users.manage",
@@ -59,6 +58,10 @@ export type SessionUser = {
  * the require* helpers below.
  */
 export async function getCurrentUser(): Promise<SessionUser | null> {
+  // Dynamically imported so a test exercising only this file's pure
+  // functions (hasRole, hasPermission, canEditLecturerProfile, ...)
+  // never has to resolve next-auth's module graph.
+  const { auth } = await import("@/auth");
   const session = await auth();
   if (!session?.user) return null;
   return {

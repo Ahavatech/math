@@ -27,7 +27,16 @@ const envSchema = z
   });
 
 function loadEnv() {
-  const parsed = envSchema.safeParse(process.env);
+  // An env var set to an empty string (`KEY=` in a .env file, as
+  // .env.example's commented-out optional keys end up) is "unset" for
+  // every optional field's intent, not an invalid value. Without this,
+  // zod's .optional() still rejects "" against .min(1)/.email()/.url(),
+  // which previously went unnoticed because nothing eagerly imported
+  // env.ts; the Stage 03 Auth.js route does.
+  const sanitized = Object.fromEntries(
+    Object.entries(process.env).map(([key, value]) => [key, value === "" ? undefined : value]),
+  );
+  const parsed = envSchema.safeParse(sanitized);
 
   if (!parsed.success) {
     const issues = parsed.error.issues
