@@ -15,6 +15,11 @@ Decisions below are settled. Do not reopen them without asking. Add new decision
 | 9 | 2026-10-05 | Alumni all fill the form again. The 519 recorded graduates are not seeded publicly. They may be kept as a private cross-check list in the admin. |
 | 10 | 2026-10-05 | Everything dynamic is editable through the admin, including the HOD welcome address and picture. |
 | 11 | 2026-10-05 | No em dashes in UI copy, emails or docs. |
+| 12 | 2026-10-05 | A user can hold several roles at once (UserRole is a many-to-many join on User and a role enum, unique per pair), not a single role column on User. |
+| 13 | 2026-10-05 | Auth.js uses the Credentials provider with JWT sessions. There are no Auth.js Account, Session or VerificationToken tables; our own User/UserRole/UserToken models are the full account model. |
+| 14 | 2026-10-05 | Every image reference on a content model is a nullable relation to MediaAsset, never a raw URL column. |
+| 15 | 2026-10-05 | Public content is never hard-deleted. Removing it sets ContentStatus to ARCHIVED instead. |
+| 16 | 2026-10-05 | Stage 02's first Prisma migration was generated offline with `prisma migrate diff --from-empty` because this machine has neither Docker nor a local PostgreSQL server. The migration has not been applied to any database and must be run with `prisma migrate deploy` (or `migrate dev` in development) once a database is reachable, before Stage 03 begins. |
 
 ## Open questions
 - Does the university frontend hosting run Node.js? If not, the whole Next.js app runs on the KVM 1 and the university host only handles the domain or a redirect.
