@@ -10,6 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/oau_maths?schema=public
+      # Stage 03 made these required by src/lib/env.ts. The build step
+      # only validates their format, it never actually sends email or
+      # verifies a session, so CI-only placeholder values are fine here.
+      AUTH_SECRET: ci-placeholder-secret-not-used-for-anything-real
+      AUTH_URL: http://localhost:3000
+      EMAIL_FROM: ci-placeholder@example.com
     steps:
       - uses: actions/checkout@v4
 
