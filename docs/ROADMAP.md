@@ -5,7 +5,7 @@ Tick items as they are completed and note the AUDIT.md entry number.
 - [x] 01 Foundation: scaffold, tooling, folder structure, CI, security workflow (Entry 001)
 - [x] 02 Database: Prisma schema for all modules, migrations, seed, AuditLog (Entry 002 — migration generated offline, not yet applied to a live database; see Open issues)
 - [x] 03 Auth and admin shell: Auth.js, roles, RBAC, invite and reset flows with Resend, admin layout (Entry 004 — real email delivery blocked until a verified Resend sending domain is configured; see Open issues)
-- [ ] 04 Design system and public layout: Impeccable direction, header, footer, navigation from settings
+- [x] 04 Design system and public layout: Impeccable direction, header, footer, navigation from settings (Entry 005 — palette/fonts proposed, pending HOD confirmation; First Load JS over 130kB target, see Open issues)
 - [ ] 05 Media pipeline and site content: Cloudinary upload with compression, site settings editor, homepage, about, HOD address
 - [ ] 06 Programmes and research areas: admin CRUD and public pages
 - [ ] 07 Lecturers: admin creates profiles, invites, /lecturer/[slug], staff directory, non-teaching staff
