@@ -28,6 +28,7 @@ Decisions below are settled. Do not reopen them without asking. Add new decision
 | 22 | 2026-10-05 | In development, with no RESEND_API_KEY set, outgoing email is printed to the console instead of sent. This fallback throws instead of silently no-op-ing when NODE_ENV is production, so it cannot accidentally reach production. |
 | 23 | 2026-10-05 | /admin/users is restricted to the SUPER_ADMIN role specifically (not the users.manage permission in the abstract), enforced server-side in the page itself, not just hidden from the nav. |
 | 24 | 2026-10-05 | HOD holds every content permission. users.manage stays SUPER_ADMIN only. |
+| 25 | 2026-10-06 | Math notation renders via KaTeX's renderToString on the server, with trust:false (refuses \href/\includegraphics and similar commands that could otherwise embed a javascript: URL or external resource) and throwOnError:false. The resulting HTML is KaTeX's own structured markup, not raw passthrough of the input, which is why inserting it via dangerouslySetInnerHTML is safe; katex/dist/katex.min.css is imported only inside the Math component file so it ships only on pages that actually render math. |
 
 ## Open questions
 - Does the university frontend hosting run Node.js? If not, the whole Next.js app runs on the KVM 1 and the university host only handles the domain or a redirect.
