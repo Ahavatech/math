@@ -28,7 +28,7 @@ export function PersonCard({ name, rank, photoUrl, href }: PersonCardProps) {
             <AvatarFallback className="font-heading text-lg">{initials(name)}</AvatarFallback>
           </Avatar>
           <div>
-            <p className="font-heading font-semibold leading-snug">{name}</p>
+            <h3 className="font-heading font-semibold leading-snug">{name}</h3>
             <p className="text-sm text-muted-foreground">{rank}</p>
           </div>
         </CardContent>

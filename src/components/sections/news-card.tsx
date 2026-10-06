@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export type NewsCardProps = {
@@ -17,11 +17,11 @@ export function NewsCard({ title, excerpt, category, publishedAt, href }: NewsCa
         <Badge variant="secondary" className="w-fit text-xs">
           {category}
         </Badge>
-        <CardTitle className="font-heading text-lg leading-snug">
+        <h3 className="font-heading text-lg leading-snug font-semibold">
           <Link href={href} className="hover:underline">
             {title}
           </Link>
-        </CardTitle>
+        </h3>
       </CardHeader>
       <CardContent className="px-4">
         {excerpt ? <p className="text-sm text-muted-foreground">{excerpt}</p> : null}

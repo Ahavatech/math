@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export type EventCardProps = {
@@ -25,13 +25,11 @@ export function EventCard({ title, type, startsAt, venue, href }: EventCardProps
           <Badge variant="secondary" className="mb-1.5 text-xs">
             {type}
           </Badge>
-          <CardHeader className="p-0">
-            <CardTitle className="font-heading text-base leading-snug">
-              <Link href={href} className="hover:underline">
-                {title}
-              </Link>
-            </CardTitle>
-          </CardHeader>
+          <h3 className="font-heading text-base leading-snug font-semibold">
+            <Link href={href} className="hover:underline">
+              {title}
+            </Link>
+          </h3>
           {venue ? <p className="mt-1 text-sm text-muted-foreground">{venue}</p> : null}
         </div>
       </CardContent>
