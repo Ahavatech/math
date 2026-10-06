@@ -5,7 +5,44 @@ import { verifyPassword, dummyHash } from "@/lib/password";
 import { loginSchema } from "@/lib/validators/auth";
 import type { Role } from "@prisma/client";
 
-const ROLES_RECHECK_INTERVAL_MS = 5 * 60 * 1000;
+export const ROLES_RECHECK_INTERVAL_MS = 5 * 60 * 1000;
+
+type RolesToken = {
+  id?: string;
+  roles?: Role[];
+  isActive?: boolean;
+  rolesCheckedAt?: number;
+};
+
+/**
+ * Re-reads isActive/roles from the database at most once per
+ * ROLES_RECHECK_INTERVAL_MS. Exported standalone (rather than left
+ * inline in the jwt callback) so the recheck gate itself — not just
+ * its end-to-end effect — has a direct unit test.
+ */
+export async function refreshTokenRoles(
+  token: RolesToken,
+  dbClient: typeof db,
+): Promise<RolesToken> {
+  const lastChecked = token.rolesCheckedAt ?? 0;
+  if (Date.now() - lastChecked < ROLES_RECHECK_INTERVAL_MS) {
+    return token;
+  }
+
+  const dbUser = token.id
+    ? await dbClient.user.findUnique({
+        where: { id: token.id },
+        include: { roles: true },
+      })
+    : null;
+
+  return {
+    ...token,
+    isActive: dbUser?.isActive ?? false,
+    roles: dbUser ? dbUser.roles.map((r) => r.role) : [],
+    rolesCheckedAt: Date.now(),
+  };
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: "jwt" },
@@ -63,22 +100,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return token;
       }
 
-      const lastChecked = (token.rolesCheckedAt as number | undefined) ?? 0;
-      if (Date.now() - lastChecked < ROLES_RECHECK_INTERVAL_MS) {
-        return token;
-      }
-
-      const dbUser = token.id
-        ? await db.user.findUnique({
-            where: { id: token.id as string },
-            include: { roles: true },
-          })
-        : null;
-
-      token.isActive = dbUser?.isActive ?? false;
-      token.roles = dbUser ? dbUser.roles.map((r) => r.role) : [];
-      token.rolesCheckedAt = Date.now();
-      return token;
+      const refreshed = await refreshTokenRoles(token as RolesToken, db);
+      return { ...token, ...refreshed };
     },
     async session({ session, token }) {
       session.user.id = token.id as string;
