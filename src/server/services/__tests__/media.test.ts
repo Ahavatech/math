@@ -44,6 +44,7 @@ describe("registerMediaAsset", () => {
       publicId: "oau-maths/lecturers/x",
       alt: "A lecturer's portrait",
       uploadedById: "user-1",
+      folder: "lecturers",
     });
 
     expect(cloudinary.api.resource).toHaveBeenCalledWith(
@@ -66,15 +67,28 @@ describe("registerMediaAsset", () => {
   it("rejects an empty alt text", async () => {
     const db = makeDb();
     await expect(
-      registerMediaAsset(db, { publicId: "oau-maths/x", alt: "", uploadedById: null }),
+      registerMediaAsset(db, { publicId: "oau-maths/site/x", alt: "", uploadedById: null, folder: "site" }),
     ).rejects.toThrow(/alt/i);
     expect(cloudinary.api.resource).not.toHaveBeenCalled();
   });
 
-  it("rejects a publicId outside the oau-maths/ folder", async () => {
+  it("rejects a publicId outside the claimed folder", async () => {
     const db = makeDb();
     await expect(
-      registerMediaAsset(db, { publicId: "other-app/x", alt: "ok", uploadedById: null }),
+      registerMediaAsset(db, { publicId: "other-app/x", alt: "ok", uploadedById: null, folder: "site" }),
+    ).rejects.toThrow(/folder/i);
+    expect(cloudinary.api.resource).not.toHaveBeenCalled();
+  });
+
+  it("rejects a publicId that lives in a different folder than the one the caller was authorized for", async () => {
+    const db = makeDb();
+    await expect(
+      registerMediaAsset(db, {
+        publicId: "oau-maths/site/logo",
+        alt: "ok",
+        uploadedById: null,
+        folder: "news",
+      }),
     ).rejects.toThrow(/folder/i);
     expect(cloudinary.api.resource).not.toHaveBeenCalled();
   });
@@ -83,7 +97,7 @@ describe("registerMediaAsset", () => {
     vi.mocked(cloudinary.api.resource).mockRejectedValue(new Error("not found"));
     const db = makeDb();
     await expect(
-      registerMediaAsset(db, { publicId: "oau-maths/x", alt: "ok", uploadedById: null }),
+      registerMediaAsset(db, { publicId: "oau-maths/site/x", alt: "ok", uploadedById: null, folder: "site" }),
     ).rejects.toThrow("not found");
     expect((db as { mediaAsset: { create: ReturnType<typeof vi.fn> } }).mediaAsset.create).not.toHaveBeenCalled();
   });

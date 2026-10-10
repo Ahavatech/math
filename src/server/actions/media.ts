@@ -48,6 +48,7 @@ export async function registerMediaAction(
       publicId: parsed.data.publicId,
       alt: parsed.data.alt,
       uploadedById: user.id,
+      folder: parsed.data.folder,
     });
     revalidatePath("/admin/media");
     return { success: true, mediaId: asset.id };

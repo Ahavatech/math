@@ -2,8 +2,7 @@ import "server-only";
 import type { MediaAsset, Prisma, PrismaClient } from "@prisma/client";
 import { cloudinary } from "@/lib/cloudinary";
 import { logAction, type AuditRequestContext } from "@/server/services/audit";
-
-const MEDIA_ROOT = "oau-maths/";
+import { cloudinaryFolder, type MediaFolder } from "@/lib/media-folders";
 
 type Db = PrismaClient | Prisma.TransactionClient;
 
@@ -13,16 +12,24 @@ type Db = PrismaClient | Prisma.TransactionClient;
  * those are re-fetched from Cloudinary here, server-side, by publicId,
  * so a tampered client request can never write fabricated dimensions
  * or an off-Cloudinary URL into the database.
+ *
+ * `folder` must be the one the caller's permission was checked against
+ * (see registerMediaAction). publicId is required to actually live
+ * under that folder's Cloudinary path, so a user who only holds
+ * permission for one folder cannot register an asset that lives in a
+ * different, more privileged folder by claiming the folder they do
+ * have access to while passing another folder's publicId.
  */
 export async function registerMediaAsset(
   db: Db,
-  params: { publicId: string; alt: string; uploadedById: string | null },
+  params: { publicId: string; alt: string; uploadedById: string | null; folder: MediaFolder },
 ): Promise<MediaAsset> {
   if (!params.alt.trim()) {
     throw new Error("alt text is required");
   }
-  if (!params.publicId.startsWith(MEDIA_ROOT)) {
-    throw new Error(`publicId must be inside the ${MEDIA_ROOT} folder`);
+  const folderPrefix = `${cloudinaryFolder(params.folder)}/`;
+  if (!params.publicId.startsWith(folderPrefix)) {
+    throw new Error(`publicId must be inside the ${folderPrefix} folder`);
   }
 
   const resource = await cloudinary.api.resource(params.publicId, {
