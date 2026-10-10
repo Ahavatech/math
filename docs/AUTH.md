@@ -23,11 +23,13 @@
 
 Derived from docs/SCOPE.md's "Roles and admin control" table. `users.manage` belongs only to `SUPER_ADMIN` (Stage 03's `/admin/users` is restricted to that role specifically, not just the permission).
 
+As of Stage 06 (see DECISIONS.md's entry amending #23/#24), `site.edit` and `academics.manage` are two separate permissions: `site.edit` covers site settings, navigation, pages and the HOD welcome address (HOD and SUPER_ADMIN only); `academics.manage` covers programmes and research areas (SUPER_ADMIN, HOD and ADMIN). ADMIN no longer holds `site.edit`.
+
 | Role | Permissions |
 | --- | --- |
 | SUPER_ADMIN | everything |
-| HOD | site.edit, lecturers.manage, news.manage, events.manage, alumni.review, own_profile.edit |
-| ADMIN | site.edit, lecturers.manage, news.manage, events.manage, alumni.review, own_profile.edit |
+| HOD | site.edit, academics.manage, lecturers.manage, news.manage, events.manage, alumni.review, own_profile.edit |
+| ADMIN | academics.manage, lecturers.manage, news.manage, events.manage, alumni.review, own_profile.edit |
 | LECTURER | own_profile.edit |
 | JOURNAL_EDITOR_IN_CHIEF | journal.edit, own_profile.edit |
 | JOURNAL_EDITOR | journal.edit, own_profile.edit |
@@ -35,6 +37,10 @@ Derived from docs/SCOPE.md's "Roles and admin control" table. `users.manage` bel
 | AUTHOR | journal.submit, own_profile.edit |
 
 A user can hold several roles; their effective permissions are the union of every role they hold. `canEditLecturerProfile(user, profile)` additionally allows a lecturer to edit their own profile (`user.id === profile.userId`) even without `lecturers.manage`.
+
+### Media folder permissions
+
+Each Cloudinary media folder (`src/lib/media-folders.ts`) requires the permission of the content it belongs to, not a single blanket permission: `site` (identity, hero, HOD photo) needs `site.edit`; `research` needs `academics.manage`; `lecturers`, `news`, `events` and `alumni` need their own matching `*.manage`/`alumni.review` permission. This means ADMIN can upload research area images but not the site logo or HOD photo, even though both now only required `site.edit` before Stage 06 split the two apart.
 
 ## Session behaviour
 

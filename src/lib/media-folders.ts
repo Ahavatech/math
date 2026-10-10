@@ -24,7 +24,7 @@ const FOLDER_PERMISSIONS: Record<MediaFolder, Permission> = {
   news: "news.manage",
   events: "events.manage",
   alumni: "alumni.review",
-  research: "site.edit",
+  research: "academics.manage",
   journal: "journal.edit",
 };
 

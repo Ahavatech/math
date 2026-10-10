@@ -20,6 +20,8 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Navigation", href: "/admin/navigation", permission: "site.edit", implemented: true },
   { label: "Pages", href: "/admin/pages", permission: "site.edit", implemented: true },
   { label: "Media", href: "/admin/media", permission: "site.edit", implemented: true },
+  { label: "Programmes", href: "/admin/programmes", permission: "academics.manage", implemented: true },
+  { label: "Research", href: "/admin/research", permission: "academics.manage", implemented: true },
   {
     label: "Lecturers",
     href: "/admin/lecturers",

@@ -20,17 +20,7 @@ import {
 } from "@/server/services/homepage";
 import Link from "next/link";
 import { db } from "@/lib/db";
-
-const RANK_LABELS: Record<string, string> = {
-  PROFESSOR: "Professor",
-  ASSOCIATE_PROFESSOR: "Associate Professor",
-  SENIOR_LECTURER: "Senior Lecturer",
-  LECTURER_I: "Lecturer I",
-  LECTURER_II: "Lecturer II",
-  ASSISTANT_LECTURER: "Assistant Lecturer",
-  GRADUATE_ASSISTANT: "Graduate Assistant",
-  OTHER: "Staff",
-};
+import { rankLabel } from "@/lib/lecturer-rank";
 
 export default async function Home() {
   const [hero, hod, stats, researchAreas, news, events, lecturer, alumni] = await Promise.all([
@@ -113,17 +103,24 @@ export default async function Home() {
       {researchAreas.length > 0 ? (
         <Section>
           <Container>
-            <h2 className="font-heading text-2xl font-semibold">Research areas</h2>
+            <div className="flex items-baseline justify-between">
+              <h2 className="font-heading text-2xl font-semibold">Research areas</h2>
+              <Link href="/research" className="text-sm text-primary hover:underline">
+                View all
+              </Link>
+            </div>
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {researchAreas.map((area) => (
-                <Card key={area.id} className="h-full py-4">
-                  <CardContent className="px-4">
-                    <h3 className="font-heading font-semibold">{area.title}</h3>
-                    {area.summary ? (
-                      <p className="mt-2 text-sm text-muted-foreground">{area.summary}</p>
-                    ) : null}
-                  </CardContent>
-                </Card>
+                <Link key={area.id} href={`/research/${area.slug}`} className="block">
+                  <Card className="h-full py-4 transition-colors hover:border-primary/40">
+                    <CardContent className="px-4">
+                      <h3 className="font-heading font-semibold">{area.title}</h3>
+                      {area.summary ? (
+                        <p className="mt-2 text-sm text-muted-foreground">{area.summary}</p>
+                      ) : null}
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           </Container>
@@ -187,7 +184,7 @@ export default async function Home() {
             <div className="mt-6 max-w-xs">
               <PersonCard
                 name={`${lecturer.honorific ? lecturer.honorific + " " : ""}${lecturer.fullName}`}
-                rank={RANK_LABELS[lecturer.rank] ?? lecturer.rank}
+                rank={rankLabel(lecturer.rank)}
                 photoUrl={lecturer.photo?.url}
                 href={`/lecturer/${lecturer.slug}`}
               />

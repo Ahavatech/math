@@ -37,6 +37,49 @@ describe.skipIf(db === null)("seed", () => {
     expect(admin?.name.startsWith("[SAMPLE]")).toBe(false);
   });
 
+  it("fills real content into research areas and programmes that are still at the placeholder", async () => {
+    await seed(db!);
+
+    const area = await db!.researchArea.findUniqueOrThrow({ where: { slug: "algebra-and-number-theory" } });
+    expect(area.summary).not.toBe("Placeholder description. The department will provide final copy for this page.");
+    expect(area.summary.length).toBeGreaterThan(0);
+
+    const programme = await db!.programme.findUniqueOrThrow({ where: { slug: "bsc-mathematics" } });
+    expect(programme.summary).not.toBe("Placeholder description. The department will provide final copy for this page.");
+
+    const msc = await db!.programme.findUniqueOrThrow({
+      where: { slug: "msc-mathematics" },
+      include: { specialisations: true },
+    });
+    expect(msc.specialisations.length).toBe(10);
+  });
+
+  it("never overwrites a research area field an admin has already edited, even on re-seed", async () => {
+    await seed(db!);
+    await db!.researchArea.update({
+      where: { slug: "analysis" },
+      data: { summary: "HOD-edited summary, must survive re-seed" },
+    });
+
+    await seed(db!);
+
+    const area = await db!.researchArea.findUniqueOrThrow({ where: { slug: "analysis" } });
+    expect(area.summary).toBe("HOD-edited summary, must survive re-seed");
+  });
+
+  it("never overwrites a programme field an admin has already edited, even on re-seed", async () => {
+    await seed(db!);
+    await db!.programme.update({
+      where: { slug: "phd-mathematics" },
+      data: { summary: "HOD-edited programme summary, must survive re-seed" },
+    });
+
+    await seed(db!);
+
+    const programme = await db!.programme.findUniqueOrThrow({ where: { slug: "phd-mathematics" } });
+    expect(programme.summary).toBe("HOD-edited programme summary, must survive re-seed");
+  });
+
   it("running twice does not duplicate research areas, programmes, nav items or site settings", async () => {
     await seed(db!);
     const before = {

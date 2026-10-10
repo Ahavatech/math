@@ -18,6 +18,8 @@ Everything you can edit is under Admin in the menu once you are signed in.
 - **Navigation**: the menu at the top and the links in the footer.
 - **Pages**: longer pages like About, History and Mission and Vision.
 - **Media**: every image used on the site.
+- **Programmes**: the B.Sc., M.Sc. and Ph.D. pages, and the M.Sc. specialisations.
+- **Research**: the research area pages.
 
 ## Changing site content
 
@@ -68,6 +70,37 @@ Go to Admin, then Pages, and click a page to open it. Some pages were brought ov
 website and are marked "Imported from the old site, needs HOD review". These pages are not shown
 to visitors until you open them, check the text, and save. Saving a page automatically clears
 that review flag.
+
+## Editing programmes
+
+Go to Admin, then Programmes, and click a programme to open it. You can change the title,
+summary, full description, duration and admission requirements, and set its status. The
+programme level (B.Sc., M.Sc. or Ph.D.) and its web address cannot be changed here.
+
+Under the programme, the Specialisations list lets you:
+
+- Add a new specialisation with a title and description
+- Edit an existing one
+- Reorder them with the up and down arrows
+- Remove one without deleting it, using the archive button (the circular arrow brings it back)
+
+Some programmes were brought over from the old site and are marked "Imported from the old site,
+needs HOD review" until you open and save them.
+
+## Editing research areas
+
+Go to Admin, then Research. Click a research area to edit it, or click "New research area" to
+add one.
+
+- Title, summary, full description, image and status are all editable
+- The web address (slug) is generated from the title automatically. If two areas would get the
+  same address, a number is added to keep them unique
+- Setting the status to Archived removes it from the public site, but visitors who already have
+  the link are sent to the research overview page instead of a broken link
+- Each area shows which lecturers are linked to it once lecturer profiles exist (a later stage)
+
+Use the up and down arrows on the research list to change the order areas appear on the public
+site.
 
 ## The homepage numbers
 

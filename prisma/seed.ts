@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { PLACEHOLDER_PROSE } from "../src/lib/placeholder";
 
 /**
  * Nine research areas and three programmes, titled exactly as recorded in
@@ -9,8 +10,6 @@ import { PrismaPg } from "@prisma/adapter-pg";
  * seeded per the prompt ("do not invent... that stage will fetch them from
  * the live site").
  */
-const PLACEHOLDER_PROSE =
-  "Placeholder description. The department will provide final copy for this page.";
 
 const RESEARCH_AREAS = [
   "Algebra and Number Theory",
@@ -190,6 +189,55 @@ const PAGES: Array<{ slug: string; title: string; body: string; needsReview: boo
   },
 ];
 
+/**
+ * Real prose fetched via WebFetch from https://maths.oauife.edu.ng (Stage
+ * 06), keyed by the seed title/slug above. Only ever applied to a row
+ * whose summary is still exactly PLACEHOLDER_PROSE, so an HOD edit is
+ * never overwritten - see the seed() fill pass below.
+ */
+const RESEARCH_AREA_CONTENT: Record<string, string> = {
+  "Algebra and Number Theory":
+    "Group theory, ring theory, algebraic number theory, and arithmetic geometry with connections to cryptography and coding theory.",
+  Analysis:
+    "Real and complex analysis, functional analysis, harmonic analysis, and operator theory on Banach and Hilbert spaces.",
+  "Differential Equations":
+    "Ordinary and partial differential equations, dynamical systems, fluid mechanics, and mathematical modelling of physical phenomena.",
+  "Fluid Mechanics":
+    "Computational fluid dynamics, viscous flow, heat and mass transfer, magnetohydrodynamics, and reaction-diffusion systems.",
+  "Numerical Analysis":
+    "Computational mathematics, numerical solutions to differential equations, approximation theory, and scientific computing.",
+  "Graph Theory and Combinatorics":
+    "Discrete mathematics, combinatorial optimisation, graph algorithms, and applications to network science and operations research.",
+  "Topology and Geometry":
+    "Point-set and algebraic topology, differential geometry, manifold theory, and connections to theoretical physics.",
+  "Mathematical Biology":
+    "Epidemiological modelling, population dynamics, biomathematics, and computational approaches to biological systems.",
+  "Solid Mechanics":
+    "Elasticity, plasticity, composite mechanics, phase change mechanics, and associated multi-field problems, bridging rigorous mathematical analysis with structural and material science applications.",
+};
+
+const PROGRAMME_CONTENT: Record<string, string> = {
+  "bsc-mathematics":
+    "A comprehensive programme covering algebra, analysis, geometry, and applied mathematics. Strong emphasis on problem-solving and mathematical reasoning.",
+  "msc-mathematics": "Advanced coursework and research in pure or applied mathematics.",
+  "phd-mathematics":
+    "Original research contributing to the frontiers of mathematical knowledge, supervised by distinguished faculty with international research profiles.",
+};
+
+/** Exactly as listed on the live site's M.Sc. programme section, in its own order. */
+const MSC_SPECIALISATIONS = [
+  "Algebra & Number Theory",
+  "Mathematical Analysis & Functional Analysis",
+  "Differential Equations (Ordinary & Partial)",
+  "Numerical Analysis & Computational Mathematics",
+  "Fluid Mechanics & Mathematical Physics",
+  "Topology & Geometry",
+  "Mathematical Biology & Epidemiological Modelling",
+  "Graph Theory & Combinatorics",
+  "Fixed Point Theory",
+  "Reaction-Diffusion Equations",
+] as const;
+
 export async function seed(db: PrismaClient): Promise<void> {
   for (const title of RESEARCH_AREAS) {
     const slug = slugify(title);
@@ -221,6 +269,67 @@ export async function seed(db: PrismaClient): Promise<void> {
       },
       update: {},
     });
+  }
+
+  // Fill real prose into rows still at the placeholder, never touching one
+  // an admin has already edited (recognised by no longer matching the
+  // placeholder sentinel exactly).
+  const researchImportFlags: Record<string, boolean> = {};
+  for (const title of RESEARCH_AREAS) {
+    const slug = slugify(title);
+    const realSummary = RESEARCH_AREA_CONTENT[title];
+    const current = await db.researchArea.findUnique({ where: { slug } });
+    if (current && realSummary && current.summary === PLACEHOLDER_PROSE) {
+      await db.researchArea.update({
+        where: { slug },
+        data: { summary: realSummary, body: `<p>${realSummary}</p>` },
+      });
+      researchImportFlags[slug] = true;
+    }
+  }
+  if (Object.keys(researchImportFlags).length > 0) {
+    await db.siteSetting.upsert({
+      where: { key: "research.importFlags" },
+      create: { key: "research.importFlags", value: researchImportFlags },
+      update: {},
+    });
+  }
+
+  const programmeImportFlags: Record<string, boolean> = {};
+  for (const programme of PROGRAMMES) {
+    const realSummary = PROGRAMME_CONTENT[programme.slug];
+    const current = await db.programme.findUnique({ where: { slug: programme.slug } });
+    if (current && realSummary && current.summary === PLACEHOLDER_PROSE) {
+      await db.programme.update({
+        where: { slug: programme.slug },
+        data: { summary: realSummary, body: `<p>${realSummary}</p>` },
+      });
+      programmeImportFlags[programme.slug] = true;
+    }
+  }
+  if (Object.keys(programmeImportFlags).length > 0) {
+    await db.siteSetting.upsert({
+      where: { key: "programmes.importFlags" },
+      create: { key: "programmes.importFlags", value: programmeImportFlags },
+      update: {},
+    });
+  }
+
+  // M.Sc. specialisations: create only the ones missing by title, under
+  // the M.Sc. programme. Never touches an existing row.
+  const mscProgramme = await db.programme.findUnique({ where: { slug: "msc-mathematics" } });
+  if (mscProgramme) {
+    for (let i = 0; i < MSC_SPECIALISATIONS.length; i++) {
+      const title = MSC_SPECIALISATIONS[i];
+      const existing = await db.specialisation.findFirst({
+        where: { programmeId: mscProgramme.id, title },
+      });
+      if (!existing) {
+        await db.specialisation.create({
+          data: { programmeId: mscProgramme.id, title, description: PLACEHOLDER_PROSE, order: i },
+        });
+      }
+    }
   }
 
   for (const item of NAV_ITEMS) {
