@@ -116,6 +116,15 @@ export const SETTINGS_REGISTRY = {
     label: "Footer text",
     section: "Footer text",
   },
+  // Admin-only marker for which Page slugs were auto-imported from the
+  // old site and still need HOD review - never read by any public
+  // route. Cleared for a slug the moment that page is saved.
+  "pages.importFlags": {
+    schema: z.record(z.string(), z.boolean()),
+    default: {},
+    label: "Page import flags",
+    section: "Pages",
+  },
 } as const;
 
 export type SettingsKey = keyof typeof SETTINGS_REGISTRY;

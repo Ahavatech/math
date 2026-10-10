@@ -13,7 +13,8 @@ export function SiteFooter({
   footerText: string | null;
 }) {
   const year = new Date().getFullYear();
-  const hasContact = contact.address || contact.phone || contact.email || contact.officeHours;
+  const hasContact =
+    contact.address || contact.phones.length > 0 || contact.email || contact.officeHours;
   const socialEntries = Object.entries(social);
 
   return (
@@ -58,7 +59,9 @@ export function SiteFooter({
             <p className="font-heading text-sm font-semibold">Contact</p>
             <ul className="mt-3 space-y-1.5 text-sm text-muted-foreground">
               {contact.address ? <li>{contact.address}</li> : null}
-              {contact.phone ? <li>{contact.phone}</li> : null}
+              {contact.phones.map((phone) => (
+                <li key={phone}>{phone}</li>
+              ))}
               {contact.email ? (
                 <li>
                   <a href={`mailto:${contact.email}`} className="hover:text-foreground hover:underline">

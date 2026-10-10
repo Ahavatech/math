@@ -1,5 +1,6 @@
 import "server-only";
 import { db } from "@/lib/db";
+import { getSetting } from "@/server/services/site-settings";
 
 export type NavLink = {
   id: string;
@@ -44,39 +45,78 @@ export async function getFooterNav(): Promise<NavLink[]> {
   }
 }
 
-export type SiteAnnouncement = { enabled: boolean; message: string };
+export type SiteAnnouncement = { enabled: boolean; message: string; href: string | null };
 export type ContactDetails = {
-  address?: string;
-  phone?: string;
-  email?: string;
-  officeHours?: string;
+  address: string;
+  phones: string[];
+  email: string;
+  officeHours: string;
+  mapLat: number | null;
+  mapLng: number | null;
 };
 export type SocialLinks = Record<string, string>;
 
-async function getSetting<T>(key: string): Promise<T | null> {
+/**
+ * These all read through the typed settings registry (site-settings.ts)
+ * so there is exactly one source of truth for each key's shape; a
+ * malformed or stale row falls back to that key's registry default
+ * rather than ever reaching a public page as `undefined`.
+ */
+export async function getAnnouncement(): Promise<SiteAnnouncement | null> {
   try {
-    const row = await db.siteSetting.findUnique({ where: { key } });
-    return (row?.value as T) ?? null;
+    const value = await getSetting(db, "site.announcement");
+    if (!value.enabled || !value.message) return null;
+    return value;
   } catch {
     return null;
   }
 }
 
-export async function getAnnouncement(): Promise<SiteAnnouncement | null> {
-  const value = await getSetting<SiteAnnouncement>("site.announcement");
-  if (!value?.enabled || !value.message) return null;
-  return value;
-}
-
 export async function getContactDetails(): Promise<ContactDetails> {
-  return (await getSetting<ContactDetails>("contact.details")) ?? {};
+  try {
+    return await getSetting(db, "contact.details");
+  } catch {
+    return { address: "", phones: [], email: "", officeHours: "", mapLat: null, mapLng: null };
+  }
 }
 
 export async function getSocialLinks(): Promise<SocialLinks> {
-  return (await getSetting<SocialLinks>("social.links")) ?? {};
+  try {
+    return await getSetting(db, "social.links");
+  } catch {
+    return {};
+  }
 }
 
 export async function getFooterText(): Promise<string | null> {
-  const value = await getSetting<{ text?: string }>("footer.text");
-  return value?.text ?? null;
+  try {
+    const value = await getSetting(db, "footer.text");
+    return value.text || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getIdentity() {
+  try {
+    return await getSetting(db, "identity");
+  } catch {
+    return { name: "Department of Mathematics", tagline: "", logoId: null };
+  }
+}
+
+export async function getHodWelcome() {
+  try {
+    return await getSetting(db, "hod.welcomeAddress");
+  } catch {
+    return { name: "", title: "", photoId: null, message: "" };
+  }
+}
+
+export async function getHomepageHero() {
+  try {
+    return await getSetting(db, "homepage.hero");
+  } catch {
+    return { heading: "", subheading: "", imageId: null, ctaLabel: "", ctaHref: "" };
+  }
 }

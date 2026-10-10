@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser, requirePermission } from "@/lib/rbac";
 import { logAction, contextFromHeaders } from "@/server/services/audit";
 import { sanitizeRichText } from "@/lib/sanitize-html";
+import { getSetting, setSetting } from "@/server/services/site-settings";
 
 type ActionResult = { error?: string; success?: boolean };
 
@@ -63,6 +64,14 @@ export async function savePageAction(
       contextFromHeaders(await headers()),
     );
   });
+
+  // Editing a page IS the HOD review this flag exists to prompt - clear it.
+  const flags = await getSetting(db, "pages.importFlags");
+  const page = await db.page.findUnique({ where: { id: parsed.data.id }, select: { slug: true } });
+  if (page && flags[page.slug]) {
+    const { [page.slug]: _removed, ...rest } = flags;
+    await setSetting(db, "pages.importFlags", rest, actor.id);
+  }
 
   revalidatePath("/admin/pages");
   revalidatePath(`/${parsed.data.id}`);
