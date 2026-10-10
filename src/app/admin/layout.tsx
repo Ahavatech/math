@@ -16,7 +16,10 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { label: "Dashboard", href: "/admin", permission: null, implemented: true },
   { label: "Users", href: "/admin/users", permission: "users.manage", implemented: true },
-  { label: "Site content", href: "/admin/site", permission: "site.edit", implemented: false },
+  { label: "Site content", href: "/admin/site", permission: "site.edit", implemented: true },
+  { label: "Navigation", href: "/admin/navigation", permission: "site.edit", implemented: true },
+  { label: "Pages", href: "/admin/pages", permission: "site.edit", implemented: true },
+  { label: "Media", href: "/admin/media", permission: "site.edit", implemented: true },
   {
     label: "Lecturers",
     href: "/admin/lecturers",
