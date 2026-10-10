@@ -9,6 +9,7 @@
     "postinstall": "prisma generate",
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "tsx scripts/check-bundle-leaks.ts",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
