@@ -150,3 +150,14 @@ Every prompt run in Claude Code ends with a new entry at the bottom of this file
 **Deviations:** None.
 **Open issues:** Unchanged from Entries 009-010.
 **Next:** Confirm the CI re-run passes, then squash merge, update main and delete the branch.
+
+### Entry 012 | 2026-10-10 | Stage 06 start: alumni photo delivery decision recorded
+**Asked:** Before starting Stage 06, on the new stage/06-programmes-research branch, record the concrete alumni photo delivery decision as the first (docs-only) commit: Cloudinary `type: authenticated` while PENDING with signed URLs for admin review, moved to public delivery on approval, deleted on rejection, and the upload-signing route authorised by a valid unexpired alumni link token (not a session) with per-link/per-IP rate limits, a size cap and the same format allowlist; everything else stays public by design, with draft-content URLs unguessable-but-fetchable as an accepted risk.
+**Done:** Started a fresh branch from an up-to-date main (confirmed clean, tip at the Stage 05 merge commit) named stage/06-programmes-research. Added DECISIONS.md #34 with the exact mechanics above, immediately after #33 (Stage 05's more general version of the same concern) rather than replacing it, since #33 already correctly states the general principle and #34 is the concrete implementation plan for it. Added the matching detail to Stage 09's docs/ROADMAP.md line.
+**Files:** docs/DECISIONS.md, docs/ROADMAP.md.
+**Decisions:** docs/DECISIONS.md #34 (see Asked above, recorded verbatim).
+**Tests and checks:** Documentation only; no code changed, so no lint/typecheck/test/build run for this commit.
+**Security notes:** This entry is itself a security-relevant decision record for alumni photo handling, to be implemented in Stage 09.
+**Deviations:** None.
+**Open issues:** Unchanged from Entry 011, plus DECISIONS.md #34 is now the concrete spec Stage 09 must follow for alumni photo uploads.
+**Next:** Continue with the Stage 06 prompt (programmes and research areas: admin CRUD and public pages).

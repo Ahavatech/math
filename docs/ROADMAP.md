@@ -10,7 +10,7 @@ Tick items as they are completed and note the AUDIT.md entry number.
 - [ ] 06 Programmes and research areas: admin CRUD and public pages
 - [ ] 07 Lecturers: admin creates profiles, invites, /lecturer/[slug], staff directory, non-teaching staff
 - [ ] 08 News and events: admin CRUD, upcoming and past, flyers, galleries, calendar export
-- [ ] 09 Alumni: form links, pending queue, approval, duplicate checks, public directory. Before building the photo upload, switch the `alumni` Cloudinary folder to `type: authenticated` with signed delivery URLs (DECISIONS.md #33) — a pending/unapproved alumni photo must not get a public, forever-fetchable URL the instant it's uploaded.
+- [ ] 09 Alumni: form links, pending queue, approval, duplicate checks, public directory. Before building the photo upload, switch the `alumni` Cloudinary folder to `type: authenticated` with signed delivery URLs (DECISIONS.md #33) — a pending/unapproved alumni photo must not get a public, forever-fetchable URL the instant it's uploaded. Implement DECISIONS.md #34: upload as `authenticated`, show pending photos to admins only via short-lived signed URLs, move to public delivery on approval (check the current Cloudinary API for changing delivery type first), delete from Cloudinary and remove the MediaAsset row on rejection, and authorise the alumni upload-signing route by a valid unexpired alumni link token with per-link/per-IP rate limits, a size cap and the same format allowlist.
 - [ ] 10 Student resources: handbook pages, course catalogue, downloads, academic calendar
 - [ ] 11 Journal public side: landing, issues, articles, editorial board, private file storage
 - [ ] 12 Journal submission and peer review: authors, editors, reviewers, rounds, notifications
