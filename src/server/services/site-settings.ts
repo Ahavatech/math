@@ -125,6 +125,20 @@ export const SETTINGS_REGISTRY = {
     label: "Page import flags",
     section: "Pages",
   },
+  // Same pattern as pages.importFlags, keyed by slug, for the two
+  // Stage 06 content types seeded from the live site.
+  "programmes.importFlags": {
+    schema: z.record(z.string(), z.boolean()),
+    default: {},
+    label: "Programme import flags",
+    section: "Programmes",
+  },
+  "research.importFlags": {
+    schema: z.record(z.string(), z.boolean()),
+    default: {},
+    label: "Research area import flags",
+    section: "Research areas",
+  },
 } as const;
 
 export type SettingsKey = keyof typeof SETTINGS_REGISTRY;
