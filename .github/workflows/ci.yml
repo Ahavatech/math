@@ -20,6 +20,12 @@ jobs:
       # triggers env.ts's "RESEND_API_KEY required in production"
       # check. This placeholder is never used to actually send mail.
       RESEND_API_KEY: ci-placeholder-resend-key-not-used-for-anything-real
+      # Stage 05 made these required. Never used to call Cloudinary for
+      # real; the media routes that would use them are only exercised
+      # by unit tests with the Cloudinary client mocked.
+      CLOUDINARY_CLOUD_NAME: ci-placeholder-cloud-name
+      CLOUDINARY_API_KEY: ci-placeholder-api-key
+      CLOUDINARY_API_SECRET: ci-placeholder-api-secret
     steps:
       - uses: actions/checkout@v4
 
