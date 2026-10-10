@@ -3,15 +3,20 @@ import type { ReactNode } from "react";
 import { IBM_Plex_Sans, IBM_Plex_Serif } from "next/font/google";
 import "./globals.css";
 
+// latin-ext and vietnamese carry the combining/precomposed diacritics
+// (dot-below, underdot, tone marks) that Yoruba orthography also needs
+// (e.g. Ọ, Ẹ, Ṣ, and combining grave/acute accents) - without them,
+// those characters silently fall back to a system font. next/font's
+// compiler requires a literal array here, not a shared constant.
 const plexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext", "vietnamese"],
   weight: ["400", "500", "600"],
   variable: "--font-sans",
   display: "swap",
 });
 
 const plexSerif = IBM_Plex_Serif({
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext", "vietnamese"],
   weight: ["500", "600"],
   variable: "--font-heading",
   display: "swap",

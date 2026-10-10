@@ -76,6 +76,15 @@ export default function DesignPreviewPage() {
             <p className="text-sm text-muted-foreground">Caption / metadata sm</p>
             <p className="text-xs text-muted-foreground">Fine print xs</p>
           </div>
+          <div className="space-y-2 border-t border-border pt-4">
+            <p className="text-xs text-muted-foreground">
+              Glyph check (Yoruba diacritics - dot-below, underdot, tone marks):
+            </p>
+            <p className="font-heading text-2xl font-semibold">
+              Ọlá Adéṣọlá, Ẹ̀bùn Ṣóyẹmí, Àjàyí Òkúnọlá
+            </p>
+            <p className="text-lg">Ọlá Adéṣọlá, Ẹ̀bùn Ṣóyẹmí, Àjàyí Òkúnọlá</p>
+          </div>
         </section>
 
         <section aria-labelledby="buttons-heading" className="space-y-4">

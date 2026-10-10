@@ -14,5 +14,5 @@ Tick items as they are completed and note the AUDIT.md entry number.
 - [ ] 10 Student resources: handbook pages, course catalogue, downloads, academic calendar
 - [ ] 11 Journal public side: landing, issues, articles, editorial board, private file storage
 - [ ] 12 Journal submission and peer review: authors, editors, reviewers, rounds, notifications
-- [ ] 13 Search, SEO, accessibility and performance, end-to-end tests
+- [ ] 13 Search, SEO, accessibility and performance, end-to-end tests. Reduce First Load JS on public routes from about 197 kB gzip toward 130 kB. Use the bundle analyzer, check lucide icon imports and base-ui usage, and confirm no admin-only libraries leak into public routes.
 - [ ] 14 Hardening and deployment: security pass, backups, Nginx, process manager, docs, training and handover. Also add the Content-Security-Policy header (deferred from Stage 03, which added the other baseline security headers in next.config.ts).
