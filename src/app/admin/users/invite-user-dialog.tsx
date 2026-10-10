@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { inviteUserAction } from "@/server/actions/admin-users";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,17 +17,30 @@ import {
 import { RoleCheckboxes } from "./role-checkboxes";
 
 export function InviteUserDialog() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [state, formAction, pending] = useActionState(inviteUserAction, undefined);
+  const [error, setError] = useState<string | undefined>();
+  const [pending, startTransition] = useTransition();
+
+  function handleSubmit(formData: FormData) {
+    startTransition(async () => {
+      const result = await inviteUserAction(undefined, formData);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setError(undefined);
+      setOpen(false);
+      router.refresh();
+    });
+  }
 
   return (
     <Dialog
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
-        if (next === false && !state?.error) {
-          // closed after a successful invite; nothing else to reset here
-        }
+        if (next) setError(undefined);
       }}
     >
       <DialogTrigger render={<Button>Invite user</Button>} />
@@ -34,7 +48,7 @@ export function InviteUserDialog() {
         <DialogHeader>
           <DialogTitle>Invite a user</DialogTitle>
         </DialogHeader>
-        <form action={formAction} className="space-y-4">
+        <form action={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="name">Name</Label>
             <Input id="name" name="name" required />
@@ -47,9 +61,9 @@ export function InviteUserDialog() {
             <Label>Roles</Label>
             <RoleCheckboxes />
           </div>
-          {state?.error ? (
+          {error ? (
             <p className="text-destructive text-sm" role="alert">
-              {state.error}
+              {error}
             </p>
           ) : null}
           <DialogFooter>
