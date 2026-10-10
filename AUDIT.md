@@ -139,3 +139,14 @@ Every prompt run in Claude Code ends with a new entry at the bottom of this file
 **Deviations:** None.
 **Open issues:** Unchanged from Entry 009, plus this entry's new DECISIONS.md #33 is now the authoritative record of the authenticated-delivery requirement for Stage 09.
 **Next:** Push, open a PR, wait for CI, squash merge, then update main and delete the branch, per the user's explicit instruction.
+
+### Entry 011 | 2026-10-10 | Stage 05: CI build failure fixed (unsafe DB calls on static pages)
+**Asked:** Nothing new asked; this is the "wait for build" step of the user's push/merge instruction surfacing a real CI failure that needed fixing before merging.
+**Done:** PR #5's `build` check failed: `next build` prerenders `/` and `/about` as static pages at build time, and `src/server/services/homepage.ts`'s exports (listResearchAreas, listLatestNews, listUpcomingEvents, getFeaturedLecturer, getFeaturedAlumni, getHeroImage) had no error handling, unlike the established try/catch-with-default pattern already used throughout site-content.ts. CI's build job has no Postgres service, so the first raw Prisma call during static generation hit ECONNREFUSED and crashed the whole build. This was a real, previously-unnoticed gap against the Stage 05 spec's own requirement ("everything falls back safely when the database is empty or unreachable"), not a CI environment problem to work around. Wrapped every homepage.ts export in try/catch returning an empty array or null (exactly what "no data, hide the section" already looks like). about/page.tsx had the same gap with two inline Prisma calls (`db.page.findFirst`, `db.mediaAsset.findUnique`); replaced them with a new `getPublishedPage()` function in site-content.ts (same safe-fallback pattern) and reused `getHeroImage()` for the photo lookup, so the page component no longer touches Prisma directly at all. Reproduced the exact failure locally first, by running `npm run build` against a deliberately unreachable `DATABASE_URL` (port 59999), confirmed it crashed identically to the CI log, then confirmed the fix makes that same build succeed.
+**Files:** src/server/services/homepage.ts, src/server/services/site-content.ts, src/app/(site)/about/page.tsx.
+**Decisions:** None new.
+**Tests and checks:** `npm run lint`, `npm run typecheck`, `npm run test` (146/146) all pass. `npm run build` passes both against the real local database and, reproducing CI's exact scenario, against an unreachable one. Pushed; CI re-run pending at time of writing.
+**Security notes:** None; this was a build-time error-handling gap, not an authorization or data-exposure issue.
+**Deviations:** None.
+**Open issues:** Unchanged from Entries 009-010.
+**Next:** Confirm the CI re-run passes, then squash merge, update main and delete the branch.
