@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sanitizeRichText } from "../sanitize-html";
+import { sanitizeRichText, renderRichText } from "../sanitize-html";
 
 describe("sanitizeRichText", () => {
   it("keeps allowlisted structure and formatting", () => {
@@ -92,5 +92,33 @@ describe("sanitizeRichText", () => {
     const once = sanitizeRichText(input);
     const twice = sanitizeRichText(once);
     expect(twice).toBe(once);
+  });
+});
+
+describe("renderRichText", () => {
+  it("renders an inline math span to KaTeX markup instead of raw LaTeX source", () => {
+    const output = renderRichText(
+      '<p>Some text <span data-latex="x^2 + y^2 = r^2" data-display="false">x^2 + y^2 = r^2</span></p>',
+    );
+    expect(output).toContain("katex");
+    expect(output).not.toContain("data-latex");
+  });
+
+  it("renders a display math span in display mode", () => {
+    const output = renderRichText(
+      '<span data-latex="\\int_0^1 x\\,dx" data-display="true">\\int_0^1 x\\,dx</span>',
+    );
+    expect(output).toContain("katex-display");
+  });
+
+  it("still strips disallowed content before rendering math", () => {
+    const output = renderRichText('<script>alert(1)</script><p>Safe</p>');
+    expect(output).not.toMatch(/<script/i);
+    expect(output).toContain("Safe");
+  });
+
+  it("does not throw on an unparsable LaTeX source", () => {
+    const output = renderRichText('<span data-latex="\\notarealcommand{" data-display="false">bad</span>');
+    expect(() => output).not.toThrow();
   });
 });

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Prose } from "@/components/ui/prose";
 import { CloudImage } from "@/components/ui/cloud-image";
+import { renderRichText } from "@/lib/sanitize-html";
 import { NewsCard } from "@/components/sections/news-card";
 import { EventCard } from "@/components/sections/event-card";
 import { PersonCard } from "@/components/sections/person-card";
@@ -84,7 +85,7 @@ export default async function Home() {
             </p>
             <Prose
               className="mt-4 text-left [&>*:first-child]:mt-0 line-clamp-6"
-              dangerouslySetInnerHTML={{ __html: hod.message }}
+              dangerouslySetInnerHTML={{ __html: renderRichText(hod.message) }}
             />
             <p className="mt-4 font-heading font-semibold">{hod.name}</p>
             {hod.title ? <p className="text-sm text-muted-foreground">{hod.title}</p> : null}

@@ -6,6 +6,7 @@ import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Prose } from "@/components/ui/prose";
 import { CloudImage } from "@/components/ui/cloud-image";
+import { renderRichText } from "@/lib/sanitize-html";
 
 export const metadata: Metadata = {
   title: "About",
@@ -30,7 +31,7 @@ export default async function AboutPage() {
             <h1 className="font-heading text-3xl font-semibold sm:text-4xl">{page.title}</h1>
             <Prose
               className="mt-6"
-              dangerouslySetInnerHTML={{ __html: page.body }}
+              dangerouslySetInnerHTML={{ __html: renderRichText(page.body) }}
             />
           </>
         ) : null}
@@ -52,7 +53,7 @@ export default async function AboutPage() {
                 </div>
               ) : null}
               <div className="min-w-0">
-                <Prose dangerouslySetInnerHTML={{ __html: hod.message }} />
+                <Prose dangerouslySetInnerHTML={{ __html: renderRichText(hod.message) }} />
                 <p className="mt-4 font-heading font-semibold">{hod.name}</p>
                 {hod.title ? <p className="text-sm text-muted-foreground">{hod.title}</p> : null}
               </div>
