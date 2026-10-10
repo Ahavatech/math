@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { PLACEHOLDER_PROSE } from "../src/lib/placeholder";
 
 /**
  * Nine research areas and three programmes, titled exactly as recorded in
@@ -9,8 +10,6 @@ import { PrismaPg } from "@prisma/adapter-pg";
  * seeded per the prompt ("do not invent... that stage will fetch them from
  * the live site").
  */
-const PLACEHOLDER_PROSE =
-  "Placeholder description. The department will provide final copy for this page.";
 
 const RESEARCH_AREAS = [
   "Algebra and Number Theory",
