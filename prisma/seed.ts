@@ -70,7 +70,9 @@ const NAV_ITEMS: Array<{
   { label: "Programmes", href: "/programmes", location: "FOOTER", order: 1 },
   { label: "Journal", href: "/journal", location: "FOOTER", order: 2 },
   { label: "Student Resources", href: "/students", location: "FOOTER", order: 3 },
-  { label: "Contact", href: "/contact", location: "FOOTER", order: 4 },
+  // No "Contact" FOOTER link here: SiteFooter already renders a
+  // dedicated Contact block from SiteSetting; a seeded nav link with
+  // the same label duplicated it (Stage 05 fix).
 ];
 
 /**
@@ -79,37 +81,58 @@ const NAV_ITEMS: Array<{
  * contact details yet per PRODUCT.md), so every text value is marked
  * [SAMPLE] for easy removal once real content arrives.
  */
+/**
+ * Shapes here must match src/server/services/site-settings.ts's
+ * SETTINGS_REGISTRY schemas exactly - getSetting() falls back to that
+ * key's registry default when a stored value fails validation, so a
+ * drifted seed value here would silently vanish on read, not error.
+ */
 const SITE_SETTINGS: Array<{ key: string; value: unknown }> = [
+  {
+    key: "identity",
+    value: {
+      name: "Department of Mathematics",
+      tagline: "[SAMPLE] For learning and culture",
+      logoId: null,
+    },
+  },
   {
     key: "hod.welcomeAddress",
     value: {
       name: "[SAMPLE] Prof. B. S. Ogundare",
       title: "[SAMPLE] Head of Department",
-      message: "[SAMPLE] Welcome to the Department of Mathematics.",
+      photoId: null,
+      message: "<p>[SAMPLE] Welcome to the Department of Mathematics.</p>",
     },
   },
   {
     key: "homepage.hero",
     value: {
-      title: "[SAMPLE] Department of Mathematics",
-      subtitle: "[SAMPLE] Obafemi Awolowo University, Ile-Ife",
+      heading: "[SAMPLE] Department of Mathematics",
+      subheading: "[SAMPLE] Obafemi Awolowo University, Ile-Ife",
+      imageId: null,
+      ctaLabel: "[SAMPLE] Explore programmes",
+      ctaHref: "/programmes",
     },
   },
   {
     key: "homepage.stats",
     value: {
-      staff: "[SAMPLE] 0",
-      alumni: "[SAMPLE] 0",
-      programmes: "[SAMPLE] 3",
+      staff: { mode: "auto", manualValue: null },
+      alumni: { mode: "auto", manualValue: null },
+      programmes: { mode: "auto", manualValue: null },
+      researchAreas: { mode: "auto", manualValue: null },
     },
   },
   {
     key: "contact.details",
     value: {
       address: "[SAMPLE] Department of Mathematics, OAU, Ile-Ife, Nigeria",
-      phone: "[SAMPLE] +234 000 000 0000",
+      phones: ["[SAMPLE] +234 000 000 0000"],
       email: "[SAMPLE] maths@oauife.edu.ng",
       officeHours: "[SAMPLE] Monday to Friday, 9am to 4pm",
+      mapLat: null,
+      mapLng: null,
     },
   },
   {
@@ -117,6 +140,53 @@ const SITE_SETTINGS: Array<{ key: string; value: unknown }> = [
     value: {
       text: "[SAMPLE] Department of Mathematics, Obafemi Awolowo University.",
     },
+  },
+];
+
+/**
+ * Seeded from https://maths.oauife.edu.ng (fetched 2026-10-10). The
+ * live site is a single long page with no separate About/History/
+ * Mission pages, so only what was actually found is quoted verbatim;
+ * everything else is a clearly marked placeholder, never invented.
+ * See docs/prompts/05-media-site-content.md item 5.
+ */
+const PAGES: Array<{ slug: string; title: string; body: string; needsReview: boolean }> = [
+  {
+    slug: "about",
+    title: "About",
+    body:
+      "<p>The Department of Mathematics at OAU is committed to excellence in mathematical " +
+      "education, cutting-edge research, and forming mathematical minds from Ile-Ife to the " +
+      "global stage.</p>" +
+      "<p>[PLACEHOLDER - the live site has no further About prose beyond this fragment. " +
+      "Imported from the old site, needs HOD review.]</p>",
+    needsReview: true,
+  },
+  {
+    slug: "history",
+    title: "History",
+    body:
+      "<p>Faculty of Science, established 1962. 60+ years of excellence.</p>" +
+      "<p>[PLACEHOLDER - the live site has no narrative department history beyond these two " +
+      "facts. Imported from the old site, needs HOD review.]</p>",
+    needsReview: true,
+  },
+  {
+    slug: "mission-vision",
+    title: "Mission and Vision",
+    body:
+      "<p>[PLACEHOLDER - no mission or vision statement was found on the live site. " +
+      "Imported from the old site, needs HOD review.]</p>",
+    needsReview: true,
+  },
+  {
+    slug: "statistics-note",
+    title: "Statistics Note",
+    body:
+      "<p>[PLACEHOLDER - no existing text about the Statistics department split was found on " +
+      "the live site; see docs/DECISIONS.md's open question on this. Imported from the old " +
+      "site, needs HOD review.]</p>",
+    needsReview: true,
   },
 ];
 
@@ -173,6 +243,23 @@ export async function seed(db: PrismaClient): Promise<void> {
     await db.siteSetting.upsert({
       where: { key: setting.key },
       create: { key: setting.key, value: setting.value as never },
+      update: {},
+    });
+  }
+
+  const importFlags: Record<string, boolean> = {};
+  for (const page of PAGES) {
+    await db.page.upsert({
+      where: { slug: page.slug },
+      create: { slug: page.slug, title: page.title, body: page.body, status: "DRAFT" },
+      update: {},
+    });
+    if (page.needsReview) importFlags[page.slug] = true;
+  }
+  if (Object.keys(importFlags).length > 0) {
+    await db.siteSetting.upsert({
+      where: { key: "pages.importFlags" },
+      create: { key: "pages.importFlags", value: importFlags },
       update: {},
     });
   }
