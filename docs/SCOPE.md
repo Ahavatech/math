@@ -45,7 +45,7 @@ The current site is a single long page with fixed content, so nothing can change
 | --- | --- |
 | Navigation | About, Programmes, Research, News, Staffs, Alumni, Contact |
 | Homepage | Hero with a formula ticker, stats strip, scrolling announcement bar, HOD welcome message |
-| Programmes | B.Sc. Mathematics (4 years), M.Sc. Mathematics (1.5 to 2 years, 9 listed specialisations), Ph.D. Mathematics (3 to 5 years) |
+| Programmes | B.Sc. Mathematics (4 years), M.Sc. Mathematics (1.5 to 2 years, 10 listed specialisations), Ph.D. Mathematics (3 to 5 years) |
 | Research | 9 area cards: Algebra and Number Theory, Analysis, Differential Equations, Fluid Mechanics, Numerical Analysis, Graph Theory and Combinatorics, Topology and Geometry, Mathematical Biology, Solid Mechanics |
 | Staff | 8 academic cards and 5 non-teaching cards. Each opens a modal with Biography, Contact, Hobbies and Interests, Selected Publications |
 | News and events | Flyers you click to zoom. News and events share one section |
