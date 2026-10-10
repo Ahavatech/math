@@ -120,3 +120,11 @@ export async function getHomepageHero() {
     return { heading: "", subheading: "", imageId: null, ctaLabel: "", ctaHref: "" };
   }
 }
+
+export async function getPublishedPage(slug: string) {
+  try {
+    return await db.page.findFirst({ where: { slug, status: "PUBLISHED" } });
+  } catch {
+    return null;
+  }
+}

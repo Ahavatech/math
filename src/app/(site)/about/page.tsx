@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { db } from "@/lib/db";
-import { getHodWelcome } from "@/server/services/site-content";
+import { getHodWelcome, getPublishedPage } from "@/server/services/site-content";
+import { getHeroImage } from "@/server/services/homepage";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Prose } from "@/components/ui/prose";
@@ -13,11 +13,8 @@ export const metadata: Metadata = {
 };
 
 export default async function AboutPage() {
-  const [page, hod] = await Promise.all([
-    db.page.findFirst({ where: { slug: "about", status: "PUBLISHED" } }),
-    getHodWelcome(),
-  ]);
-  const hodPhoto = hod.photoId ? await db.mediaAsset.findUnique({ where: { id: hod.photoId } }) : null;
+  const [page, hod] = await Promise.all([getPublishedPage("about"), getHodWelcome()]);
+  const hodPhoto = await getHeroImage(hod.photoId);
 
   if (!page && !hod.message) {
     notFound();
