@@ -17,7 +17,7 @@ import { ImageCropDialog } from "./image-crop-dialog";
 import { registerMediaAction } from "@/server/actions/media";
 import type { MediaFolder } from "@/lib/media-folders";
 
-type SelectedMedia = { id: string; url: string; alt: string };
+export type SelectedMedia = { id: string; url: string; alt: string };
 
 async function uploadToCloudinary(
   file: File,
