@@ -9,9 +9,21 @@ import { sanitizeRichText } from "@/lib/sanitize-html";
 import {
   setSetting,
   restoreSetting,
+  listRevisions,
   type SettingsKey,
 } from "@/server/services/site-settings";
 import { revalidatePathsFor } from "@/server/services/site-settings";
+
+export async function listSettingRevisionsAction(key: SettingsKey) {
+  await requireSiteEdit();
+  const revisions = await listRevisions(db, key);
+  return revisions.map((r) => ({
+    id: r.id,
+    createdAt: r.createdAt.toISOString(),
+    createdByName: r.createdBy?.name ?? "Unknown",
+    snapshot: r.snapshot,
+  }));
+}
 
 type ActionResult = { error?: string; success?: boolean };
 
