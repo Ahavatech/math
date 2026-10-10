@@ -3,6 +3,7 @@ import type { Role } from "@prisma/client";
 export const PERMISSIONS = [
   "users.manage",
   "site.edit",
+  "academics.manage",
   "lecturers.manage",
   "news.manage",
   "events.manage",
@@ -19,11 +20,17 @@ export type Permission = (typeof PERMISSIONS)[number];
  * Role -> permission mapping, derived from docs/SCOPE.md's "Roles and
  * admin control" table. users.manage belongs to SUPER_ADMIN only
  * (Stage 03's /admin/users is restricted to that role, per the prompt).
+ *
+ * See docs/DECISIONS.md's entry amending #23/#24: site.edit (site
+ * settings, navigation, pages, hero, HOD address) is HOD/SUPER_ADMIN
+ * only. academics.manage (programmes, research areas) is held by
+ * SUPER_ADMIN, HOD and ADMIN - ADMIN no longer holds site.edit.
  */
 export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   SUPER_ADMIN: [...PERMISSIONS],
   HOD: [
     "site.edit",
+    "academics.manage",
     "lecturers.manage",
     "news.manage",
     "events.manage",
@@ -31,7 +38,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "own_profile.edit",
   ],
   ADMIN: [
-    "site.edit",
+    "academics.manage",
     "lecturers.manage",
     "news.manage",
     "events.manage",

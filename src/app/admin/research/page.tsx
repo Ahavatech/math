@@ -9,7 +9,7 @@ import { ResearchAreaRow } from "./research-area-row";
 
 export default async function AdminResearchPage() {
   const user = await getCurrentUser();
-  if (!user || !user.isActive || !hasPermission(user, "site.edit")) {
+  if (!user || !user.isActive || !hasPermission(user, "academics.manage")) {
     redirect("/403");
   }
 

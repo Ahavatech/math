@@ -18,9 +18,9 @@ import {
 
 type ActionResult = { error?: string; success?: boolean; id?: string };
 
-async function requireSiteEdit() {
+async function requireAcademicsManage() {
   const user = await getCurrentUser();
-  return requirePermission(user, "site.edit");
+  return requirePermission(user, "academics.manage");
 }
 
 function revalidateResearchPaths(slug?: string) {
@@ -51,7 +51,7 @@ export async function createResearchAreaAction(
   _prevState: ActionResult | undefined,
   formData: FormData,
 ): Promise<ActionResult> {
-  const actor = await requireSiteEdit();
+  const actor = await requireAcademicsManage();
   const parsed = parseResearchAreaForm(formData);
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -76,7 +76,7 @@ export async function updateResearchAreaAction(
   _prevState: ActionResult | undefined,
   formData: FormData,
 ): Promise<ActionResult> {
-  const actor = await requireSiteEdit();
+  const actor = await requireAcademicsManage();
   const id = String(formData.get("id") ?? "");
   const parsed = parseResearchAreaForm(formData);
   if (!parsed.success) {
@@ -107,7 +107,7 @@ export async function updateResearchAreaAction(
 }
 
 export async function setResearchAreaStatusAction(formData: FormData): Promise<ActionResult> {
-  const actor = await requireSiteEdit();
+  const actor = await requireAcademicsManage();
   const id = String(formData.get("id") ?? "");
   const status = formData.get("status");
   if (status !== "DRAFT" && status !== "PUBLISHED" && status !== "ARCHIVED") {
@@ -125,7 +125,7 @@ export async function setResearchAreaStatusAction(formData: FormData): Promise<A
 }
 
 export async function reorderResearchAreaAction(formData: FormData): Promise<ActionResult> {
-  await requireSiteEdit();
+  await requireAcademicsManage();
   const id = String(formData.get("id") ?? "");
   const direction = formData.get("direction") === "down" ? "down" : "up";
 
@@ -140,7 +140,7 @@ export async function reorderResearchAreaAction(formData: FormData): Promise<Act
 }
 
 export async function listResearchAreaRevisionsAction(id: string) {
-  await requireSiteEdit();
+  await requireAcademicsManage();
   const revisions = await listRevisions(db, "ResearchArea", id);
   return revisions.map((r) => ({
     id: r.id,
@@ -150,7 +150,7 @@ export async function listResearchAreaRevisionsAction(id: string) {
 }
 
 export async function restoreResearchAreaAction(formData: FormData): Promise<void> {
-  const actor = await requireSiteEdit();
+  const actor = await requireAcademicsManage();
   const id = String(formData.get("id") ?? "");
   const revisionId = String(formData.get("revisionId") ?? "");
 

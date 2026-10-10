@@ -5,7 +5,7 @@ import { ResearchAreaForm } from "../research-area-form";
 
 export default async function EditResearchAreaPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
-  if (!user || !user.isActive || !hasPermission(user, "site.edit")) {
+  if (!user || !user.isActive || !hasPermission(user, "academics.manage")) {
     redirect("/403");
   }
 

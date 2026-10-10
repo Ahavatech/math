@@ -21,9 +21,9 @@ import { enumToLevelSlug } from "@/lib/programme-level";
 
 type ActionResult = { error?: string; success?: boolean };
 
-async function requireSiteEdit() {
+async function requireAcademicsManage() {
   const user = await getCurrentUser();
-  return requirePermission(user, "site.edit");
+  return requirePermission(user, "academics.manage");
 }
 
 function revalidateProgrammePaths(levelSlug: string) {
@@ -46,7 +46,7 @@ export async function saveProgrammeAction(
   _prevState: ActionResult | undefined,
   formData: FormData,
 ): Promise<ActionResult> {
-  const actor = await requireSiteEdit();
+  const actor = await requireAcademicsManage();
   const parsed = programmeSaveSchema.safeParse({
     id: formData.get("id"),
     title: formData.get("title"),
@@ -86,7 +86,7 @@ export async function saveProgrammeAction(
 }
 
 export async function listProgrammeRevisionsAction(id: string) {
-  await requireSiteEdit();
+  await requireAcademicsManage();
   const revisions = await listRevisions(db, "Programme", id);
   return revisions.map((r) => ({
     id: r.id,
@@ -96,7 +96,7 @@ export async function listProgrammeRevisionsAction(id: string) {
 }
 
 export async function restoreProgrammeAction(formData: FormData): Promise<void> {
-  const actor = await requireSiteEdit();
+  const actor = await requireAcademicsManage();
   const id = String(formData.get("id") ?? "");
   const revisionId = String(formData.get("revisionId") ?? "");
 
@@ -117,7 +117,7 @@ const specialisationSchema = z.object({
 });
 
 export async function createSpecialisationAction(formData: FormData): Promise<ActionResult> {
-  const actor = await requireSiteEdit();
+  const actor = await requireAcademicsManage();
   const programmeId = String(formData.get("programmeId") ?? "");
   const parsed = specialisationSchema.safeParse({
     title: formData.get("title"),
@@ -139,7 +139,7 @@ export async function createSpecialisationAction(formData: FormData): Promise<Ac
 }
 
 export async function updateSpecialisationAction(formData: FormData): Promise<ActionResult> {
-  const actor = await requireSiteEdit();
+  const actor = await requireAcademicsManage();
   const id = String(formData.get("id") ?? "");
   const parsed = specialisationSchema.safeParse({
     title: formData.get("title"),
@@ -161,7 +161,7 @@ export async function updateSpecialisationAction(formData: FormData): Promise<Ac
 }
 
 export async function setSpecialisationActiveAction(formData: FormData): Promise<ActionResult> {
-  const actor = await requireSiteEdit();
+  const actor = await requireAcademicsManage();
   const id = String(formData.get("id") ?? "");
   const isActive = formData.get("isActive") === "true";
 
@@ -177,7 +177,7 @@ export async function setSpecialisationActiveAction(formData: FormData): Promise
 }
 
 export async function reorderSpecialisationAction(formData: FormData): Promise<ActionResult> {
-  await requireSiteEdit();
+  await requireAcademicsManage();
   const id = String(formData.get("id") ?? "");
   const direction = formData.get("direction") === "down" ? "down" : "up";
 

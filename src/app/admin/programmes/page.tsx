@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 
 export default async function AdminProgrammesPage() {
   const user = await getCurrentUser();
-  if (!user || !user.isActive || !hasPermission(user, "site.edit")) {
+  if (!user || !user.isActive || !hasPermission(user, "academics.manage")) {
     redirect("/403");
   }
 

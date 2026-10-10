@@ -8,7 +8,7 @@ import { SpecialisationsManager } from "./specialisations-manager";
 
 export default async function AdminProgrammePage({ params }: { params: Promise<{ level: string }> }) {
   const user = await getCurrentUser();
-  if (!user || !user.isActive || !hasPermission(user, "site.edit")) {
+  if (!user || !user.isActive || !hasPermission(user, "academics.manage")) {
     redirect("/403");
   }
 

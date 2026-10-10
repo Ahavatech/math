@@ -38,6 +38,24 @@ describe("rbac permission matrix", () => {
     }
   });
 
+  it("ADMIN does not have site.edit (site settings, navigation, pages and HOD address are HOD/SUPER_ADMIN only)", () => {
+    expect(hasPermission(user(["ADMIN"]), "site.edit")).toBe(false);
+  });
+
+  it("ADMIN has academics.manage (programmes and research areas)", () => {
+    expect(hasPermission(user(["ADMIN"]), "academics.manage")).toBe(true);
+  });
+
+  it("HOD has both site.edit and academics.manage", () => {
+    const u = user(["HOD"]);
+    expect(hasPermission(u, "site.edit")).toBe(true);
+    expect(hasPermission(u, "academics.manage")).toBe(true);
+  });
+
+  it("SUPER_ADMIN has academics.manage", () => {
+    expect(hasPermission(user(["SUPER_ADMIN"]), "academics.manage")).toBe(true);
+  });
+
   it("LECTURER has no permission beyond own_profile.edit", () => {
     const u = user(["LECTURER"]);
     for (const permission of Object.values(ROLE_PERMISSIONS).flat()) {
