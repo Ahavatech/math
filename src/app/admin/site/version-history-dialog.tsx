@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,7 +20,6 @@ type Revision = {
 };
 
 export function VersionHistoryDialog({ settingsKey }: { settingsKey: SettingsKey }) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [revisions, setRevisions] = useState<Revision[] | null>(null);
   const [pending, startTransition] = useTransition();
@@ -42,7 +40,14 @@ export function VersionHistoryDialog({ settingsKey }: { settingsKey: SettingsKey
       formData.set("revisionId", revisionId);
       await restoreSettingAction(formData);
       setOpen(false);
-      router.refresh();
+      /**
+       * The section components seed their form state from props with
+       * useState, so a soft `router.refresh()` would leave the visible
+       * fields showing the pre-restore values; a full reload is the only
+       * way to guarantee the form matches what was just restored, so an
+       * admin cannot accidentally re-save the stale values over it.
+       */
+      window.location.reload();
     });
   }
 
