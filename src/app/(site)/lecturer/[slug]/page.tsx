@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/rbac";
+import { getCurrentUser, hasPermission } from "@/lib/rbac";
 import {
   getPublishedLecturerBySlug,
   findLecturerBySlugOrPreviousSlug,
@@ -61,7 +61,7 @@ export default async function LecturerPage({ params }: { params: Promise<{ slug:
     if (lookup && lookup.profile.status !== "PUBLISHED") {
       const user = await getCurrentUser();
       const isOwnerOrAdmin =
-        user?.isActive && (user.id === lookup.profile.userId || hasLecturersManage(user));
+        user?.isActive && (user.id === lookup.profile.userId || hasPermission(user, "lecturers.manage"));
       if (isOwnerOrAdmin) {
         return renderDraftPreview(lookup.profile.slug);
       }
@@ -224,11 +224,6 @@ export default async function LecturerPage({ params }: { params: Promise<{ slug:
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
     </Section>
   );
-}
-
-function hasLecturersManage(user: { roles: string[] }): boolean {
-  const managerRoles = ["SUPER_ADMIN", "HOD", "ADMIN"];
-  return user.roles.some((role) => managerRoles.includes(role));
 }
 
 function renderDraftPreview(slug: string) {
