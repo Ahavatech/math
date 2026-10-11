@@ -338,12 +338,24 @@ export async function seed(db: PrismaClient): Promise<void> {
       where: { href: item.href, location: item.location },
     });
     if (!existing) {
+      // Never trust item.order against a database that may already hold
+      // other items at that location from an earlier seed run - a new
+      // item always goes after the current real maximum for its
+      // location, so it can never collide with (or duplicate the order
+      // of) something already there. This fixed a real bug: an earlier
+      // version of this loop used item.order directly, which put the
+      // newly-added "Staff" FOOTER item at the same order as the
+      // pre-existing "Journal" item on an already-seeded database.
+      const max = await db.navItem.aggregate({
+        where: { location: item.location },
+        _max: { order: true },
+      });
       await db.navItem.create({
         data: {
           label: item.label,
           href: item.href,
           location: item.location,
-          order: item.order,
+          order: (max._max.order ?? -1) + 1,
         },
       });
     }
