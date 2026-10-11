@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 type PublishedLecturerOption = { id: string; fullName: string };
 
@@ -52,24 +53,27 @@ export function FeaturedLecturerSection({
       </Select>
 
       {mode === "manual" ? (
-        <Select
-          value={lecturerProfileId}
-          onValueChange={(next) => {
-            setLecturerProfileId(next ?? "");
-            setDirty(true);
-          }}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Choose a published lecturer" />
-          </SelectTrigger>
-          <SelectContent>
+        <div className="space-y-1.5">
+          <Label htmlFor="featured-lecturer-id" className="sr-only">
+            Choose a published lecturer
+          </Label>
+          <select
+            id="featured-lecturer-id"
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+            value={lecturerProfileId}
+            onChange={(e) => {
+              setLecturerProfileId(e.target.value);
+              setDirty(true);
+            }}
+          >
+            <option value="">Choose a published lecturer</option>
             {publishedLecturers.map((lecturer) => (
-              <SelectItem key={lecturer.id} value={lecturer.id}>
+              <option key={lecturer.id} value={lecturer.id}>
                 {lecturer.fullName}
-              </SelectItem>
+              </option>
             ))}
-          </SelectContent>
-        </Select>
+          </select>
+        </div>
       ) : (
         <p className="text-xs text-muted-foreground">
           Rotates daily among published profiles that have both a photo and a bio. The homepage block
