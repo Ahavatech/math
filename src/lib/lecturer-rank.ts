@@ -15,6 +15,23 @@ export function rankLabel(rank: LecturerRank): string {
   return RANK_LABELS[rank] ?? rank;
 }
 
+/** Seniority order for public listings: Professor first, "Staff" (OTHER) last. */
+const RANK_SENIORITY_ORDER: LecturerRank[] = [
+  "PROFESSOR",
+  "ASSOCIATE_PROFESSOR",
+  "SENIOR_LECTURER",
+  "LECTURER_I",
+  "LECTURER_II",
+  "ASSISTANT_LECTURER",
+  "GRADUATE_ASSISTANT",
+  "OTHER",
+];
+
+export function rankSeniorityIndex(rank: LecturerRank): number {
+  const index = RANK_SENIORITY_ORDER.indexOf(rank);
+  return index === -1 ? RANK_SENIORITY_ORDER.length : index;
+}
+
 const RANK_ALIASES: Record<string, LecturerRank> = {
   PROFESSOR: "PROFESSOR",
   PROF: "PROFESSOR",

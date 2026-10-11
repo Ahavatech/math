@@ -35,6 +35,11 @@ const statModeSchema = z.object({
   manualValue: z.number().int().nonnegative().nullable(),
 });
 
+const featuredLecturerSchema = z.object({
+  mode: z.enum(["manual", "automatic"]),
+  lecturerProfileId: z.string().nullable(),
+});
+
 const statsSchema = z.object({
   staff: statModeSchema,
   alumni: statModeSchema,
@@ -98,6 +103,12 @@ export const SETTINGS_REGISTRY = {
     label: "Stats",
     section: "Stats",
   },
+  "homepage.featuredLecturer": {
+    schema: featuredLecturerSchema,
+    default: { mode: "automatic", lecturerProfileId: null },
+    label: "Featured lecturer",
+    section: "Featured lecturer",
+  },
   "contact.details": {
     schema: contactSchema,
     default: { address: "", phones: [], email: "", officeHours: "", mapLat: null, mapLng: null },
@@ -139,6 +150,14 @@ export const SETTINGS_REGISTRY = {
     label: "Research area import flags",
     section: "Research areas",
   },
+  // Same pattern, keyed by NonTeachingStaff id (it has no slug) instead
+  // of by slug.
+  "staff.importFlags": {
+    schema: z.record(z.string(), z.boolean()),
+    default: {},
+    label: "Non-teaching staff import flags",
+    section: "Staff",
+  },
 } as const;
 
 export type SettingsKey = keyof typeof SETTINGS_REGISTRY;
@@ -150,6 +169,7 @@ const PUBLIC_REVALIDATE_PATHS: Partial<Record<SettingsKey, string[]>> = {
   "homepage.hero": ["/"],
   "site.announcement": ["/"],
   "homepage.stats": ["/"],
+  "homepage.featuredLecturer": ["/"],
   "contact.details": ["/", "/contact"],
   "social.links": ["/"],
   "footer.text": ["/"],
