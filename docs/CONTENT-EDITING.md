@@ -102,6 +102,42 @@ add one.
 Use the up and down arrows on the research list to change the order areas appear on the public
 site.
 
+## Adding lecturers
+
+Go to Admin, then Lecturers.
+
+- Click "New lecturer", enter their full name, honorific, rank and official email, then save. This
+  creates their account and sends them nowhere yet - you still need to send the invite.
+- Click "Send invite" on their row. They get an email with a link to set their own password.
+  "Copy invite link" shows the same link once, in case you need to share it another way (for
+  example, if the email does not arrive).
+- Each lecturer completes their own profile (photo, bio, research areas, contact details,
+  publications, CV) under their own sign-in. You do not need to do this for them, though you can
+  edit any of their fields on their behalf from their row's "Edit" action if they ask you to.
+- A profile starts as Draft. Once the lecturer has added a photo, a bio and at least one research
+  area, they can request publishing. You will see a badge for this on the Lecturers list. Open
+  their row and click Publish to make their page visible to the public at `/lecturer/their-slug`.
+  After that, their own edits go live immediately without needing your approval again, but you
+  can still unpublish them or restore an earlier version at any time.
+- Deactivating a lecturer's account (from Admin, Users) immediately hides their public profile,
+  even if it was published.
+
+### Bulk-adding several lecturers at once
+
+Go to Admin, then Lecturers, then "Bulk import". Upload a CSV file with the columns `fullName`,
+`honorific`, `rank`, `email` (up to 200 rows). The wizard has three steps:
+
+1. **Check**: shows which rows are valid and which have a problem (bad email, an unrecognised
+   rank, a duplicate), without changing anything yet.
+2. **Create**: creates the accounts and draft profiles for the valid rows. No email is sent yet.
+3. **Send invites**: a separate step, with its own confirmation, that emails every created
+   account. If one email fails to send, the others still go out.
+
+A template file pre-filled with the staff names found on the department's current website is at
+`docs/lecturer-import-template.csv`. Only one name (the Head of Department) could be confirmed
+from the live site at the time it was written; add the rest of the department's lecturers and
+their email addresses yourself before uploading it.
+
 ## The homepage numbers
 
 Go to Admin, then Site content, then Stats. Each number (staff, programmes, research areas,
