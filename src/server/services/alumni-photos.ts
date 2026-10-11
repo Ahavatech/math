@@ -87,8 +87,25 @@ export async function deleteAlumniPhoto(db: Db, mediaId: string): Promise<void> 
  * current Cloudinary plan (see docs/MEDIA.md - token-based expiring
  * URLs require the Advanced plan or higher). A null result tells the
  * caller (the protected admin photo route) to stream the bytes itself
- * instead of redirecting to a URL.
+ * instead of redirecting the browser to a URL.
  */
 export function getSignedAlumniPhotoUrl(_publicId: string): string | null {
   return null;
+}
+
+/**
+ * A signed Cloudinary URL for `type: authenticated` delivery, used
+ * server-side only to fetch the bytes for streaming - never sent to
+ * the browser. Unlike `getSignedAlumniPhotoUrl` above, this one is not
+ * meant to be time-limited; it exists purely so the server itself can
+ * read an authenticated asset's bytes (a plain URL for `authenticated`
+ * delivery always 401s, signed or not, per docs/MEDIA.md).
+ */
+export function buildAlumniPhotoFetchUrl(publicId: string, deliveryType: string): string {
+  return cloudinary.url(publicId, {
+    resource_type: "image",
+    type: deliveryType,
+    sign_url: deliveryType === "authenticated",
+    secure: true,
+  });
 }

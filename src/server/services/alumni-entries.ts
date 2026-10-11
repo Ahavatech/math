@@ -70,6 +70,32 @@ export async function findPossibleDuplicates(
   });
 }
 
+/**
+ * Full admin detail view for one entry, with a `photoUrl` field that is
+ * either the internal protected-route path (while the photo is still
+ * `authenticated`, i.e. the entry hasn't been approved yet) or the
+ * real public Cloudinary URL once it is `upload` (approved). The raw
+ * Cloudinary URL is never exposed for a pending photo.
+ */
+export async function getAlumniEntryAdmin(db: PrismaClient, id: string) {
+  const entry = await db.alumniEntry.findUniqueOrThrow({
+    where: { id },
+    include: { photo: true, link: { select: { id: true, label: true } } },
+  });
+
+  const photoUrl = entry.photo
+    ? entry.photo.deliveryType === "upload"
+      ? entry.photo.url
+      : `/api/alumni-photo/${entry.id}`
+    : null;
+
+  // Never expose the raw `photo` relation (its `url` is a live Cloudinary
+  // URL, even for a pending/authenticated asset) - only the computed,
+  // always-safe `photoUrl` above.
+  const { photo: _photo, ...rest } = entry;
+  return { ...rest, photoUrl };
+}
+
 export async function listAlumniEntriesAdmin(db: PrismaClient, status: AlumniStatus) {
   return db.alumniEntry.findMany({
     where: { status },

@@ -23,6 +23,7 @@ import {
   bulkApprove,
   updateAlumniEntry,
   setFeatured,
+  getAlumniEntryAdmin,
 } from "../alumni-entries";
 
 const db = await getTestDb();
@@ -197,6 +198,33 @@ describe.skipIf(db === null)("alumni-entries service", () => {
     const entry = await submit({ organisation: "Old Org" });
     const updated = await updateAlumniEntry(db!, entry.id, { organisation: "New Org" }, actorId);
     expect(updated.organisation).toBe("New Org");
+  });
+
+  it("getAlumniEntryAdmin never exposes a raw Cloudinary URL for a pending entry's photo", async () => {
+    const entry = await submit();
+    await db!.alumniEntry.update({
+      where: { id: entry.id },
+      data: {
+        photo: {
+          create: {
+            provider: "cloudinary",
+            publicId: "oau-maths/alumni/pending/test-photo",
+            url: "https://res.cloudinary.com/demo/image/authenticated/s--sig--/v1/oau-maths/alumni/pending/test-photo.jpg",
+            alt: "Alumni photo",
+            deliveryType: "authenticated",
+          },
+        },
+      },
+    });
+
+    const admin = await getAlumniEntryAdmin(db!, entry.id);
+    const serialized = JSON.stringify(admin);
+    expect(serialized).not.toContain("res.cloudinary.com");
+    expect(admin.photoUrl).toBe(`/api/alumni-photo/${entry.id}`);
+
+    const photoId = admin.photoId!;
+    await db!.alumniEntry.update({ where: { id: entry.id }, data: { photoId: null } });
+    await db!.mediaAsset.delete({ where: { id: photoId } });
   });
 
   it("setFeatured toggles isFeatured on an approved entry", async () => {
