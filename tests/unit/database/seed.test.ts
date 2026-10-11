@@ -132,4 +132,38 @@ describe.skipIf(db === null)("seed", () => {
 
     expect(after).toEqual(before);
   });
+
+  it("seeds the real news post and events from the live site, idempotently and never overwriting an admin edit", async () => {
+    await seed(db!);
+
+    const post = await db!.newsPost.findFirstOrThrow({ where: { title: "Emerging Economy seminar holds on 8 July 2026" } });
+    expect(post.status).toBe("PUBLISHED");
+    expect(post.category).toBe("ANNOUNCEMENT");
+
+    const seminar = await db!.event.findFirstOrThrow({ where: { title: "Emerging Economy Seminar" } });
+    expect(seminar.speakerName).toBe("Banji Osatumberu");
+    const lecture = await db!.event.findFirstOrThrow({
+      where: { title: "A Special Undergraduate Lecture on Optimization Methods in Machine Learning" },
+    });
+    expect(lecture.speakerName).toBe("Adebanji Adelowo");
+
+    // Admin edits the seeded post.
+    await db!.newsPost.update({ where: { id: post.id }, data: { title: "HOD-edited title, must survive re-seed" } });
+
+    try {
+      await seed(db!);
+
+      const newsCount = await db!.newsPost.count({ where: { title: { contains: "Emerging Economy seminar holds" } } });
+      expect(newsCount).toBe(0); // the original title is gone (renamed), and no duplicate was created
+      const stillEdited = await db!.newsPost.findUniqueOrThrow({ where: { id: post.id } });
+      expect(stillEdited.title).toBe("HOD-edited title, must survive re-seed");
+
+      const eventCount = await db!.event.count({ where: { title: { in: ["Emerging Economy Seminar", "A Special Undergraduate Lecture on Optimization Methods in Machine Learning"] } } });
+      expect(eventCount).toBe(2); // no duplicates from the second seed run
+    } finally {
+      // Revert so this shared test database is left exactly as other
+      // runs of this test (and the rest of the suite) expect it.
+      await db!.newsPost.update({ where: { id: post.id }, data: { title: "Emerging Economy seminar holds on 8 July 2026" } });
+    }
+  });
 });
