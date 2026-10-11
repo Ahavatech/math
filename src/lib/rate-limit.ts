@@ -57,3 +57,11 @@ export const uploadSigningRateLimiter = new InMemoryRateLimiter({
   limit: 20,
   windowMs: 60_000,
 });
+export const cvUploadSigningRateLimiter = new InMemoryRateLimiter({
+  limit: 10,
+  windowMs: 60_000,
+});
+export const changePasswordRateLimiter = new InMemoryRateLimiter({
+  limit: 5,
+  windowMs: 60_000,
+});

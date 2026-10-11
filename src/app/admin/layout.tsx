@@ -26,12 +26,30 @@ const NAV_ITEMS: NavItem[] = [
     label: "Lecturers",
     href: "/admin/lecturers",
     permission: "lecturers.manage",
-    implemented: false,
+    implemented: true,
   },
   { label: "News", href: "/admin/news", permission: "news.manage", implemented: false },
   { label: "Events", href: "/admin/events", permission: "events.manage", implemented: false },
   { label: "Alumni", href: "/admin/alumni", permission: "alumni.review", implemented: false },
   { label: "Journal", href: "/admin/journal", permission: "journal.edit", implemented: false },
+];
+
+/**
+ * Every real admin permission except own_profile.edit (which every role,
+ * including a bare LECTURER, holds). A user with none of these sees the
+ * minimal shell: My profile, Change password, Sign out - every other
+ * /admin route still 403s on its own page-level check regardless of
+ * what the sidebar shows.
+ */
+const ADMIN_PERMISSIONS: Permission[] = [
+  "users.manage",
+  "site.edit",
+  "academics.manage",
+  "lecturers.manage",
+  "news.manage",
+  "events.manage",
+  "alumni.review",
+  "journal.edit",
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -40,9 +58,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect("/login");
   }
 
-  const visibleItems = NAV_ITEMS.filter(
-    (item) => item.permission === null || hasPermission(user, item.permission),
-  );
+  const isLecturerOnly = !ADMIN_PERMISSIONS.some((permission) => hasPermission(user, permission));
+
+  const visibleItems = isLecturerOnly
+    ? ([
+        { label: "My profile", href: "/admin/my-profile", permission: null, implemented: true },
+        { label: "Change password", href: "/admin/my-profile/security", permission: null, implemented: true },
+      ] as NavItem[])
+    : NAV_ITEMS.filter((item) => item.permission === null || hasPermission(user, item.permission));
 
   const dbUser = await db.user.findUnique({
     where: { id: user.id },
