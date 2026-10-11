@@ -264,6 +264,24 @@ describe.skipIf(db === null)("lecturers service", () => {
     await db!.user.update({ where: { id: user.id }, data: { isActive: false } });
     expect(await getPublishedLecturerBySlug(db!, profile.slug)).toBeNull();
   });
+
+  it("the public query result never serialises the login email or a password hash", async () => {
+    const loginEmail = "secret-login-email-test@example.com";
+    const { user, profile } = await createLecturer(db!, actorId, {
+      fullName: "Serialization Test",
+      honorific: "",
+      rank: "LECTURER_I",
+      email: loginEmail,
+    });
+    createdUserIds.push(user.id);
+    await publishLecturer(db!, actorId, profile.id);
+
+    const published = await getPublishedLecturerBySlug(db!, profile.slug);
+    const serialized = JSON.stringify(published);
+
+    expect(serialized).not.toContain(loginEmail);
+    expect(serialized).not.toContain("passwordHash");
+  });
 });
 
 describe("deriveInviteState", () => {
