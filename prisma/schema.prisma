@@ -406,6 +406,9 @@ model LecturerProfile {
   isEmeritus      Boolean       @default(false)
   order           Int           @default(0)
   status          ContentStatus @default(DRAFT)
+  previousSlugs   String[]      @default([])
+  supervisionText String?
+  publishRequestedAt DateTime?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 

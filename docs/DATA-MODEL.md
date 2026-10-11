@@ -103,7 +103,7 @@ erDiagram
   NonTeachingStaff { string name string position bool isActive }
 ```
 
-- **LecturerProfile**: one per `User`; the admin-created half (`userId`, `rank`) exists before the lecturer's invite is accepted, the rest (`bio`, `officeHours`, etc.) is theirs to complete.
+- **LecturerProfile**: one per `User`; the admin-created half (`userId`, `rank`) exists before the lecturer's invite is accepted, the rest (`bio`, `officeHours`, etc.) is theirs to complete. Stage 07a added three fields: `previousSlugs String[]` (every slug this profile was published under before an admin changed it, so the old public URL keeps 308-redirecting to the current one instead of 404ing), `supervisionText String?` (rich text, the "Students and supervision" section), and `publishRequestedAt DateTime?` (set only via the lecturer's "Request publishing" action, cleared on publish or on a further edit after a rejection - never settable through the lecturer's own self-edit field allowlist).
 - **Publication**: a lecturer's selected publications, cascades with the profile.
 - **NonTeachingStaff**: listing cards, no login, no `User` relation.
 
