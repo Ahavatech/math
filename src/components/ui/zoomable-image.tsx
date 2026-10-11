@@ -37,7 +37,7 @@ export function ZoomableImage({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`block w-full cursor-zoom-in ${width && height ? "" : "relative"} ${className ?? ""}`}
+        className={`block w-full cursor-zoom-in ${width && height ? "" : "relative h-full"} ${className ?? ""}`}
       >
         {width && height ? (
           <CloudImage src={src} alt={alt} width={width} height={height} priority={priority} className="h-full w-full object-cover" />

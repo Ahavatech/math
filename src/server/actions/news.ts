@@ -38,6 +38,17 @@ const newsFormSchema = z.object({
   publishedAt: z.string().nullable(),
 });
 
+/**
+ * Blank "published date/time" with status Published means "publish
+ * immediately" (the form's own label says so) - it must resolve to
+ * now, not null, since the public queries require a non-null
+ * publishedAt in the past to ever show a post.
+ */
+function resolvePublishedAt(status: string, raw: string | null): Date | null {
+  if (raw) return watLocalInputToUtc(raw);
+  return status === "PUBLISHED" ? new Date() : null;
+}
+
 function parseNewsForm(formData: FormData) {
   const publishedAtRaw = formData.get("publishedAt");
   return newsFormSchema.safeParse({
@@ -67,7 +78,7 @@ export async function createNewsPostAction(
     const { slug: _slug, ...rest } = parsed.data;
     const created = await createNewsPost(
       db,
-      { ...rest, body: sanitizeRichText(parsed.data.body), publishedAt: parsed.data.publishedAt ? watLocalInputToUtc(parsed.data.publishedAt) : null },
+      { ...rest, body: sanitizeRichText(parsed.data.body), publishedAt: resolvePublishedAt(parsed.data.status, parsed.data.publishedAt) },
       actor.id,
       contextFromHeaders(await headers()),
     );
@@ -96,7 +107,7 @@ export async function updateNewsPostAction(
       {
         ...parsed.data,
         body: sanitizeRichText(parsed.data.body),
-        publishedAt: parsed.data.publishedAt ? watLocalInputToUtc(parsed.data.publishedAt) : null,
+        publishedAt: resolvePublishedAt(parsed.data.status, parsed.data.publishedAt),
       },
       actor.id,
       contextFromHeaders(await headers()),

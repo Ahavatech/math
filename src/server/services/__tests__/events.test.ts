@@ -116,6 +116,8 @@ describe.skipIf(db === null)("events service", () => {
     expect(copy.slidesUrl).toBe("");
     expect(copy.recordingUrl).toBe("");
     expect(copy.slug).not.toBe(original.slug);
+    expect(copy.startsAt.getTime()).not.toBe(original.startsAt.getTime());
+    expect(copy.endsAt).toBeNull();
 
     const copyGallery = await db!.eventGalleryImage.findMany({ where: { eventId: copy.id } });
     expect(copyGallery).toHaveLength(0);

@@ -115,8 +115,14 @@ export async function duplicateEvent(db: PrismaClient, id: string, actorId: stri
         slug,
         title: original.title,
         type: original.type,
-        startsAt: original.startsAt,
-        endsAt: original.endsAt,
+        // Dates are deliberately not copied (the spec: "copies
+        // everything except dates ... the copy starts DRAFT"). startsAt
+        // is a required column, so it defaults to the moment of
+        // duplication as an obvious placeholder the admin must change
+        // before publishing, rather than silently reusing the
+        // original's (now almost certainly wrong) date.
+        startsAt: new Date(),
+        endsAt: null,
         venue: original.venue,
         speakerName: original.speakerName,
         speakerAffiliation: original.speakerAffiliation,
