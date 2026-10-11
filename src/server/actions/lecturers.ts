@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { env } from "@/lib/env";
 import { getCurrentUser, requirePermission } from "@/lib/rbac";
 import { contextFromHeaders } from "@/server/services/audit";
 import { sanitizeRichText } from "@/lib/sanitize-html";
@@ -93,13 +94,16 @@ export async function createLecturerAction(
   }
 }
 
-export async function sendLecturerInviteAction(formData: FormData): Promise<ActionResult> {
+export async function sendLecturerInviteAction(
+  formData: FormData,
+): Promise<ActionResult & { inviteUrl?: string }> {
   const actor = await requireLecturersManage();
   const userId = String(formData.get("userId") ?? "");
   try {
-    await sendLecturerInvite(db, actor.id, userId, contextFromHeaders(await headers()));
+    const { token } = await sendLecturerInvite(db, actor.id, userId, contextFromHeaders(await headers()));
     revalidatePath("/admin/lecturers");
-    return { success: true };
+    const inviteUrl = new URL(`/accept-invite/${token}`, env.AUTH_URL).toString();
+    return { success: true, inviteUrl };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not send invite" };
   }
