@@ -133,10 +133,10 @@ Go to Admin, then Lecturers, then "Bulk import". Upload a CSV file with the colu
 3. **Send invites**: a separate step, with its own confirmation, that emails every created
    account. If one email fails to send, the others still go out.
 
-A template file pre-filled with the staff names found on the department's current website is at
-`docs/lecturer-import-template.csv`. Only one name (the Head of Department) could be confirmed
-from the live site at the time it was written; add the rest of the department's lecturers and
-their email addresses yourself before uploading it.
+A template file pre-filled with the 8 academic staff listed on the department's current website
+is at `docs/lecturer-import-template.csv`. Names are initials only (as the site shows them) and
+emails are blank; see `docs/lecturer-import-notes.md` for what still needs filling in before you
+upload it, including three rows whose rank could not be read precisely from the site.
 
 ## The homepage numbers
 
