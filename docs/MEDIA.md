@@ -33,7 +33,7 @@ registering the asset:
 | news | oau-maths/news | news.manage |
 | events | oau-maths/events | events.manage |
 | alumni | oau-maths/alumni | alumni.review |
-| research | oau-maths/research | site.edit |
+| research | oau-maths/research | academics.manage |
 | journal | oau-maths/journal | journal.edit |
 
 See `src/lib/media-folders.ts`.
@@ -52,6 +52,38 @@ checks every nullable `MediaAsset` foreign key across the schema (research areas
 profiles, non-teaching staff, news posts, events, event gallery images, alumni entries, journal
 issues, downloads) before a delete is permitted; a `MediaInUseError` is thrown otherwise. A
 successful delete removes the Cloudinary asset too.
+
+## CV uploads (PDF pipeline, Stage 07a)
+
+Researched directly against Cloudinary's current documentation before building this (not from
+memory), since it is the first file type in this codebase that is not an image compressed in the
+browser:
+
+- **Resource type**: Cloudinary's own docs state plainly that "PDF files are uploaded as an
+  `image` asset type", not `raw`. The upload-signing route and the registration lookup both use
+  `resource_type: "image"` for a CV, the same as every photo upload, not `raw`.
+- **Public delivery is blocked by default on a free account.** Cloudinary disables delivering PDF
+  and ZIP files publicly unless the account owner explicitly turns it on: Console → Settings →
+  Security → "PDF and ZIP files delivery" → check "Allow delivery of PDF and ZIP files" → Save →
+  accept the terms of service shown. Until that box is checked, a PDF's public URL returns
+  `HTTP 401`, even though the upload itself succeeds. **This is the thing most likely to trip up a
+  first CV upload on a fresh account** - the upload will look successful, and only the public
+  download link will fail. The CV upload pipeline here checks this automatically (a HEAD request
+  against the resulting delivery URL right after registering it) and shows an admin-readable
+  message naming this exact setting if the check comes back 401, instead of a silent broken link.
+- **File size**: Cloudinary does not expose a signed upload parameter that caps file size at
+  upload time; "in the signed parameters" enforcement is a misconception worth noting for whoever
+  reads this next. The real limit is an account-wide one (free-plan community reports put the
+  `image` resource type's upload ceiling around 10MB, well above this project's own 5MB CV cap).
+  Enforcement here is: (1) a client-side pre-check before the upload even starts, and (2) the real
+  guarantee, a server-side re-check after upload that fetches the resource's actual `bytes` and
+  `format` from Cloudinary's Admin API and deletes the asset immediately if either is wrong,
+  exactly like `registerMediaAsset` already does for images (see Pipeline above) - a client can
+  lie about a file before upload, so nothing before that second server-side fetch is trusted.
+- **Format verification**: the registration step confirms Cloudinary's own reported `format` is
+  `pdf`; where feasible, a ranged `Range: bytes=0-4` fetch of the uploaded file additionally
+  confirms the first bytes are the literal `%PDF` magic number, independent of what Cloudinary
+  itself reports, before trusting the file as a real PDF.
 
 ## Limits to watch on Cloudinary's free plan
 
