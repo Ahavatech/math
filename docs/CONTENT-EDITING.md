@@ -138,6 +138,28 @@ is at `docs/lecturer-import-template.csv`. Names are initials only (as the site 
 emails are blank; see `docs/lecturer-import-notes.md` for what still needs filling in before you
 upload it, including three rows whose rank could not be read precisely from the site.
 
+## Reordering lecturers
+
+On the Lecturers list, use the up and down arrows next to a name to change where they appear on
+the public staff page and on research area pages. Within the same rank, this order decides who
+shows first - for example, if you want the Head of Department to appear first among Professors,
+move them to the top with the arrows. There is no automatic "HOD first" rule; the arrows are the
+only way to control this.
+
+## Non-teaching and administrative staff
+
+Go to Admin, then Staff, to manage office and support staff (secretaries, lab staff, and similar).
+
+- Click "New staff member" to add someone: name, position, an optional photo, and optional email
+  and phone.
+- **"Show email and phone on the public staff page"** is off by default. Contact details are never
+  shown publicly unless you tick this for that person.
+- Use the up and down arrows to change the order they appear in on the public staff page.
+- "Archive" hides someone from the public page without deleting their record; "Restore" brings
+  them back.
+- A few records were brought over from the old website and are marked "Imported from the old site,
+  needs HOD review" until you open and save them.
+
 ## The homepage numbers
 
 Go to Admin, then Site content, then Stats. Each number (staff, programmes, research areas,
@@ -148,6 +170,29 @@ alumni) can be:
 - **Manual**: a number you type in yourself, if you want to show a different figure
 
 The section shows which mode is active for each number.
+
+## Featured lecturer on the homepage
+
+Go to Admin, then Site content, then Featured lecturer.
+
+- **Automatic** (the default): the homepage shows a different published lecturer each day, chosen
+  only from those who have both a photo and a bio filled in. You do not need to do anything for
+  this to work.
+- **Manual**: pick one specific published lecturer to always feature. If that person is later
+  unpublished, the homepage automatically falls back to the automatic rotation until you choose
+  someone else or switch back.
+
+## Pilot rollout
+
+Before inviting every lecturer at once, run a small pilot first:
+
+1. Invite two or three lecturers to start. Walk them through accepting their invite and filling in
+   their profile (see `docs/LECTURER-GUIDE.md`), and fix anything confusing before going further.
+2. Once the pilot lecturers have published profiles you are happy with, invite the rest in
+   batches (for example, by rank or by research area) rather than all on the same day, so you can
+   answer questions and review publishing requests as they come in without being overwhelmed.
+3. Use the CSV bulk import for each batch if you have several names ready at once (see "Adding
+   lecturers" above), or add people one at a time as they are confirmed.
 
 ## If something looks wrong on the live site
 

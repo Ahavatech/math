@@ -47,6 +47,12 @@ After your profile is first published, any further changes you save go live imme
 needing another approval. An administrator can still unpublish your page or restore an earlier
 version if needed.
 
+Once published, you will also appear on the department's staff page (`/staff`), where visitors can
+search by name and filter by rank or research area, and on the page for any research area you have
+selected. If you would like to appear earlier or later in those listings relative to colleagues of
+the same rank, ask an administrator - they can reorder the list, but there is no way to set this
+yourself.
+
 ## Changing a photo or your CV later
 
 Go back to "My profile" at any time, choose a new photo or CV file, and save. The old file is
