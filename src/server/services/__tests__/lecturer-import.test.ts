@@ -6,7 +6,7 @@ const db = await getTestDb();
 
 describe.skipIf(db === null)("bulkCreateLecturers", () => {
   const createdUserIds: string[] = [];
-  let actorId: string;
+  const actorIds: string[] = [];
 
   afterEach(async () => {
     if (createdUserIds.length) {
@@ -20,16 +20,16 @@ describe.skipIf(db === null)("bulkCreateLecturers", () => {
   });
 
   afterAll(async () => {
-    if (actorId) {
-      await db!.auditLog.deleteMany({ where: { actorId } });
-      await db!.user.delete({ where: { id: actorId } });
+    if (actorIds.length) {
+      await db!.auditLog.deleteMany({ where: { actorId: { in: actorIds } } });
+      await db!.user.deleteMany({ where: { id: { in: actorIds } } });
     }
     await db?.$disconnect();
   });
 
   it("creates accounts and DRAFT profiles for every row without sending any email", async () => {
     const actor = await db!.user.create({ data: { email: "import-actor-test@example.com", name: "Importer" } });
-    actorId = actor.id;
+    actorIds.push(actor.id);
 
     const results = await bulkCreateLecturers(db!, actor.id, [
       { row: 2, fullName: "Bulk One", honorific: "Dr.", rank: "LECTURER_I", email: "bulk-one-test@example.com" },
@@ -51,7 +51,7 @@ describe.skipIf(db === null)("bulkCreateLecturers", () => {
 
   it("never aborts the whole batch when one row fails", async () => {
     const actor = await db!.user.create({ data: { email: "import-actor-test-2@example.com", name: "Importer 2" } });
-    actorId = actor.id;
+    actorIds.push(actor.id);
 
     const results = await bulkCreateLecturers(db!, actor.id, [
       { row: 2, fullName: "Good Row", honorific: "", rank: "LECTURER_I", email: "good-row-test@example.com" },
