@@ -11,6 +11,7 @@ import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Prose } from "@/components/ui/prose";
 import { Badge } from "@/components/ui/badge";
 import { ZoomableImage } from "@/components/ui/zoomable-image";
+import { safeJsonLdString } from "@/lib/json-ld";
 
 export const revalidate = 300;
 
@@ -82,7 +83,7 @@ export default async function NewsPostPage({ params }: { params: Promise<{ slug:
         ) : null}
       </Container>
 
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLdString(jsonLd) }} />
     </Section>
   );
 }
