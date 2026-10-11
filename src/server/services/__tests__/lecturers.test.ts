@@ -15,6 +15,7 @@ import {
   updatePublicationForOwner,
   deletePublicationForOwner,
   reorderPublicationForOwner,
+  sendLecturerInvite,
   OwnershipError,
 } from "../lecturers";
 
@@ -281,6 +282,22 @@ describe.skipIf(db === null)("lecturers service", () => {
 
     expect(serialized).not.toContain(loginEmail);
     expect(serialized).not.toContain("passwordHash");
+  });
+
+  it("sendLecturerInvite issues a token and derives invite state as 'invited'", async () => {
+    const { user } = await createLecturer(db!, actorId, {
+      fullName: "Invite Send Test",
+      honorific: "",
+      rank: "LECTURER_I",
+      email: "invite-send-test@example.com",
+    });
+    createdUserIds.push(user.id);
+
+    expect(deriveInviteState(null, null)).toBe("not_invited");
+
+    await sendLecturerInvite(db!, actorId, user.id);
+    const token = await db!.userToken.findFirst({ where: { userId: user.id, type: "INVITE" } });
+    expect(deriveInviteState(null, token)).toBe("invited");
   });
 });
 

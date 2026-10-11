@@ -2,6 +2,8 @@ import "server-only";
 import type { PrismaClient, Role, UserTokenType } from "@prisma/client";
 import { createRevision } from "./revisions";
 import { logAction, type AuditRequestContext } from "./audit";
+import { issueToken } from "./tokens";
+import { sendInviteEmail } from "@/lib/email";
 import { generateUniqueSlug } from "@/lib/slugify";
 import {
   lecturerSelfEditSchema,
@@ -220,6 +222,36 @@ export async function setLecturerAccountActive(
 }
 
 export type InviteTokenType = UserTokenType;
+
+/**
+ * Issues a fresh invite token and emails it (also used for "resend
+ * invite"). Returns the plaintext token/URL once so the admin UI can
+ * also offer "copy invite link" - callers must not persist it anywhere
+ * beyond that single response, since only its hash is ever stored.
+ */
+export async function sendLecturerInvite(
+  db: PrismaClient,
+  actorId: string,
+  userId: string,
+  context?: AuditRequestContext,
+) {
+  const user = await db.user.findUniqueOrThrow({ where: { id: userId } });
+  const { token } = await issueToken(db, userId, "INVITE");
+
+  try {
+    await sendInviteEmail({ to: user.email, name: user.name, token });
+  } catch (error) {
+    console.error(`Failed to send lecturer invite email for user ${userId}:`, error);
+  }
+
+  await logAction(
+    db,
+    { actorId, action: "lecturer.send_invite", entityType: "User", entityId: userId, summary: `Sent invite to ${user.email}` },
+    context,
+  );
+
+  return { token };
+}
 
 // --- Self-service ------------------------------------------------------
 
