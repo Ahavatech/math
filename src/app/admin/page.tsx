@@ -21,10 +21,12 @@ export default async function AdminDashboardPage() {
     redirect("/admin/my-profile");
   }
 
-  const [userCount, lecturerCount, pendingAlumniCount, upcomingEventCount] =
+  const [userCount, lecturerCount, publishedLecturerCount, nonTeachingStaffCount, pendingAlumniCount, upcomingEventCount] =
     await Promise.all([
       db.user.count(),
       db.lecturerProfile.count(),
+      db.lecturerProfile.count({ where: { status: "PUBLISHED" } }),
+      db.nonTeachingStaff.count({ where: { isActive: true } }),
       db.alumniEntry.count({ where: { status: "PENDING" } }),
       db.event.count({ where: { startsAt: { gte: new Date() } } }),
     ]);
@@ -32,6 +34,8 @@ export default async function AdminDashboardPage() {
   const cards = [
     { label: "Users", value: userCount },
     { label: "Lecturers", value: lecturerCount },
+    { label: "Published lecturers", value: publishedLecturerCount },
+    { label: "Non-teaching staff", value: nonTeachingStaffCount },
     { label: "Pending alumni", value: pendingAlumniCount },
     { label: "Upcoming events", value: upcomingEventCount },
   ];

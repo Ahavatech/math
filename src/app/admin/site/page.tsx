@@ -7,6 +7,7 @@ import { HodSection } from "./sections/hod-section";
 import { HeroSection } from "./sections/hero-section";
 import { AnnouncementSection } from "./sections/announcement-section";
 import { StatsSection } from "./sections/stats-section";
+import { FeaturedLecturerSection } from "./sections/featured-lecturer-section";
 import { ContactSection } from "./sections/contact-section";
 import { SocialLinksSection } from "./sections/social-links-section";
 import { FooterTextSection } from "./sections/footer-text-section";
@@ -17,17 +18,19 @@ export default async function AdminSitePage() {
     redirect("/403");
   }
 
-  const [identity, hod, hero, announcement, stats, contact, social, footer, media] =
+  const [identity, hod, hero, announcement, stats, featuredLecturer, contact, social, footer, media, publishedLecturers] =
     await Promise.all([
       getSetting(db, "identity"),
       getSetting(db, "hod.welcomeAddress"),
       getSetting(db, "homepage.hero"),
       getSetting(db, "site.announcement"),
       getSetting(db, "homepage.stats"),
+      getSetting(db, "homepage.featuredLecturer"),
       getSetting(db, "contact.details"),
       getSetting(db, "social.links"),
       getSetting(db, "footer.text"),
       db.mediaAsset.findMany({ orderBy: { createdAt: "desc" }, take: 24 }),
+      db.lecturerProfile.findMany({ where: { status: "PUBLISHED" }, select: { id: true, fullName: true }, orderBy: { fullName: "asc" } }),
     ]);
 
   return (
@@ -38,6 +41,7 @@ export default async function AdminSitePage() {
       <HeroSection value={hero} existingMedia={media} />
       <AnnouncementSection value={announcement} />
       <StatsSection value={stats} />
+      <FeaturedLecturerSection value={featuredLecturer} publishedLecturers={publishedLecturers} />
       <ContactSection value={contact} />
       <SocialLinksSection value={social} />
       <FooterTextSection value={footer} />

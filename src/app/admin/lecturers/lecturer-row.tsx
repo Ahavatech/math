@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ArrowUp, ArrowDown } from "lucide-react";
 import { rankLabel } from "@/lib/lecturer-rank";
 import {
   sendLecturerInviteAction,
@@ -12,6 +13,7 @@ import {
   archiveLecturerAction,
   restoreLecturerAction,
   setLecturerAccountActiveAction,
+  reorderLecturerAction,
 } from "@/server/actions/lecturers";
 
 const INVITE_LABELS: Record<string, string> = {
@@ -62,6 +64,16 @@ export function LecturerRow({ lecturer, completeness }: { lecturer: LecturerRowD
     });
   }
 
+  function move(direction: "up" | "down") {
+    startTransition(async () => {
+      const fd = new FormData();
+      fd.set("id", lecturer.id);
+      fd.set("direction", direction);
+      await reorderLecturerAction(fd);
+      window.location.reload();
+    });
+  }
+
   return (
     <li className="space-y-2 rounded-md border border-border p-3">
       <div className="flex items-center justify-between gap-4">
@@ -81,6 +93,12 @@ export function LecturerRow({ lecturer, completeness }: { lecturer: LecturerRowD
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-1">
+          <Button type="button" variant="ghost" size="icon" onClick={() => move("up")} disabled={pending}>
+            <ArrowUp className="size-4" />
+          </Button>
+          <Button type="button" variant="ghost" size="icon" onClick={() => move("down")} disabled={pending}>
+            <ArrowDown className="size-4" />
+          </Button>
           <Button type="button" size="sm" variant="outline" onClick={sendInvite} disabled={pending}>
             {lecturer.inviteState === "not_invited" ? "Send invite" : "Resend invite"}
           </Button>
