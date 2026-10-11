@@ -61,7 +61,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const isLecturerOnly = !ADMIN_PERMISSIONS.some((permission) => hasPermission(user, permission));
 
   const visibleItems = isLecturerOnly
-    ? [{ label: "My profile", href: "/admin/my-profile", permission: null, implemented: true } as NavItem]
+    ? ([
+        { label: "My profile", href: "/admin/my-profile", permission: null, implemented: true },
+        { label: "Change password", href: "/admin/my-profile/security", permission: null, implemented: true },
+      ] as NavItem[])
     : NAV_ITEMS.filter((item) => item.permission === null || hasPermission(user, item.permission));
 
   const dbUser = await db.user.findUnique({
