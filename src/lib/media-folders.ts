@@ -9,6 +9,7 @@ import type { Permission } from "@/lib/rbac";
 export const MEDIA_FOLDERS = [
   "site",
   "lecturers",
+  "staff",
   "news",
   "events",
   "alumni",
@@ -21,6 +22,7 @@ export type MediaFolder = (typeof MEDIA_FOLDERS)[number];
 const FOLDER_PERMISSIONS: Record<MediaFolder, Permission> = {
   site: "site.edit",
   lecturers: "lecturers.manage",
+  staff: "lecturers.manage",
   news: "news.manage",
   events: "events.manage",
   alumni: "alumni.review",

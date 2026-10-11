@@ -67,8 +67,9 @@ const NAV_ITEMS: Array<{
   { label: "Contact", href: "/contact", location: "HEADER", order: 10 },
   { label: "About", href: "/about", location: "FOOTER", order: 0 },
   { label: "Programmes", href: "/programmes", location: "FOOTER", order: 1 },
-  { label: "Journal", href: "/journal", location: "FOOTER", order: 2 },
-  { label: "Student Resources", href: "/students", location: "FOOTER", order: 3 },
+  { label: "Staff", href: "/staff", location: "FOOTER", order: 2 },
+  { label: "Journal", href: "/journal", location: "FOOTER", order: 3 },
+  { label: "Student Resources", href: "/students", location: "FOOTER", order: 4 },
   // No "Contact" FOOTER link here: SiteFooter already renders a
   // dedicated Contact block from SiteSetting; a seeded nav link with
   // the same label duplicated it (Stage 05 fix).
@@ -370,6 +371,40 @@ export async function seed(db: PrismaClient): Promise<void> {
       where: { key: "pages.importFlags" },
       create: { key: "pages.importFlags", value: importFlags },
       update: {},
+    });
+  }
+
+  // Non-teaching staff, from the live site's "Non-Teaching & Administrative
+  // Staff" section (re-checked by curl before writing this list - no
+  // difference found). Names and positions only; no emails or phones are
+  // invented, and showContact stays false. Idempotent: only creates a row
+  // when no existing record has that exact name, so an admin's edit is
+  // never overwritten by re-running the seed.
+  const NON_TEACHING_STAFF: { name: string; position: string }[] = [
+    { name: "O. O. Akeju", position: "Confidential Secretary I" },
+    { name: "Tunde-Adedipe Olubusola", position: "Confidential Secretary" },
+    { name: "Ms. F. C. Famose", position: "Senior Lab. Superintendent" },
+    { name: "Mr. Odewumi Stephen", position: "Data Entry / Clerical Officer" },
+    { name: "Mr. Ijiwande Funminiyi", position: "Principal Office Assistant" },
+  ];
+  const newlyCreatedStaffIds: string[] = [];
+  for (const entry of NON_TEACHING_STAFF) {
+    const existing = await db.nonTeachingStaff.findFirst({ where: { name: entry.name } });
+    if (existing) continue;
+    const max = await db.nonTeachingStaff.aggregate({ _max: { order: true } });
+    const created = await db.nonTeachingStaff.create({
+      data: { name: entry.name, position: entry.position, order: (max._max.order ?? -1) + 1, showContact: false },
+    });
+    newlyCreatedStaffIds.push(created.id);
+  }
+  if (newlyCreatedStaffIds.length > 0) {
+    const existingFlags = await db.siteSetting.findUnique({ where: { key: "staff.importFlags" } });
+    const flags: Record<string, boolean> = { ...((existingFlags?.value as Record<string, boolean>) ?? {}) };
+    for (const id of newlyCreatedStaffIds) flags[id] = true;
+    await db.siteSetting.upsert({
+      where: { key: "staff.importFlags" },
+      create: { key: "staff.importFlags", value: flags },
+      update: { value: flags },
     });
   }
 

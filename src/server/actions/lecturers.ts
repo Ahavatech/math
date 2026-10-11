@@ -27,6 +27,7 @@ import {
   updatePublicationForOwner,
   deletePublicationForOwner,
   reorderPublicationForOwner,
+  reorderLecturer,
   OwnershipError,
   IncompleteProfileError,
 } from "@/server/services/lecturers";
@@ -50,9 +51,24 @@ async function requireOwnLecturerProfile() {
   return { user, profile };
 }
 
-function revalidateLecturerPaths(slug?: string) {
+/**
+ * Revalidates every public route a lecturer change could affect: their
+ * own page, the staff directory, the homepage (featured lecturer / stat),
+ * and every research area page they are linked to (for the "Lecturers in
+ * this area" / "Selected publications" blocks).
+ */
+async function revalidateLecturerPaths(lecturerId: string | undefined, slug?: string) {
   revalidatePath("/admin/lecturers");
+  revalidatePath("/staff");
+  revalidatePath("/");
   if (slug) revalidatePath(`/lecturer/${slug}`);
+  if (lecturerId) {
+    const areas = await db.researchArea.findMany({
+      where: { lecturers: { some: { id: lecturerId } } },
+      select: { slug: true },
+    });
+    for (const area of areas) revalidatePath(`/research/${area.slug}`);
+  }
 }
 
 // --- Admin -------------------------------------------------------------
@@ -136,7 +152,7 @@ export async function updateLecturerAdminFieldsAction(
 
   try {
     const updated = await updateLecturerAdminFields(db, actor.id, id, parsed.data, contextFromHeaders(await headers()));
-    revalidateLecturerPaths(updated.slug);
+    await revalidateLecturerPaths(updated.id, updated.slug);
     return { success: true };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not save" };
@@ -150,7 +166,7 @@ async function withLecturerStatusAction(
 ) {
   const context = contextFromHeaders(await headers());
   const updated = await fn(db, actorId, id, context);
-  revalidateLecturerPaths(updated.slug);
+  await revalidateLecturerPaths(updated.id, updated.slug);
 }
 
 export async function publishLecturerAction(formData: FormData): Promise<void> {
@@ -168,6 +184,14 @@ export async function archiveLecturerAction(formData: FormData): Promise<void> {
 export async function restoreLecturerAction(formData: FormData): Promise<void> {
   const actor = await requireLecturersManage();
   await withLecturerStatusAction(String(formData.get("id") ?? ""), restoreLecturer, actor.id);
+}
+
+export async function reorderLecturerAction(formData: FormData): Promise<void> {
+  await requireLecturersManage();
+  const id = String(formData.get("id") ?? "");
+  const direction = formData.get("direction") === "down" ? "down" : "up";
+  await reorderLecturer(db, id, direction);
+  await revalidateLecturerPaths(id);
 }
 
 export async function setLecturerAccountActiveAction(formData: FormData): Promise<void> {
@@ -216,7 +240,7 @@ export async function adminUpdateLecturerSelfFieldsAction(
       },
       contextFromHeaders(await headers()),
     );
-    revalidateLecturerPaths(updated.slug);
+    await revalidateLecturerPaths(updated.id, updated.slug);
     return { success: true };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not save" };
@@ -306,7 +330,7 @@ export async function updateOwnLecturerProfileAction(
       user.id,
       contextFromHeaders(await headers()),
     );
-    revalidateLecturerPaths(updated.slug);
+    await revalidateLecturerPaths(updated.id, updated.slug);
     revalidatePath("/admin/my-profile");
     return { success: true };
   } catch (error) {
@@ -347,7 +371,7 @@ export async function restoreOwnLecturerProfileAction(formData: FormData): Promi
   }
 
   await updateOwnLecturerProfile(db, user.id, revision.snapshot, user.id, contextFromHeaders(await headers()));
-  revalidateLecturerPaths(profile.slug);
+  await revalidateLecturerPaths(profile.id, profile.slug);
   revalidatePath("/admin/my-profile");
 }
 
@@ -371,7 +395,7 @@ export async function createPublicationAction(formData: FormData): Promise<Actio
 
   try {
     await createPublicationForOwner(db, user.id, parsed.data);
-    revalidateLecturerPaths(profile.slug);
+    await revalidateLecturerPaths(profile.id, profile.slug);
     revalidatePath("/admin/my-profile");
     return { success: true };
   } catch (error) {
@@ -387,7 +411,7 @@ export async function updatePublicationAction(formData: FormData): Promise<Actio
 
   try {
     await updatePublicationForOwner(db, user.id, id, parsed.data);
-    revalidateLecturerPaths(profile.slug);
+    await revalidateLecturerPaths(profile.id, profile.slug);
     revalidatePath("/admin/my-profile");
     return { success: true };
   } catch (error) {
@@ -401,7 +425,7 @@ export async function deletePublicationAction(formData: FormData): Promise<Actio
   const id = String(formData.get("id") ?? "");
   try {
     await deletePublicationForOwner(db, user.id, id);
-    revalidateLecturerPaths(profile.slug);
+    await revalidateLecturerPaths(profile.id, profile.slug);
     revalidatePath("/admin/my-profile");
     return { success: true };
   } catch (error) {
@@ -416,7 +440,7 @@ export async function reorderPublicationAction(formData: FormData): Promise<Acti
   const direction = formData.get("direction") === "down" ? "down" : "up";
   try {
     await reorderPublicationForOwner(db, user.id, id, direction);
-    revalidateLecturerPaths(profile.slug);
+    await revalidateLecturerPaths(profile.id, profile.slug);
     return { success: true };
   } catch (error) {
     if (error instanceof OwnershipError) return { error: error.message };
@@ -431,7 +455,7 @@ export async function registerLecturerCvAction(formData: FormData): Promise<Acti
   const publicId = String(formData.get("publicId") ?? "");
   try {
     await registerLecturerCv(db, user.id, { publicId, actorId: user.id }, contextFromHeaders(await headers()));
-    revalidateLecturerPaths(profile.slug);
+    await revalidateLecturerPaths(profile.id, profile.slug);
     revalidatePath("/admin/my-profile");
     return { success: true };
   } catch (error) {

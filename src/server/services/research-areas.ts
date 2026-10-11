@@ -47,9 +47,16 @@ export async function getResearchAreaBySlugPublic(db: PrismaClient, slug: string
       include: {
         image: true,
         lecturers: {
-          where: { status: "PUBLISHED", isEmeritus: false },
+          where: { status: "PUBLISHED", isEmeritus: false, user: { isActive: true } },
           orderBy: { order: "asc" },
-          include: { photo: true },
+          select: {
+            id: true,
+            slug: true,
+            fullName: true,
+            honorific: true,
+            rank: true,
+            photo: { select: { id: true, url: true, alt: true } },
+          },
         },
       },
     });

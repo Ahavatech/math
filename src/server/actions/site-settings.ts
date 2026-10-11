@@ -134,6 +134,23 @@ export async function saveStatsAction(
   }
 }
 
+export async function saveFeaturedLecturerAction(
+  _prevState: ActionResult | undefined,
+  formData: FormData,
+): Promise<ActionResult> {
+  try {
+    const mode = str(formData, "mode") === "manual" ? ("manual" as const) : ("automatic" as const);
+    const lecturerProfileId = str(formData, "lecturerProfileId") || null;
+    await saveAndRevalidate("homepage.featuredLecturer", {
+      mode,
+      lecturerProfileId: mode === "manual" ? lecturerProfileId : null,
+    });
+    return { success: true };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not save" };
+  }
+}
+
 export async function saveContactAction(
   _prevState: ActionResult | undefined,
   formData: FormData,

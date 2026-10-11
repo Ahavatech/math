@@ -451,6 +451,7 @@ model NonTeachingStaff {
   photoId   String?
   email     String?
   phone     String?
+  showContact Boolean @default(false)
   order     Int      @default(0)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
