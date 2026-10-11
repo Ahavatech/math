@@ -143,7 +143,7 @@ export default async function Home() {
                   title={post.title}
                   excerpt={post.excerpt ?? undefined}
                   category={post.category}
-                  publishedAt={post.publishedAt ?? post.createdAt}
+                  publishedAt={post.publishedAt!}
                   href={`/news/${post.slug}`}
                 />
               ))}
