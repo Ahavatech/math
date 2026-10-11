@@ -13,6 +13,11 @@ describe("slugify", () => {
   it("collapses repeated separators and trims leading/trailing hyphens", () => {
     expect(slugify("  Fluid   Mechanics -- 101  ")).toBe("fluid-mechanics-101");
   });
+
+  it("ASCII-folds accented characters instead of dropping them", () => {
+    expect(slugify("Adérónké Òkúnọlá")).toBe("aderonke-okunola");
+    expect(slugify("José García")).toBe("jose-garcia");
+  });
 });
 
 describe("generateUniqueSlug", () => {
