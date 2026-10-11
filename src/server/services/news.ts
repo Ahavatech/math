@@ -4,6 +4,7 @@ import { createRevision } from "./revisions";
 import { logAction, type AuditRequestContext } from "./audit";
 import { generateUniqueSlug } from "@/lib/slugify";
 import { newsPostInputSchema } from "@/lib/validators/news";
+import { getSetting, setSetting } from "./site-settings";
 
 export async function listNewsPostsAdmin(db: PrismaClient) {
   return db.newsPost.findMany({ orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }], include: { cover: true } });
@@ -57,19 +58,30 @@ export async function updateNewsPost(
       ? Array.from(new Set([...existing.previousSlugs, existing.slug]))
       : existing.previousSlugs;
 
-  return db.$transaction(async (tx) => {
-    const updated = await tx.newsPost.update({
+  const updated = await db.$transaction(async (tx) => {
+    const result = await tx.newsPost.update({
       where: { id },
       data: { ...parsed, slug: nextSlug, previousSlugs },
     });
     await createRevision(tx, { entityType: "NewsPost", entityId: id, snapshot: { ...parsed, slug: nextSlug }, createdById: actorId });
     await logAction(
       tx,
-      { actorId, action: "news.update", entityType: "NewsPost", entityId: id, summary: `Updated ${updated.title}` },
+      { actorId, action: "news.update", entityType: "NewsPost", entityId: id, summary: `Updated ${result.title}` },
       context,
     );
-    return updated;
+    return result;
   });
+  await clearNewsImportFlag(db, id, actorId);
+  return updated;
+}
+
+/** Saving a seeded post IS the HOD review it was flagged for. */
+async function clearNewsImportFlag(db: PrismaClient, id: string, actorId: string) {
+  const flags = await getSetting(db, "news.importFlags");
+  if (flags[id]) {
+    const { [id]: _removed, ...rest } = flags;
+    await setSetting(db, "news.importFlags", rest, actorId);
+  }
 }
 
 export async function setNewsPostStatus(

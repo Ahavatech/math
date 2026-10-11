@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { listEventsAdmin } from "@/server/services/events";
+import { getSetting } from "@/server/services/site-settings";
 import { isUpcoming } from "@/lib/time";
 import { Button } from "@/components/ui/button";
 import { EventRow } from "./event-row";
@@ -19,7 +20,7 @@ export default async function AdminEventsPage({
 
   const params = await searchParams;
   const tab = params.tab === "past" ? "past" : "upcoming";
-  const allEvents = await listEventsAdmin(db);
+  const [allEvents, importFlags] = await Promise.all([listEventsAdmin(db), getSetting(db, "events.importFlags")]);
   const now = new Date();
 
   const filteredByTab = allEvents.filter((e) => (tab === "upcoming" ? isUpcoming(e, now) : !isUpcoming(e, now)));
@@ -58,7 +59,7 @@ export default async function AdminEventsPage({
 
       <ul className="space-y-2">
         {events.map((event) => (
-          <EventRow key={event.id} event={event} />
+          <EventRow key={event.id} event={event} needsReview={Boolean(importFlags[event.id])} />
         ))}
         {events.length === 0 ? <p className="text-sm text-muted-foreground">No events match.</p> : null}
       </ul>

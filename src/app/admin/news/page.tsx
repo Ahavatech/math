@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { listNewsPostsAdmin } from "@/server/services/news";
+import { getSetting } from "@/server/services/site-settings";
 import { Button } from "@/components/ui/button";
 import { NewsRow } from "./news-row";
 
@@ -17,7 +18,7 @@ export default async function AdminNewsPage({
   }
 
   const params = await searchParams;
-  const allPosts = await listNewsPostsAdmin(db);
+  const [allPosts, importFlags] = await Promise.all([listNewsPostsAdmin(db), getSetting(db, "news.importFlags")]);
   const posts = allPosts.filter((post) => {
     if (params.status && post.status !== params.status) return false;
     if (params.category && post.category !== params.category) return false;
@@ -58,7 +59,7 @@ export default async function AdminNewsPage({
 
       <ul className="space-y-2">
         {posts.map((post) => (
-          <NewsRow key={post.id} post={post} />
+          <NewsRow key={post.id} post={post} needsReview={Boolean(importFlags[post.id])} />
         ))}
         {posts.length === 0 ? <p className="text-sm text-muted-foreground">No posts match.</p> : null}
       </ul>

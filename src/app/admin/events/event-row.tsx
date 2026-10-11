@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatWAT } from "@/lib/time";
 import { setEventStatusAction } from "@/server/actions/events";
 
-export function EventRow({ event }: { event: Event }) {
+export function EventRow({ event, needsReview }: { event: Event; needsReview: boolean }) {
   const [pending, startTransition] = useTransition();
 
   function setStatus(status: "DRAFT" | "PUBLISHED" | "ARCHIVED") {
@@ -32,6 +32,7 @@ export function EventRow({ event }: { event: Event }) {
           <Badge variant="secondary">{event.status}</Badge>
           <span>{formatWAT(event.startsAt)}</span>
           {event.venue ? <span>- {event.venue}</span> : null}
+          {needsReview ? <Badge variant="outline">Imported from the old site, needs HOD review</Badge> : null}
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-1">

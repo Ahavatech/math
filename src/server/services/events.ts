@@ -5,6 +5,16 @@ import { logAction, type AuditRequestContext } from "./audit";
 import { generateUniqueSlug } from "@/lib/slugify";
 import { isUpcoming } from "@/lib/time";
 import { eventInputSchema, eventSeriesInputSchema, galleryImageInputSchema } from "@/lib/validators/event";
+import { getSetting, setSetting } from "./site-settings";
+
+/** Saving a seeded event IS the HOD review it was flagged for. */
+async function clearEventImportFlag(db: PrismaClient, id: string, actorId: string) {
+  const flags = await getSetting(db, "events.importFlags");
+  if (flags[id]) {
+    const { [id]: _removed, ...rest } = flags;
+    await setSetting(db, "events.importFlags", rest, actorId);
+  }
+}
 
 export const MAX_GALLERY_IMAGES = 30;
 
@@ -59,16 +69,18 @@ export async function updateEvent(
       ? Array.from(new Set([...existing.previousSlugs, existing.slug]))
       : existing.previousSlugs;
 
-  return db.$transaction(async (tx) => {
-    const updated = await tx.event.update({ where: { id }, data: { ...parsed, slug: nextSlug, previousSlugs } });
+  const updated = await db.$transaction(async (tx) => {
+    const result = await tx.event.update({ where: { id }, data: { ...parsed, slug: nextSlug, previousSlugs } });
     await createRevision(tx, { entityType: "Event", entityId: id, snapshot: { ...parsed, slug: nextSlug }, createdById: actorId });
     await logAction(
       tx,
-      { actorId, action: "event.update", entityType: "Event", entityId: id, summary: `Updated ${updated.title}` },
+      { actorId, action: "event.update", entityType: "Event", entityId: id, summary: `Updated ${result.title}` },
       context,
     );
-    return updated;
+    return result;
   });
+  await clearEventImportFlag(db, id, actorId);
+  return updated;
 }
 
 export async function setEventStatus(

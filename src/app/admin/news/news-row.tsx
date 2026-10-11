@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { setNewsPostStatusAction } from "@/server/actions/news";
 
-export function NewsRow({ post }: { post: NewsPost & { cover: MediaAsset | null } }) {
+export function NewsRow({ post, needsReview }: { post: NewsPost & { cover: MediaAsset | null }; needsReview: boolean }) {
   const [pending, startTransition] = useTransition();
 
   function setStatus(status: "DRAFT" | "PUBLISHED" | "ARCHIVED") {
@@ -31,6 +31,7 @@ export function NewsRow({ post }: { post: NewsPost & { cover: MediaAsset | null 
           <Badge variant="secondary">{post.status}</Badge>
           {post.isPinned ? <Badge>Pinned</Badge> : null}
           {post.publishedAt && post.publishedAt > new Date() ? <Badge variant="outline">Scheduled</Badge> : null}
+          {needsReview ? <Badge variant="outline">Imported from the old site, needs HOD review</Badge> : null}
           {post.publishedAt ? <span>{post.publishedAt.toLocaleDateString()}</span> : null}
         </div>
       </div>

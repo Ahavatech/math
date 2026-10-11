@@ -158,6 +158,18 @@ export const SETTINGS_REGISTRY = {
     label: "Non-teaching staff import flags",
     section: "Staff",
   },
+  "news.importFlags": {
+    schema: z.record(z.string(), z.boolean()),
+    default: {},
+    label: "News import flags",
+    section: "News",
+  },
+  "events.importFlags": {
+    schema: z.record(z.string(), z.boolean()),
+    default: {},
+    label: "Events import flags",
+    section: "Events",
+  },
 } as const;
 
 export type SettingsKey = keyof typeof SETTINGS_REGISTRY;
