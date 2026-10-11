@@ -19,7 +19,7 @@ function optionalUrl(field: "scholar" | "researchGate" | "linkedin") {
  * never reaches the database write.
  */
 export const lecturerSelfEditSchema = z.object({
-  photoId: z.string().nullable(),
+  photoId: z.string().nullable().default(null),
   honorific: z.string().max(50).default(""),
   bio: z.string().default(""),
   researchAreaIds: z.array(z.string()).default([]),

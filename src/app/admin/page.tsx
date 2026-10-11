@@ -1,7 +1,26 @@
+import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { getCurrentUser, hasPermission, type Permission } from "@/lib/rbac";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
+const ADMIN_PERMISSIONS: Permission[] = [
+  "users.manage",
+  "site.edit",
+  "academics.manage",
+  "lecturers.manage",
+  "news.manage",
+  "events.manage",
+  "alumni.review",
+  "journal.edit",
+];
+
 export default async function AdminDashboardPage() {
+  const user = await getCurrentUser();
+  const isLecturerOnly = !user || !ADMIN_PERMISSIONS.some((permission) => hasPermission(user, permission));
+  if (isLecturerOnly) {
+    redirect("/admin/my-profile");
+  }
+
   const [userCount, lecturerCount, pendingAlumniCount, upcomingEventCount] =
     await Promise.all([
       db.user.count(),
