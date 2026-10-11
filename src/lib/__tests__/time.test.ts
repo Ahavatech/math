@@ -5,6 +5,7 @@ import {
   endOfDayWAT,
   isUpcoming,
   formatWAT,
+  formatDateWAT,
   validateEventTimes,
   watLocalInputToUtc,
   utcToWatLocalInput,
@@ -102,6 +103,18 @@ describe("formatWAT", () => {
   it("reflects the WAT-shifted hour, not the raw UTC hour", () => {
     const formatted = formatWAT(new Date("2026-07-08T10:00:00.000Z"), { hour: "2-digit", minute: "2-digit", hour12: false });
     expect(formatted).toContain("11:00");
+  });
+});
+
+describe("formatDateWAT", () => {
+  it("does not append a WAT suffix (no time-of-day is shown)", () => {
+    expect(formatDateWAT(new Date("2026-07-08T10:00:00.000Z"))).not.toMatch(/WAT/);
+  });
+
+  it("reflects the WAT calendar day, which can differ from the UTC day near midnight", () => {
+    // 2026-07-08T23:30 UTC is 2026-07-09T00:30 WAT
+    const result = formatDateWAT(new Date("2026-07-08T23:30:00.000Z"));
+    expect(result).toContain("9 July 2026");
   });
 });
 

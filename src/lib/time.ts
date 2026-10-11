@@ -62,6 +62,11 @@ export function formatWAT(date: Date, options: Intl.DateTimeFormatOptions = DEFA
   return `${formatted} WAT`;
 }
 
+/** Date-only WAT display (e.g. a news post's publish date on a card) - no "WAT" suffix, since no time-of-day is shown. */
+export function formatDateWAT(date: Date): string {
+  return new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Lagos", year: "numeric", month: "long", day: "numeric" }).format(date);
+}
+
 function pad(n: number): string {
   return String(n).padStart(2, "0");
 }
