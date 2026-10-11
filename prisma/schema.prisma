@@ -31,6 +31,7 @@ model User {
   email        String    @unique
   name         String
   passwordHash String?
+  passwordChangedAt DateTime?
   isActive     Boolean   @default(true)
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())

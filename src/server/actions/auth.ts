@@ -2,21 +2,24 @@
 
 import { headers } from "next/headers";
 import { AuthError } from "next-auth";
-import { signIn, signOut } from "@/auth";
+import { signIn, signOut, auth } from "@/auth";
 import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
 import { consumeToken, issueToken } from "@/server/services/tokens";
 import { logAction, contextFromHeaders } from "@/server/services/audit";
+import { changeOwnPassword, WrongPasswordError } from "@/server/services/account";
 import {
   loginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
   acceptInviteSchema,
+  changePasswordSchema,
 } from "@/lib/validators/auth";
 import {
   loginRateLimiter,
   forgotPasswordRateLimiter,
   tokenConsumeRateLimiter,
+  changePasswordRateLimiter,
 } from "@/lib/rate-limit";
 import { sendPasswordResetEmail } from "@/lib/email";
 
@@ -129,7 +132,7 @@ export async function resetPasswordAction(
   const passwordHash = await hashPassword(parsed.data.password);
   await db.user.update({
     where: { id: consumed.userId },
-    data: { passwordHash },
+    data: { passwordHash, passwordChangedAt: new Date() },
   });
 
   await logAction(
@@ -172,7 +175,7 @@ export async function acceptInviteAction(
   const passwordHash = await hashPassword(parsed.data.password);
   await db.user.update({
     where: { id: consumed.userId },
-    data: { passwordHash },
+    data: { passwordHash, passwordChangedAt: new Date() },
   });
 
   await logAction(
@@ -186,6 +189,48 @@ export async function acceptInviteAction(
     },
     contextFromHeaders(await headers()),
   );
+
+  return { success: true };
+}
+
+export async function changePasswordAction(
+  _prevState: { error?: string; success?: boolean } | undefined,
+  formData: FormData,
+): Promise<{ error?: string; success?: boolean }> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: "You must be signed in." };
+  }
+
+  const parsed = changePasswordSchema.safeParse({
+    currentPassword: formData.get("currentPassword"),
+    newPassword: formData.get("newPassword"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input." };
+  }
+
+  const ip = await clientIp();
+  if (!changePasswordRateLimiter.check(`user:${session.user.id}`).allowed) {
+    return { error: RATE_LIMITED_ERROR };
+  }
+  if (!changePasswordRateLimiter.check(`ip:${ip}`).allowed) {
+    return { error: RATE_LIMITED_ERROR };
+  }
+
+  try {
+    await changeOwnPassword(
+      db,
+      session.user.id,
+      { currentPassword: parsed.data.currentPassword, newPassword: parsed.data.newPassword },
+      contextFromHeaders(await headers()),
+    );
+  } catch (error) {
+    if (error instanceof WrongPasswordError) {
+      return { error: error.message };
+    }
+    throw error;
+  }
 
   return { success: true };
 }

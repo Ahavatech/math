@@ -32,7 +32,7 @@ erDiagram
   }
 ```
 
-- **User**: one row per account. No role column; `passwordHash` is null until an invite is accepted (Stage 03).
+- **User**: one row per account. No role column; `passwordHash` is null until an invite is accepted (Stage 03). `passwordChangedAt` (Stage 07a) is stamped on every password change and is compared against the value captured in the session's JWT at login, to best-effort invalidate other active sessions within the 5-minute roles recheck window (see docs/AUTH.md and DECISIONS.md #37).
 - **UserRole**: a user can hold several roles at once; `(userId, role)` is unique.
 - **UserToken**: invite and password-reset tokens. Only a hash is ever stored.
 

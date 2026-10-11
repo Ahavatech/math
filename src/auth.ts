@@ -12,6 +12,7 @@ type RolesToken = {
   roles?: Role[];
   isActive?: boolean;
   rolesCheckedAt?: number;
+  passwordChangedAt?: number | null;
 };
 
 /**
@@ -19,6 +20,13 @@ type RolesToken = {
  * ROLES_RECHECK_INTERVAL_MS. Exported standalone (rather than left
  * inline in the jwt callback) so the recheck gate itself — not just
  * its end-to-end effect — has a direct unit test.
+ *
+ * Also compares the user's current passwordChangedAt against the value
+ * stamped into the token at login: a changed password marks the token
+ * inactive on its next recheck, which invalidates other sessions within
+ * ROLES_RECHECK_INTERVAL_MS (there is no server-side session store for a
+ * JWT strategy, so this is the best-effort invalidation that is feasible
+ * here, not an instant one).
  */
 export async function refreshTokenRoles(
   token: RolesToken,
@@ -36,9 +44,13 @@ export async function refreshTokenRoles(
       })
     : null;
 
+  const dbPasswordChangedAt = dbUser?.passwordChangedAt?.getTime() ?? null;
+  const passwordChanged =
+    token.passwordChangedAt != null && dbPasswordChangedAt !== token.passwordChangedAt;
+
   return {
     ...token,
-    isActive: dbUser?.isActive ?? false,
+    isActive: passwordChanged ? false : dbUser?.isActive ?? false,
     roles: dbUser ? dbUser.roles.map((r) => r.role) : [],
     rolesCheckedAt: Date.now(),
   };
@@ -86,6 +98,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           email: user.email,
           name: user.name,
           roles: user.roles.map((r) => r.role),
+          passwordChangedAt: user.passwordChangedAt?.getTime() ?? null,
         };
       },
     }),
@@ -97,6 +110,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.roles = (user as { roles: Role[] }).roles;
         token.isActive = true;
         token.rolesCheckedAt = Date.now();
+        token.passwordChangedAt = (user as unknown as { passwordChangedAt: number | null }).passwordChangedAt;
         return token;
       }
 

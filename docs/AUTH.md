@@ -9,6 +9,7 @@
 | Forgot password | `/forgot-password` | Always shows the same message regardless of whether the email exists. Sends a reset link only when the user exists and is active. Rate limited by IP and by email. |
 | Reset password | `/reset-password/[token]` | Sets a new password, consumes the PASSWORD_RESET token. |
 | Sign out | server action `logoutAction` | Clears the session, redirects to `/login`. |
+| Change password | `/admin/my-profile/security` | Requires the current password. Minimum 10 characters. Rate limited (5/min by user, 5/min by IP). Writes an AuditLog entry and stamps `User.passwordChangedAt`, which signs out other active sessions within 5 minutes - see "Session behaviour" below. |
 
 ## Token rules
 
@@ -45,8 +46,9 @@ Each Cloudinary media folder (`src/lib/media-folders.ts`) requires the permissio
 ## Session behaviour
 
 - Strategy: JWT, no database session table (Auth.js `Account`/`Session`/`VerificationToken` tables do not exist — see DECISIONS.md #13).
-- The JWT carries `id`, `roles`, and `isActive`.
+- The JWT carries `id`, `roles`, `isActive`, and the `passwordChangedAt` timestamp that was current at login.
 - On every request, the `jwt` callback checks whether more than 5 minutes have passed since the roles/active-status were last read from the database (`rolesCheckedAt`). If so, it re-reads `User.isActive` and `UserRole` fresh from the database. This means a deactivated user, or one whose roles changed, loses access within 5 minutes without needing to sign out and back in.
+- That same recheck also compares the token's stamped `passwordChangedAt` against the database value; a mismatch (the password changed since this token was issued) marks the token inactive, so changing your password signs out other active sessions within 5 minutes (see DECISIONS.md #37 - a JWT strategy with no server-side session store has no way to invalidate a session instantly).
 - `src/proxy.ts` (Next.js's `proxy` convention) gives coarse protection: no session at all on `/admin/*` or `/journal/dashboard/*` redirects to `/login`. This is not where real authorization happens — every page and server action re-checks via `src/lib/rbac.ts`'s `requireRole`/`requirePermission`, because the proxy only knows "signed in or not," never which role or permission a specific action needs.
 - Cookies: `httpOnly`, `sameSite: lax` (Auth.js defaults), `secure` automatically when the app runs with `NODE_ENV=production` over HTTPS.
 
