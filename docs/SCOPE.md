@@ -121,7 +121,6 @@ Every step sends an email notification. The system keeps a full history for each
 - The admin generates a form link, either one general link or per-cohort links, and sends it out.
 - Form fields: name, level (B.Sc. or M.Sc.), graduation year, current organisation, role, location, photo, LinkedIn (optional), consent checkbox
 - Submissions go to a Pending queue. The admin approves or rejects, and only approved entries show publicly.
-- The old 519-name list can be kept private in the admin as a cross-check for the approver. It never appears publicly.
 - Duplicate detection on name and graduation year, plus spam protection on the form
 - Public directory filterable by year, level, country and industry, with a Where are they now spotlight
 - The alumni count on the homepage is a live count of approved entries
@@ -297,6 +296,5 @@ The build runs in six phases, with the journal as the largest one. Durations are
 - Correct staff, alumni and student numbers
 - The list of lecturers to onboard first, with ranks and official emails
 - A decision on whether Statistics content is removed or cross-linked
-- The private list of 519 recorded graduates for the approver's cross-check, if the department agrees to share it
 - Journal details: editor-in-chief, editorial board, ISSN, scope and author guidelines
 - Domain and DNS access (to verify the Resend sender), details of the frontend hosting including whether it runs Node.js, and the university IT contact

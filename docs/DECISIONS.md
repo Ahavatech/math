@@ -52,6 +52,9 @@ Decisions below are settled. Do not reopen them without asking. Add new decision
 | 43 | 2026-10-11 | ICS (calendar) and RSS generation are hand-written in-house (src/lib/ics.ts, src/lib/rss.ts), not a dependency. Both formats are simple enough, and a dependency is one more thing to audit for a format whose main risk is exactly the string-escaping bug this code exists to get right once: every text field is escaped before being placed into a line, so a value can never contain the real line/record separator the format itself uses, which is what actually prevents CRLF/structure injection via a title or description field. |
 | 44 | 2026-10-11 | The flyer/gallery lightbox (src/components/ui/lightbox.tsx) is built on the native `<dialog>` element's `showModal()`, which gives Escape-to-close, a focus trap and focus restoration from the platform rather than from hand-rolled code, and is loaded only via `next/dynamic` (`ssr: false`) from a thumbnail component, so a page with no zoomable images never downloads it. Zoom is a simple double-click/double-tap scale toggle, not full pinch-gesture tracking, which was judged out of scope for a flyer/gallery viewer. |
 
+| 45 | 2026-10-11 | No private cross-check list. Every alumnus submits the form and the admin verifies. Duplicates are flagged by dedupeKey only. |
+| 46 | 2026-10-11 | No CAPTCHA. Links are sent privately, so spam is controlled with a honeypot, a minimum fill time, rate limits and a duplicate check. Spam checks live in one module so a challenge can be added later without touching the form. |
+
 ## Open questions
 - Does the university frontend hosting run Node.js? If not, the whole Next.js app runs on the KVM 1 and the university host only handles the domain or a redirect.
 - Where does PostgreSQL run (same VPS or a managed provider)?
