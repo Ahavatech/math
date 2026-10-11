@@ -1,5 +1,8 @@
 import "server-only";
+import type { PrismaClient } from "@prisma/client";
 import { db } from "@/lib/db";
+import { getSetting } from "@/server/services/site-settings";
+import { pickAutomaticFeatured } from "@/lib/featured-lecturer";
 
 /**
  * Every export here falls back to an empty/null result instead of
@@ -45,13 +48,39 @@ export async function listUpcomingEvents(limit = 3) {
   }
 }
 
-export async function getFeaturedLecturer() {
+/**
+ * Manual mode features the chosen profile if it is still eligible
+ * (published, active account); otherwise (including automatic mode)
+ * falls back to a deterministic daily pick among published, active,
+ * non-emeritus profiles that have both a photo and a non-empty bio -
+ * see src/lib/featured-lecturer.ts. The query orders by `id` so the
+ * candidate list (and therefore the day's pick) is stable across
+ * requests within the same day.
+ */
+export async function getFeaturedLecturer(dbClient: PrismaClient = db) {
   try {
-    return await db.lecturerProfile.findFirst({
-      where: { status: "PUBLISHED", isEmeritus: false },
-      orderBy: { order: "asc" },
+    const setting = await getSetting(dbClient, "homepage.featuredLecturer");
+
+    if (setting.mode === "manual" && setting.lecturerProfileId) {
+      const manual = await dbClient.lecturerProfile.findFirst({
+        where: { id: setting.lecturerProfileId, status: "PUBLISHED", user: { isActive: true } },
+        include: { photo: true },
+      });
+      if (manual) return manual;
+    }
+
+    const candidates = await dbClient.lecturerProfile.findMany({
+      where: {
+        status: "PUBLISHED",
+        isEmeritus: false,
+        user: { isActive: true },
+        photoId: { not: null },
+      },
+      orderBy: { id: "asc" },
       include: { photo: true },
     });
+    const eligible = candidates.filter((c) => c.bio && c.bio.trim());
+    return pickAutomaticFeatured(eligible);
   } catch {
     return null;
   }
