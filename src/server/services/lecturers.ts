@@ -301,6 +301,47 @@ export async function updateOwnLecturerProfile(
   });
 }
 
+/** Admin "edit on behalf of the lecturer" - same field allowlist as the self-edit, but keyed
+ * by profile id and requiring the caller to already hold lecturers.manage (checked by the
+ * action layer, not here), with a distinct audit action name so the two are never confused. */
+export async function adminUpdateLecturerSelfFields(
+  db: PrismaClient,
+  actorId: string,
+  profileId: string,
+  input: unknown,
+  context?: AuditRequestContext,
+) {
+  const parsed: LecturerSelfEditInput = lecturerSelfEditSchema.parse(input);
+
+  return db.$transaction(async (tx) => {
+    const updated = await tx.lecturerProfile.update({
+      where: { id: profileId },
+      data: {
+        photoId: parsed.photoId,
+        honorific: parsed.honorific || null,
+        bio: parsed.bio || null,
+        officeLocation: parsed.officeLocation || null,
+        officeHours: parsed.officeHours || null,
+        publicEmail: parsed.publicEmail || null,
+        phone: parsed.phone || null,
+        scholarUrl: parsed.scholarUrl || null,
+        orcid: parsed.orcid || null,
+        researchGateUrl: parsed.researchGateUrl || null,
+        linkedinUrl: parsed.linkedinUrl || null,
+        supervisionText: parsed.supervisionText || null,
+        researchAreas: { set: parsed.researchAreaIds.map((id) => ({ id })) },
+      },
+    });
+    await createRevision(tx, { entityType: "LecturerProfile", entityId: profileId, snapshot: parsed, createdById: actorId });
+    await logAction(
+      tx,
+      { actorId, action: "lecturer.admin_edit_on_behalf", entityType: "LecturerProfile", entityId: profileId, summary: `Admin edited ${updated.fullName}'s profile on their behalf` },
+      context,
+    );
+    return updated;
+  });
+}
+
 export async function requestPublishing(db: PrismaClient, callerUserId: string, context?: AuditRequestContext) {
   const profile = await db.lecturerProfile.findUniqueOrThrow({
     where: { userId: callerUserId },

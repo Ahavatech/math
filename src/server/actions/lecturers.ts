@@ -19,6 +19,7 @@ import {
   setLecturerAccountActive,
   sendLecturerInvite,
   updateOwnLecturerProfile,
+  adminUpdateLecturerSelfFields,
   requestPublishing,
   getLecturerByUserId,
   createPublicationForOwner,
@@ -171,6 +172,51 @@ export async function setLecturerAccountActiveAction(formData: FormData): Promis
   const isActive = formData.get("isActive") === "true";
   await setLecturerAccountActive(db, actor.id, userId, isActive, contextFromHeaders(await headers()));
   revalidatePath("/admin/lecturers");
+}
+
+export async function adminUpdateLecturerSelfFieldsAction(
+  _prevState: ActionResult | undefined,
+  formData: FormData,
+): Promise<ActionResult> {
+  const actor = await requireLecturersManage();
+  const profileId = String(formData.get("profileId") ?? "");
+
+  const parsed = selfEditFormSchema.safeParse({
+    photoId: formData.get("photoId") || null,
+    honorific: formData.get("honorific"),
+    bio: formData.get("bio"),
+    researchAreaIds: formData.getAll("researchAreaIds").map(String),
+    officeLocation: formData.get("officeLocation"),
+    officeHours: formData.get("officeHours"),
+    publicEmail: formData.get("publicEmail"),
+    phone: formData.get("phone"),
+    scholarUrl: formData.get("scholarUrl"),
+    orcid: formData.get("orcid"),
+    researchGateUrl: formData.get("researchGateUrl"),
+    linkedinUrl: formData.get("linkedinUrl"),
+    supervisionText: formData.get("supervisionText"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  try {
+    const updated = await adminUpdateLecturerSelfFields(
+      db,
+      actor.id,
+      profileId,
+      {
+        ...parsed.data,
+        bio: sanitizeRichText(parsed.data.bio),
+        supervisionText: sanitizeRichText(parsed.data.supervisionText),
+      },
+      contextFromHeaders(await headers()),
+    );
+    revalidateLecturerPaths(updated.slug);
+    return { success: true };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not save" };
+  }
 }
 
 // --- CSV bulk import -----------------------------------------------------
