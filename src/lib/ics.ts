@@ -87,7 +87,6 @@ function buildVEvent(event: IcsEventInput, dtstamp: string): string {
 }
 
 function wrapCalendar(vevents: string[]): string {
-  const dtstamp = formatUtc(new Date());
   const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", property("PRODID", PRODID), "CALSCALE:GREGORIAN", ...vevents, "END:VCALENDAR"];
   return lines.join(CRLF) + CRLF;
 }
