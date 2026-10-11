@@ -413,6 +413,22 @@ describe.skipIf(db === null)("lecturers service", () => {
       const list = await listLecturersDirectory(db!, { search: "no-such-lecturer-zzz" });
       expect(list).toEqual([]);
     });
+
+    it("never serialises the login email anywhere in the /staff directory payload", async () => {
+      const loginEmail = "staff-directory-secret-login@example.com";
+      const { user, profile } = await createLecturer(db!, actorId, {
+        fullName: "Staff Directory Serialization Test",
+        honorific: "",
+        rank: "LECTURER_I",
+        email: loginEmail,
+      });
+      createdUserIds.push(user.id);
+      await publishLecturer(db!, actorId, profile.id);
+
+      const list = await listLecturersDirectory(db!);
+      expect(JSON.stringify(list)).not.toContain(loginEmail);
+      expect(JSON.stringify(list)).not.toContain("passwordHash");
+    });
   });
 });
 
