@@ -12,7 +12,7 @@ export type HomepageStats = {
 
 async function computeAutoValues(db: PrismaClient) {
   const [staff, alumni, programmes, researchAreas] = await Promise.all([
-    db.lecturerProfile.count({ where: { status: "PUBLISHED", isEmeritus: false } }),
+    db.lecturerProfile.count({ where: { status: "PUBLISHED", isEmeritus: false, user: { isActive: true } } }),
     db.alumniEntry.count({ where: { status: "APPROVED" } }),
     db.programme.count({ where: { status: "PUBLISHED" } }),
     db.researchArea.count({ where: { status: "PUBLISHED" } }),

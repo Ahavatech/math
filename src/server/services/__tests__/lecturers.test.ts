@@ -15,6 +15,8 @@ import {
   updatePublicationForOwner,
   deletePublicationForOwner,
   reorderPublicationForOwner,
+  reorderLecturer,
+  listLecturersDirectory,
   sendLecturerInvite,
   OwnershipError,
 } from "../lecturers";
@@ -60,6 +62,34 @@ describe.skipIf(db === null)("lecturers service", () => {
     expect(profile.slug).toBe("jane-doe-test");
     const roles = await db!.userRole.findMany({ where: { userId: user.id } });
     expect(roles.map((r) => r.role)).toContain("LECTURER");
+  });
+
+  it("reorders by swapping order with the adjacent sibling, no-op at boundaries", async () => {
+    const a = await createLecturer(db!, actorId, { fullName: "Reorder A Test", honorific: "", rank: "LECTURER_I", email: "reorder-a-test@example.com" });
+    const b = await createLecturer(db!, actorId, { fullName: "Reorder B Test", honorific: "", rank: "LECTURER_I", email: "reorder-b-test@example.com" });
+    const c = await createLecturer(db!, actorId, { fullName: "Reorder C Test", honorific: "", rank: "LECTURER_I", email: "reorder-c-test@example.com" });
+    createdUserIds.push(a.user.id, b.user.id, c.user.id);
+
+    // Give the fixtures order values well outside the real seeded range
+    // so they are guaranteed adjacent to each other (see docs/PATTERNS.md's
+    // test-isolation note for this same issue in research-areas reorder).
+    await db!.lecturerProfile.update({ where: { id: a.profile.id }, data: { order: 5000 } });
+    await db!.lecturerProfile.update({ where: { id: b.profile.id }, data: { order: 5001 } });
+    await db!.lecturerProfile.update({ where: { id: c.profile.id }, data: { order: 5002 } });
+
+    await reorderLecturer(db!, b.profile.id, "up");
+    let rows = await db!.lecturerProfile.findMany({ where: { id: { in: [a.profile.id, b.profile.id, c.profile.id] } }, orderBy: { order: "asc" } });
+    expect(rows.map((r) => r.id)).toEqual([b.profile.id, a.profile.id, c.profile.id]);
+
+    // moving the now-first item up again is a no-op
+    await reorderLecturer(db!, b.profile.id, "up");
+    rows = await db!.lecturerProfile.findMany({ where: { id: { in: [a.profile.id, b.profile.id, c.profile.id] } }, orderBy: { order: "asc" } });
+    expect(rows.map((r) => r.id)).toEqual([b.profile.id, a.profile.id, c.profile.id]);
+
+    // moving the last item down is a no-op
+    await reorderLecturer(db!, c.profile.id, "down");
+    rows = await db!.lecturerProfile.findMany({ where: { id: { in: [a.profile.id, b.profile.id, c.profile.id] } }, orderBy: { order: "asc" } });
+    expect(rows.map((r) => r.id)).toEqual([b.profile.id, a.profile.id, c.profile.id]);
   });
 
   it("adds the LECTURER role to an existing user without removing their other roles", async () => {
@@ -298,6 +328,91 @@ describe.skipIf(db === null)("lecturers service", () => {
     await sendLecturerInvite(db!, actorId, user.id);
     const token = await db!.userToken.findFirst({ where: { userId: user.id, type: "INVITE" } });
     expect(deriveInviteState(null, token)).toBe("invited");
+  });
+
+  describe("listLecturersDirectory", () => {
+    it("only includes published, active-account profiles", async () => {
+      const draft = await createLecturer(db!, actorId, { fullName: "Directory Draft Test", honorific: "", rank: "LECTURER_I", email: "directory-draft-test@example.com" });
+      const published = await createLecturer(db!, actorId, { fullName: "Directory Published Test", honorific: "", rank: "LECTURER_I", email: "directory-published-test@example.com" });
+      const deactivated = await createLecturer(db!, actorId, { fullName: "Directory Deactivated Test", honorific: "", rank: "LECTURER_I", email: "directory-deactivated-test@example.com" });
+      createdUserIds.push(draft.user.id, published.user.id, deactivated.user.id);
+      await publishLecturer(db!, actorId, published.profile.id);
+      await publishLecturer(db!, actorId, deactivated.profile.id);
+      await db!.user.update({ where: { id: deactivated.user.id }, data: { isActive: false } });
+
+      const list = await listLecturersDirectory(db!);
+      const ids = list.map((l) => l.id);
+      expect(ids).toContain(published.profile.id);
+      expect(ids).not.toContain(draft.profile.id);
+      expect(ids).not.toContain(deactivated.profile.id);
+    });
+
+    it("includes both emeritus and non-emeritus published profiles (caller splits them)", async () => {
+      const emeritus = await createLecturer(db!, actorId, { fullName: "Directory Emeritus Test", honorific: "", rank: "PROFESSOR", email: "directory-emeritus-test@example.com" });
+      createdUserIds.push(emeritus.user.id);
+      await publishLecturer(db!, actorId, emeritus.profile.id);
+      await db!.lecturerProfile.update({ where: { id: emeritus.profile.id }, data: { isEmeritus: true } });
+
+      const list = await listLecturersDirectory(db!);
+      const found = list.find((l) => l.id === emeritus.profile.id);
+      expect(found?.isEmeritus).toBe(true);
+    });
+
+    it("filters by rank", async () => {
+      const prof = await createLecturer(db!, actorId, { fullName: "Directory Rank Prof Test", honorific: "", rank: "PROFESSOR", email: "directory-rank-prof-test@example.com" });
+      const lect = await createLecturer(db!, actorId, { fullName: "Directory Rank Lect Test", honorific: "", rank: "LECTURER_I", email: "directory-rank-lect-test@example.com" });
+      createdUserIds.push(prof.user.id, lect.user.id);
+      await publishLecturer(db!, actorId, prof.profile.id);
+      await publishLecturer(db!, actorId, lect.profile.id);
+
+      const list = await listLecturersDirectory(db!, { rank: "PROFESSOR" });
+      const ids = list.map((l) => l.id);
+      expect(ids).toContain(prof.profile.id);
+      expect(ids).not.toContain(lect.profile.id);
+    });
+
+    it("matches a plain-ASCII search query against a name with Yoruba diacritics", async () => {
+      const { user, profile } = await createLecturer(db!, actorId, {
+        fullName: "Adéṣọlá Yoruba Search Test",
+        honorific: "",
+        rank: "LECTURER_I",
+        email: "directory-yoruba-search-test@example.com",
+      });
+      createdUserIds.push(user.id);
+      await publishLecturer(db!, actorId, profile.id);
+
+      const found = await listLecturersDirectory(db!, { search: "adesola" });
+      expect(found.map((l) => l.id)).toContain(profile.id);
+
+      const notFound = await listLecturersDirectory(db!, { search: "zzz-nonexistent" });
+      expect(notFound.map((l) => l.id)).not.toContain(profile.id);
+    });
+
+    it("filters by research area", async () => {
+      const area = await db!.researchArea.create({
+        data: { title: "Directory Filter Area Test", slug: "directory-filter-area-test", summary: "", body: "", status: "PUBLISHED", order: 9000 },
+      });
+      const linked = await createLecturer(db!, actorId, { fullName: "Directory Area Linked Test", honorific: "", rank: "LECTURER_I", email: "directory-area-linked-test@example.com" });
+      const unlinked = await createLecturer(db!, actorId, { fullName: "Directory Area Unlinked Test", honorific: "", rank: "LECTURER_I", email: "directory-area-unlinked-test@example.com" });
+      createdUserIds.push(linked.user.id, unlinked.user.id);
+      await publishLecturer(db!, actorId, linked.profile.id);
+      await publishLecturer(db!, actorId, unlinked.profile.id);
+      await db!.lecturerProfile.update({ where: { id: linked.profile.id }, data: { researchAreas: { connect: { id: area.id } } } });
+
+      try {
+        const list = await listLecturersDirectory(db!, { researchAreaSlug: "directory-filter-area-test" });
+        const ids = list.map((l) => l.id);
+        expect(ids).toContain(linked.profile.id);
+        expect(ids).not.toContain(unlinked.profile.id);
+      } finally {
+        await db!.researchArea.delete({ where: { id: area.id } });
+      }
+    });
+
+    it("returns an empty array for a search that matches nobody", async () => {
+      const list = await listLecturersDirectory(db!, { search: "no-such-lecturer-zzz" });
+      expect(list).toEqual([]);
+    });
   });
 });
 

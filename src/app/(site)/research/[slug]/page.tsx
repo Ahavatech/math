@@ -55,7 +55,15 @@ export default async function ResearchAreaPage({ params }: { params: Promise<{ s
       ? await db.publication.findMany({
           where: { lecturerId: { in: lecturerIds } },
           orderBy: [{ year: "desc" }, { order: "asc" }],
-          take: 12,
+          take: 8,
+          select: {
+            id: true,
+            title: true,
+            authorsText: true,
+            venue: true,
+            year: true,
+            lecturer: { select: { fullName: true, slug: true } },
+          },
         })
       : [];
 
@@ -113,7 +121,10 @@ export default async function ResearchAreaPage({ params }: { params: Promise<{ s
                   <p className="font-medium">{pub.title}</p>
                   <p className="text-muted-foreground">
                     {pub.authorsText}
-                    {pub.venue ? `, ${pub.venue}` : ""} ({pub.year})
+                    {pub.venue ? `, ${pub.venue}` : ""} ({pub.year}) -{" "}
+                    <a href={`/lecturer/${pub.lecturer.slug}`} className="underline">
+                      {pub.lecturer.fullName}
+                    </a>
                   </p>
                 </li>
               ))}

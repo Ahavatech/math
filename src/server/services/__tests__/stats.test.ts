@@ -55,6 +55,27 @@ describe.skipIf(db === null)("homepage stats", () => {
     expect(stats.staff.value).toBe(1);
   });
 
+  it("excludes a published lecturer whose account has been deactivated", async () => {
+    const { getHomepageStats } = await import("../stats");
+
+    const activeUser = await db!.user.create({ data: { email: "stats-active@example.com", name: "Active" } });
+    const deactivatedUser = await db!.user.create({
+      data: { email: "stats-deactivated@example.com", name: "Deactivated", isActive: false },
+    });
+    createdUserIds.push(activeUser.id, deactivatedUser.id);
+
+    const active = await db!.lecturerProfile.create({
+      data: { userId: activeUser.id, slug: "stats-active", fullName: "Active", rank: "LECTURER_I", status: "PUBLISHED" },
+    });
+    const deactivated = await db!.lecturerProfile.create({
+      data: { userId: deactivatedUser.id, slug: "stats-deactivated", fullName: "Deactivated", rank: "LECTURER_I", status: "PUBLISHED" },
+    });
+    createdLecturerIds.push(active.id, deactivated.id);
+
+    const stats = await getHomepageStats(db!);
+    expect(stats.staff.value).toBe(1);
+  });
+
   it("uses the manual override value and reports mode: manual when set", async () => {
     const { getHomepageStats } = await import("../stats");
     const { setSetting } = await import("../site-settings");

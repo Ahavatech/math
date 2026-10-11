@@ -1,10 +1,12 @@
 import "server-only";
-import type { PrismaClient, Role, UserTokenType } from "@prisma/client";
+import type { LecturerRank, PrismaClient, Role, UserTokenType } from "@prisma/client";
 import { createRevision } from "./revisions";
 import { logAction, type AuditRequestContext } from "./audit";
 import { issueToken } from "./tokens";
 import { sendInviteEmail } from "@/lib/email";
 import { generateUniqueSlug } from "@/lib/slugify";
+import { matchesSearch } from "@/lib/text-search";
+import { sortLecturersForDirectory } from "@/lib/lecturer-directory-sort";
 import {
   lecturerSelfEditSchema,
   lecturerAdminEditSchema,
@@ -40,6 +42,8 @@ export async function createLecturer(
     const existing = await db.lecturerProfile.findUnique({ where: { slug: candidate } });
     return existing !== null;
   });
+  const max = await db.lecturerProfile.aggregate({ _max: { order: true } });
+  const order = (max._max.order ?? -1) + 1;
 
   return db.$transaction(async (tx) => {
     const user = await tx.user.upsert({
@@ -64,6 +68,7 @@ export async function createLecturer(
         honorific: params.honorific || null,
         rank: params.rank as never,
         status: "DRAFT",
+        order,
       },
     });
 
@@ -88,7 +93,7 @@ export async function createLecturer(
 export async function listLecturersAdmin(db: PrismaClient) {
   const profiles = await db.lecturerProfile.findMany({
     include: { user: { select: { id: true, email: true, isActive: true, passwordHash: true } }, photo: true },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ order: "asc" }, { createdAt: "desc" }],
   });
 
   const userIds = profiles.map((p) => p.userId);
@@ -488,5 +493,70 @@ export async function findLecturerBySlugOrPreviousSlug(db: PrismaClient, slug: s
     return null;
   } catch {
     return null;
+  }
+}
+
+// --- Admin: ordering ---------------------------------------------------
+
+/** Swaps `order` with the adjacent sibling (full list, no scoping); a no-op at either boundary or with one item. */
+export async function reorderLecturer(db: PrismaClient, id: string, direction: "up" | "down"): Promise<void> {
+  const target = await db.lecturerProfile.findUniqueOrThrow({ where: { id } });
+  const siblings = await db.lecturerProfile.findMany({ orderBy: [{ order: "asc" }, { createdAt: "desc" }] });
+
+  const index = siblings.findIndex((s) => s.id === id);
+  const swapIndex = direction === "up" ? index - 1 : index + 1;
+  if (index === -1 || swapIndex < 0 || swapIndex >= siblings.length) return;
+
+  const swapWith = siblings[swapIndex];
+  await db.$transaction([
+    db.lecturerProfile.update({ where: { id: target.id }, data: { order: swapWith.order } }),
+    db.lecturerProfile.update({ where: { id: swapWith.id }, data: { order: target.order } }),
+  ]);
+}
+
+// --- Public: staff directory --------------------------------------------
+
+export type LecturerDirectoryFilter = {
+  search?: string;
+  rank?: LecturerRank;
+  researchAreaSlug?: string;
+};
+
+/**
+ * Public-safe: published, active-account profiles only (both non-emeritus
+ * and emeritus - the caller splits them into sections by `isEmeritus`).
+ * Never selects User.email or passwordHash. Name search is applied in
+ * application code (accent/diacritic folding is not something a plain
+ * Prisma `contains` filter can do), after the database has already
+ * narrowed by status/rank/research-area.
+ */
+export async function listLecturersDirectory(db: PrismaClient, filter: LecturerDirectoryFilter = {}) {
+  try {
+    const rows = await db.lecturerProfile.findMany({
+      where: {
+        status: "PUBLISHED",
+        user: { isActive: true },
+        ...(filter.rank ? { rank: filter.rank } : {}),
+        ...(filter.researchAreaSlug
+          ? { researchAreas: { some: { slug: filter.researchAreaSlug, status: "PUBLISHED" } } }
+          : {}),
+      },
+      select: {
+        id: true,
+        slug: true,
+        fullName: true,
+        honorific: true,
+        rank: true,
+        order: true,
+        isEmeritus: true,
+        photo: { select: { id: true, url: true, alt: true } },
+        researchAreas: { where: { status: "PUBLISHED" }, select: { id: true, slug: true, title: true } },
+      },
+    });
+
+    const filtered = filter.search ? rows.filter((row) => matchesSearch(row.fullName, filter.search!)) : rows;
+    return sortLecturersForDirectory(filtered);
+  } catch {
+    return [];
   }
 }
