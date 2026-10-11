@@ -49,12 +49,14 @@ export default async function MyProfilePage() {
   ];
 
   async function restoreRevision(revisionId: string) {
+    "use server";
     const fd = new FormData();
     fd.set("revisionId", revisionId);
     await restoreOwnLecturerProfileAction(fd);
   }
 
   async function requestPublishing() {
+    "use server";
     await requestPublishingAction();
   }
 
