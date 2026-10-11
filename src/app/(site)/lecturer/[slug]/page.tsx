@@ -14,6 +14,7 @@ import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Prose } from "@/components/ui/prose";
 import { CloudImage } from "@/components/ui/cloud-image";
 import { Badge } from "@/components/ui/badge";
+import { safeJsonLdString } from "@/lib/json-ld";
 
 export async function generateStaticParams() {
   try {
@@ -221,7 +222,7 @@ export default async function LecturerPage({ params }: { params: Promise<{ slug:
         ) : null}
       </Container>
 
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLdString(jsonLd) }} />
     </Section>
   );
 }

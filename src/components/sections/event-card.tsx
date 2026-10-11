@@ -1,18 +1,21 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { formatWAT } from "@/lib/time";
 
 export type EventCardProps = {
   title: string;
   type: string;
   startsAt: Date;
   venue?: string;
+  speakerName?: string;
   href: string;
 };
 
-export function EventCard({ title, type, startsAt, venue, href }: EventCardProps) {
-  const day = startsAt.toLocaleDateString("en-GB", { day: "2-digit" });
-  const month = startsAt.toLocaleDateString("en-GB", { month: "short" });
+export function EventCard({ title, type, startsAt, venue, speakerName, href }: EventCardProps) {
+  const day = new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Lagos", day: "2-digit" }).format(startsAt);
+  const month = new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Lagos", month: "short" }).format(startsAt);
+  const time = formatWAT(startsAt, { hour: "2-digit", minute: "2-digit", hour12: false });
 
   return (
     <Card className="h-full py-4">
@@ -30,7 +33,9 @@ export function EventCard({ title, type, startsAt, venue, href }: EventCardProps
               {title}
             </Link>
           </h3>
-          {venue ? <p className="mt-1 text-sm text-muted-foreground">{venue}</p> : null}
+          <p className="mt-1 text-sm text-muted-foreground">{time}</p>
+          {venue ? <p className="text-sm text-muted-foreground">{venue}</p> : null}
+          {speakerName ? <p className="text-sm text-muted-foreground">{speakerName}</p> : null}
         </div>
       </CardContent>
     </Card>

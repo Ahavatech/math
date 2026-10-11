@@ -3,6 +3,8 @@ import type { PrismaClient } from "@prisma/client";
 import { db } from "@/lib/db";
 import { getSetting } from "@/server/services/site-settings";
 import { pickAutomaticFeatured } from "@/lib/featured-lecturer";
+import { listLatestNewsPublic } from "@/server/services/news";
+import { listUpcomingEventsPublic } from "@/server/services/events";
 
 /**
  * Every export here falls back to an empty/null result instead of
@@ -24,28 +26,14 @@ export async function listResearchAreas(limit = 6) {
   }
 }
 
+/** Delegates to the news service's own scheduling-aware query (status PUBLISHED and publishedAt <= now), rather than duplicating that filter here. */
 export async function listLatestNews(limit = 3) {
-  try {
-    return await db.newsPost.findMany({
-      where: { status: "PUBLISHED" },
-      orderBy: [{ isPinned: "desc" }, { publishedAt: "desc" }],
-      take: limit,
-    });
-  } catch {
-    return [];
-  }
+  return listLatestNewsPublic(db, limit);
 }
 
+/** Delegates to the events service's own isUpcoming-based query, rather than the naive "startsAt >= now" this used to do (which ignored endsAt). */
 export async function listUpcomingEvents(limit = 3) {
-  try {
-    return await db.event.findMany({
-      where: { status: "PUBLISHED", startsAt: { gte: new Date() } },
-      orderBy: { startsAt: "asc" },
-      take: limit,
-    });
-  } catch {
-    return [];
-  }
+  return listUpcomingEventsPublic(db, limit);
 }
 
 /**

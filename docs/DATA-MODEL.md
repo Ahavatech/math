@@ -119,8 +119,8 @@ erDiagram
   EventGalleryImage { string eventId string mediaId }
 ```
 
-- **NewsPost**: `status` + `publishedAt` drive the public listing; `authorId` is `SetNull` so removing a staff account never deletes their posts.
-- **EventSeries / Event**: events optionally belong to a recurring series; upcoming/past is computed from `startsAt`, not stored.
+- **NewsPost**: `status` + `publishedAt` drive the public listing; `authorId` is `SetNull` so removing a staff account never deletes their posts. Stage 08 added `previousSlugs String[]`, the same 308-redirect pattern as `LecturerProfile` (docs/AUTH.md, Stage 07a): changing a published post's slug pushes the old one here instead of breaking the old URL.
+- **EventSeries / Event**: events optionally belong to a recurring series; upcoming/past is computed from `startsAt`/`endsAt` at read time per docs/TIME.md, never stored. Stage 08 added `previousSlugs String[]` to `Event`, same redirect pattern as above.
 - **EventGalleryImage**: past-event photo gallery, cascades with the event.
 
 ## Alumni

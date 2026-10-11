@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PLACEHOLDER_PROSE } from "../src/lib/placeholder";
+import { watLocalInputToUtc } from "../src/lib/time";
 
 /**
  * Nine research areas and three programmes, titled exactly as recorded in
@@ -68,8 +69,10 @@ const NAV_ITEMS: Array<{
   { label: "About", href: "/about", location: "FOOTER", order: 0 },
   { label: "Programmes", href: "/programmes", location: "FOOTER", order: 1 },
   { label: "Staff", href: "/staff", location: "FOOTER", order: 2 },
-  { label: "Journal", href: "/journal", location: "FOOTER", order: 3 },
-  { label: "Student Resources", href: "/students", location: "FOOTER", order: 4 },
+  { label: "News", href: "/news", location: "FOOTER", order: 3 },
+  { label: "Events", href: "/events", location: "FOOTER", order: 4 },
+  { label: "Journal", href: "/journal", location: "FOOTER", order: 5 },
+  { label: "Student Resources", href: "/students", location: "FOOTER", order: 6 },
   // No "Contact" FOOTER link here: SiteFooter already renders a
   // dedicated Contact block from SiteSetting; a seeded nav link with
   // the same label duplicated it (Stage 05 fix).
@@ -338,12 +341,24 @@ export async function seed(db: PrismaClient): Promise<void> {
       where: { href: item.href, location: item.location },
     });
     if (!existing) {
+      // Never trust item.order against a database that may already hold
+      // other items at that location from an earlier seed run - a new
+      // item always goes after the current real maximum for its
+      // location, so it can never collide with (or duplicate the order
+      // of) something already there. This fixed a real bug: an earlier
+      // version of this loop used item.order directly, which put the
+      // newly-added "Staff" FOOTER item at the same order as the
+      // pre-existing "Journal" item on an already-seeded database.
+      const max = await db.navItem.aggregate({
+        where: { location: item.location },
+        _max: { order: true },
+      });
       await db.navItem.create({
         data: {
           label: item.label,
           href: item.href,
           location: item.location,
-          order: item.order,
+          order: (max._max.order ?? -1) + 1,
         },
       });
     }
@@ -404,6 +419,122 @@ export async function seed(db: PrismaClient): Promise<void> {
     await db.siteSetting.upsert({
       where: { key: "staff.importFlags" },
       create: { key: "staff.importFlags", value: flags },
+      update: { value: flags },
+    });
+  }
+
+  // News and events from the live site's News section, re-checked by a
+  // fresh curl fetch before writing this (no difference found from what
+  // was given). Flyer images are not copied (no base64 image data is
+  // ever written into the database). Idempotent by exact title match,
+  // and flagged "Imported from the old site, needs HOD review" the same
+  // way as the staff list above.
+  const newlyCreatedNewsIds: string[] = [];
+  {
+    const title = "Emerging Economy seminar holds on 8 July 2026";
+    const slug = slugify(title);
+    // Checked by slug (current or previous), not title: an admin may
+    // rename the post or its slug (editing it IS part of reviewing
+    // imported content), and the seed must still recognise it as
+    // already seeded rather than creating a duplicate.
+    const existing =
+      (await db.newsPost.findUnique({ where: { slug } })) ??
+      (await db.newsPost.findFirst({ where: { previousSlugs: { has: slug } } }));
+    if (!existing) {
+      const body =
+        "<p>Banji Osatumberu, MD/CEO of Market Scan International Nigeria, will speak on the relevance of a mathematician at the departmental seminar room.</p>";
+      const created = await db.newsPost.create({
+        data: {
+          slug,
+          title,
+          category: "ANNOUNCEMENT",
+          excerpt: "Banji Osatumberu, MD/CEO of Market Scan International Nigeria, will speak on the relevance of a mathematician at the departmental seminar room.",
+          body,
+          status: "PUBLISHED",
+          // The live site gives no explicit "posted on" date for the
+          // announcement itself, only the seminar date it refers to
+          // (8 July 2026). Published a short lead time before that.
+          publishedAt: watLocalInputToUtc("2026-07-01T09:00"),
+        },
+      });
+      newlyCreatedNewsIds.push(created.id);
+    }
+  }
+  if (newlyCreatedNewsIds.length > 0) {
+    const existingFlags = await db.siteSetting.findUnique({ where: { key: "news.importFlags" } });
+    const flags: Record<string, boolean> = { ...((existingFlags?.value as Record<string, boolean>) ?? {}) };
+    for (const id of newlyCreatedNewsIds) flags[id] = true;
+    await db.siteSetting.upsert({
+      where: { key: "news.importFlags" },
+      create: { key: "news.importFlags", value: flags },
+      update: { value: flags },
+    });
+  }
+
+  const EVENTS: {
+    title: string;
+    type: "SEMINAR" | "SPECIAL_LECTURE";
+    startsAt: string;
+    endsAt: string | null;
+    venue: string;
+    speakerName: string;
+    speakerAffiliation: string;
+    description: string;
+  }[] = [
+    {
+      title: "Emerging Economy Seminar",
+      type: "SEMINAR",
+      startsAt: "2026-07-08T11:00",
+      endsAt: null,
+      venue: "Departmental seminar room",
+      speakerName: "Banji Osatumberu",
+      speakerAffiliation: "MD/CEO, Market Scan International Nigeria",
+      description: '<p>Topic: "What is the relevance of a Mathematician?"</p>',
+    },
+    {
+      title: "A Special Undergraduate Lecture on Optimization Methods in Machine Learning",
+      type: "SPECIAL_LECTURE",
+      startsAt: "2026-06-24T10:00",
+      endsAt: "2026-06-24T12:30",
+      venue: "Departmental seminar room",
+      speakerName: "Adebanji Adelowo",
+      speakerAffiliation: "Alumnus",
+      description:
+        "<p>Focus areas: ML as optimization, gradient descent, loss functions, regularization, Adam and adaptive optimizers, and Python.</p>",
+    },
+  ];
+  const newlyCreatedEventIds: string[] = [];
+  for (const entry of EVENTS) {
+    const slug = slugify(entry.title);
+    // Checked by slug (current or previous), not title - see the news
+    // post above for why.
+    const existing =
+      (await db.event.findUnique({ where: { slug } })) ??
+      (await db.event.findFirst({ where: { previousSlugs: { has: slug } } }));
+    if (existing) continue;
+    const created = await db.event.create({
+      data: {
+        slug,
+        title: entry.title,
+        type: entry.type,
+        startsAt: watLocalInputToUtc(entry.startsAt),
+        endsAt: entry.endsAt ? watLocalInputToUtc(entry.endsAt) : null,
+        venue: entry.venue,
+        speakerName: entry.speakerName,
+        speakerAffiliation: entry.speakerAffiliation,
+        description: entry.description,
+        status: "PUBLISHED",
+      },
+    });
+    newlyCreatedEventIds.push(created.id);
+  }
+  if (newlyCreatedEventIds.length > 0) {
+    const existingFlags = await db.siteSetting.findUnique({ where: { key: "events.importFlags" } });
+    const flags: Record<string, boolean> = { ...((existingFlags?.value as Record<string, boolean>) ?? {}) };
+    for (const id of newlyCreatedEventIds) flags[id] = true;
+    await db.siteSetting.upsert({
+      where: { key: "events.importFlags" },
+      create: { key: "events.importFlags", value: flags },
       update: { value: flags },
     });
   }

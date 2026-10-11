@@ -80,6 +80,37 @@ describe.skipIf(db === null)("seed", () => {
     expect(programme.summary).toBe("HOD-edited programme summary, must survive re-seed");
   });
 
+  it("gives a newly-added NavItem an order after the current maximum for its location, never colliding with an existing item", async () => {
+    await seed(db!);
+
+    // Reproduce the real bug this guards against: a database that was
+    // already seeded, then a later code change adds a brand new
+    // NAV_ITEMS entry (simulated here by removing "Staff" from FOOTER
+    // and dropping a "probe" item into its old order slot, standing in
+    // for an item that already occupies that order value).
+    const staffFooterItem = await db!.navItem.findFirstOrThrow({ where: { href: "/staff", location: "FOOTER" } });
+    const staffOrder = staffFooterItem.order;
+    await db!.navItem.delete({ where: { id: staffFooterItem.id } });
+
+    const probeHref = "/__seed_order_probe__";
+    await db!.navItem.create({
+      data: { label: "Probe", href: probeHref, location: "FOOTER", order: staffOrder },
+    });
+
+    // Re-seeding must recreate the missing "Staff" item without colliding
+    // with the probe's order value (this is the exact scenario the old
+    // code got wrong: it used the NAV_ITEMS array's own hardcoded order
+    // number instead of checking what the database already had).
+    await seed(db!);
+
+    const recreatedStaff = await db!.navItem.findFirstOrThrow({ where: { href: "/staff", location: "FOOTER" } });
+    const probe = await db!.navItem.findFirstOrThrow({ where: { href: probeHref } });
+    expect(recreatedStaff.order).not.toBe(probe.order);
+    expect(recreatedStaff.order).toBeGreaterThan(probe.order);
+
+    await db!.navItem.deleteMany({ where: { href: probeHref } });
+  });
+
   it("running twice does not duplicate research areas, programmes, nav items or site settings", async () => {
     await seed(db!);
     const before = {
@@ -100,5 +131,39 @@ describe.skipIf(db === null)("seed", () => {
     };
 
     expect(after).toEqual(before);
+  });
+
+  it("seeds the real news post and events from the live site, idempotently and never overwriting an admin edit", async () => {
+    await seed(db!);
+
+    const post = await db!.newsPost.findFirstOrThrow({ where: { title: "Emerging Economy seminar holds on 8 July 2026" } });
+    expect(post.status).toBe("PUBLISHED");
+    expect(post.category).toBe("ANNOUNCEMENT");
+
+    const seminar = await db!.event.findFirstOrThrow({ where: { title: "Emerging Economy Seminar" } });
+    expect(seminar.speakerName).toBe("Banji Osatumberu");
+    const lecture = await db!.event.findFirstOrThrow({
+      where: { title: "A Special Undergraduate Lecture on Optimization Methods in Machine Learning" },
+    });
+    expect(lecture.speakerName).toBe("Adebanji Adelowo");
+
+    // Admin edits the seeded post.
+    await db!.newsPost.update({ where: { id: post.id }, data: { title: "HOD-edited title, must survive re-seed" } });
+
+    try {
+      await seed(db!);
+
+      const newsCount = await db!.newsPost.count({ where: { title: { contains: "Emerging Economy seminar holds" } } });
+      expect(newsCount).toBe(0); // the original title is gone (renamed), and no duplicate was created
+      const stillEdited = await db!.newsPost.findUniqueOrThrow({ where: { id: post.id } });
+      expect(stillEdited.title).toBe("HOD-edited title, must survive re-seed");
+
+      const eventCount = await db!.event.count({ where: { title: { in: ["Emerging Economy Seminar", "A Special Undergraduate Lecture on Optimization Methods in Machine Learning"] } } });
+      expect(eventCount).toBe(2); // no duplicates from the second seed run
+    } finally {
+      // Revert so this shared test database is left exactly as other
+      // runs of this test (and the rest of the suite) expect it.
+      await db!.newsPost.update({ where: { id: post.id }, data: { title: "Emerging Economy seminar holds on 8 July 2026" } });
+    }
   });
 });

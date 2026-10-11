@@ -493,6 +493,7 @@ model NewsPost {
   isPinned    Boolean       @default(false)
   status      ContentStatus @default(DRAFT)
   publishedAt DateTime?
+  previousSlugs String[]    @default([])
   authorId    String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
@@ -533,6 +534,7 @@ model Event {
   recordingUrl       String?
   seriesId           String?
   status             ContentStatus @default(DRAFT)
+  previousSlugs      String[]      @default([])
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
 
