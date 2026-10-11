@@ -9,6 +9,7 @@ import { contextFromHeaders } from "@/server/services/audit";
 import { sanitizeRichText } from "@/lib/sanitize-html";
 import { listRevisions, getRevision } from "@/server/services/revisions";
 import { createNewsPost, updateNewsPost, setNewsPostStatus } from "@/server/services/news";
+import { watLocalInputToUtc } from "@/lib/time";
 
 type ActionResult = { error?: string; success?: boolean; id?: string };
 
@@ -66,7 +67,7 @@ export async function createNewsPostAction(
     const { slug: _slug, ...rest } = parsed.data;
     const created = await createNewsPost(
       db,
-      { ...rest, body: sanitizeRichText(parsed.data.body), publishedAt: parsed.data.publishedAt ? new Date(parsed.data.publishedAt) : null },
+      { ...rest, body: sanitizeRichText(parsed.data.body), publishedAt: parsed.data.publishedAt ? watLocalInputToUtc(parsed.data.publishedAt) : null },
       actor.id,
       contextFromHeaders(await headers()),
     );
@@ -95,7 +96,7 @@ export async function updateNewsPostAction(
       {
         ...parsed.data,
         body: sanitizeRichText(parsed.data.body),
-        publishedAt: parsed.data.publishedAt ? new Date(parsed.data.publishedAt) : null,
+        publishedAt: parsed.data.publishedAt ? watLocalInputToUtc(parsed.data.publishedAt) : null,
       },
       actor.id,
       contextFromHeaders(await headers()),
