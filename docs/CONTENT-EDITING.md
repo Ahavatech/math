@@ -182,6 +182,57 @@ Go to Admin, then Site content, then Featured lecturer.
   unpublished, the homepage automatically falls back to the automatic rotation until you choose
   someone else or switch back.
 
+## Post a news item
+
+Go to Admin, then News, then "New post".
+
+1. Write a title. The web address (slug) is filled in automatically from the title; you can
+   change it yourself until the post is first published. Changing it afterwards still works, and
+   the old address keeps working too (visitors are sent to the new one automatically).
+2. Pick a category (Announcement, Achievement, Admission or Research).
+3. Write a short excerpt (up to 300 characters) - this is what shows on the news list page.
+4. Write the full body with the text editor. You can add images and mathematical formulas the
+   same way as everywhere else.
+5. Add a cover image if you have one (a description/alt text is required for it).
+6. Choose whether the post should be pinned (pinned posts always show first on the news list).
+7. Set the status to Published, and leave the published date and time blank to make it visible
+   straight away, or pick a future date and time to schedule it - it stays hidden from visitors
+   until that moment, then appears on its own within about five minutes, no further action needed
+   from you.
+8. Click Save.
+
+A draft post has a "View as public" link so you can see exactly how it will look before
+publishing.
+
+## Add a seminar in two minutes
+
+Go to Admin, then Events, then "New event".
+
+1. Write a title and pick a type (Seminar, Colloquium, Special lecture, Conference, Graduation or
+   Other).
+2. Set the start date and time. All times you enter here are in West Africa Time (WAT), the same
+   time shown to visitors - you do not need to convert anything. An end time is optional; without
+   one, the event counts as "upcoming" until the end of its start day.
+3. Fill in the venue and, if there is one, the speaker's name and where they are from.
+4. Write a description if you want one, and add a flyer image (a description/alt text is
+   required).
+5. If the event has a registration link, paste it in - it must be a secure (https) link. The same
+   applies to slides and recording links, which you can add once they exist.
+6. If this event is part of a recurring series (for example, a regular seminar), choose it from
+   the Series list, or click "Manage series" to create a new one first.
+7. Set the status to Published and click Save.
+
+That's it - the event now appears on the public Events page, with an "Add to calendar" button
+that works with Google Calendar, Apple Calendar and most other calendar apps.
+
+Once an event is in the past, open it again to add photos to its gallery: choose an image, write
+a caption and a description/alt text for it, and click "Add to gallery". You can reorder photos
+with the up and down arrows, up to 30 per event.
+
+To reuse most of an event's details for a similar one later, open it and click "Duplicate event" -
+everything copies over except the dates, gallery, slides and recording links, and it starts as a
+new draft so you can set a fresh date before publishing it.
+
 ## Pilot rollout
 
 Before inviting every lecturer at once, run a small pilot first:
