@@ -44,7 +44,7 @@ export async function createNewsPost(
 export async function updateNewsPost(
   db: PrismaClient,
   id: string,
-  input: unknown & { slug: string },
+  input: Record<string, unknown> & { slug: string },
   actorId: string,
   context?: AuditRequestContext,
 ) {

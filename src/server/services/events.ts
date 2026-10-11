@@ -46,7 +46,7 @@ export async function createEvent(
 export async function updateEvent(
   db: PrismaClient,
   id: string,
-  input: unknown & { slug: string },
+  input: Record<string, unknown> & { slug: string },
   actorId: string,
   context?: AuditRequestContext,
 ) {
