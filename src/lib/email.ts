@@ -4,6 +4,7 @@ import { render } from "@react-email/components";
 import { env } from "@/lib/env";
 import { InviteEmail } from "@/emails/invite";
 import { PasswordResetEmail } from "@/emails/password-reset";
+import { AlumniApprovedEmail } from "@/emails/alumni-approved";
 
 const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
 
@@ -52,5 +53,13 @@ export async function sendPasswordResetEmail(params: { to: string; token: string
     params.to,
     "Reset your password",
     PasswordResetEmail({ resetUrl }),
+  );
+}
+
+export async function sendAlumniApprovedEmail(params: { to: string; name: string; directoryUrl: string; contactUrl: string }) {
+  await send(
+    params.to,
+    "Your entry is now on the department website",
+    AlumniApprovedEmail({ name: params.name, directoryUrl: params.directoryUrl, contactUrl: params.contactUrl }),
   );
 }
