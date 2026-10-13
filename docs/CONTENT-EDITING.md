@@ -245,6 +245,54 @@ Before inviting every lecturer at once, run a small pilot first:
 3. Use the CSV bulk import for each batch if you have several names ready at once (see "Adding
    lecturers" above), or add people one at a time as they are confirmed.
 
+## Send alumni links
+
+Go to Admin, then Alumni, then Links.
+
+1. Click "Create link". Give it a label (for example, "2010 cohort"), and optionally a graduation
+   year, an expiry (90 days by default) and a maximum number of uses.
+2. The link is shown to you once, together with a ready-to-send message. Copy it now and send it to
+   the alumnus yourself, by email, WhatsApp or however you reach them. The site does not send it for
+   you, and it will not be shown again.
+3. If you need links for a whole range of graduation years at once, use "Generate links for years"
+   instead. Enter a range (for example 2000-2005) or a list (2001,2003,2007), up to 60 at a time, and
+   download the CSV file it offers. That file contains live links, so treat it like a password and do
+   not post it anywhere public.
+4. If a link stops being needed, click Deactivate on its row. "Regenerate" replaces a link's address
+   with a new one and immediately breaks the old address, in case it was shared somewhere it should
+   not have been.
+
+## Review and approve entries
+
+Go to Admin, then Alumni. Pending entries are shown first, oldest first.
+
+1. Click an entry to review it. You can see every detail, including their email (which is never
+   shown publicly) and their photo if they added one.
+2. You can correct small mistakes, like a misspelled organisation, before approving.
+3. If the entry shows "Possible duplicate", check the other entry it matches before deciding. Your
+   options are: approve this one separately, replace the existing entry with this one (the old one
+   is hidden but kept), or reject this one as a duplicate.
+4. Click Approve to publish it, or "Approve and feature" to also show it in the "Where are they now"
+   spotlight. Click Reject and write a short reason if it should not be published - the reason is
+   kept privately and is never shown to the alumnus or anyone else.
+5. Entries with no duplicate flag can be approved together using the "Bulk approve" button on the
+   Pending list. A flagged entry must always be reviewed on its own.
+6. Once approved, an entry can be edited, featured or unfeatured, or withdrawn (this hides it from
+   the public page but keeps the data, and can be undone) from the Approved tab.
+7. "Erase permanently" deletes an entry and its photo for good, and can only be done by the HOD or a
+   super admin. There is a confirmation step because this cannot be undone.
+
+## Handle a removal request
+
+An alumnus who wants their entry corrected or removed uses the Contact page, which sends you a
+message with a reference to their entry.
+
+1. Check the sender's email in the message matches the private email on the alumni entry itself,
+   so you know the request is really from that person.
+2. If they want a correction, open their entry in Admin, then Alumni, edit it and save.
+3. If they want to be removed, withdraw their entry (hides it, keeps the data, reversible) or erase
+   it permanently if they specifically asked for deletion.
+
 ## If something looks wrong on the live site
 
 Open the section in Admin and check Version history. If the problem is not something you changed,
