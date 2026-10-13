@@ -1,5 +1,6 @@
 import { describe, expect, it, beforeAll, afterAll, afterEach, vi } from "vitest";
 import { getTestDb } from "../../../../tests/unit/database/test-db";
+import { alumniPublicReference } from "@/lib/alumni-reference";
 
 vi.mock("@/lib/cloudinary", () => ({
   cloudinary: {
@@ -23,6 +24,7 @@ import {
   bulkApprove,
   updateAlumniEntry,
   setFeatured,
+  findAlumniEntryByReference,
   getAlumniEntryAdmin,
 } from "../alumni-entries";
 
@@ -251,5 +253,16 @@ describe.skipIf(db === null)("alumni-entries service", () => {
     expect(featured.isFeatured).toBe(true);
     const unfeatured = await setFeatured(db!, entry.id, false, actorId);
     expect(unfeatured.isFeatured).toBe(false);
+  });
+
+  it("findAlumniEntryByReference resolves the opaque public reference back to its entry", async () => {
+    const entry = await submit();
+    const ref = alumniPublicReference(entry.id);
+
+    const found = await findAlumniEntryByReference(db!, ref);
+    expect(found?.id).toBe(entry.id);
+
+    const notFound = await findAlumniEntryByReference(db!, "not-a-real-reference");
+    expect(notFound).toBeNull();
   });
 });
