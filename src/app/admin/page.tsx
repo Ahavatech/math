@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { getCurrentUser, hasPermission, type Permission } from "@/lib/rbac";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -35,27 +36,36 @@ export default async function AdminDashboardPage() {
   const upcomingEventCount = publishedEvents.filter((e) => isUpcoming(e)).length;
 
   const cards = [
-    { label: "Users", value: userCount },
-    { label: "Lecturers", value: lecturerCount },
-    { label: "Published lecturers", value: publishedLecturerCount },
-    { label: "Non-teaching staff", value: nonTeachingStaffCount },
-    { label: "Pending alumni", value: pendingAlumniCount },
-    { label: "Upcoming events", value: upcomingEventCount },
-    { label: "Draft posts", value: draftNewsCount },
+    { label: "Users", value: userCount, href: null },
+    { label: "Lecturers", value: lecturerCount, href: null },
+    { label: "Published lecturers", value: publishedLecturerCount, href: null },
+    { label: "Non-teaching staff", value: nonTeachingStaffCount, href: null },
+    { label: "Pending alumni", value: pendingAlumniCount, href: "/admin/alumni" },
+    { label: "Upcoming events", value: upcomingEventCount, href: null },
+    { label: "Draft posts", value: draftNewsCount, href: null },
   ];
 
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-      {cards.map((card) => (
-        <Card key={card.label}>
-          <CardHeader>
-            <CardTitle className="text-muted-foreground text-sm font-normal">
-              {card.label}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold">{card.value}</CardContent>
-        </Card>
-      ))}
+      {cards.map((card) => {
+        const content = (
+          <Card key={card.label} className={card.href ? "transition-colors hover:border-primary" : undefined}>
+            <CardHeader>
+              <CardTitle className="text-muted-foreground text-sm font-normal">
+                {card.label}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-2xl font-semibold">{card.value}</CardContent>
+          </Card>
+        );
+        return card.href ? (
+          <Link key={card.label} href={card.href}>
+            {content}
+          </Link>
+        ) : (
+          content
+        );
+      })}
     </div>
   );
 }
