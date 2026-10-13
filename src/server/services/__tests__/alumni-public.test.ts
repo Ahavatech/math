@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeAll, afterAll } from "vitest";
+import { describe, expect, it, afterAll } from "vitest";
 import { getTestDb } from "../../../../tests/unit/database/test-db";
 import { listApprovedAlumni, listFeaturedAlumni, countApprovedAlumni } from "../alumni-public";
 
