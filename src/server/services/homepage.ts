@@ -5,6 +5,7 @@ import { getSetting } from "@/server/services/site-settings";
 import { pickAutomaticFeatured } from "@/lib/featured-lecturer";
 import { listLatestNewsPublic } from "@/server/services/news";
 import { listUpcomingEventsPublic } from "@/server/services/events";
+import { listFeaturedAlumni } from "@/server/services/alumni-public";
 
 /**
  * Every export here falls back to an empty/null result instead of
@@ -74,17 +75,9 @@ export async function getFeaturedLecturer(dbClient: PrismaClient = db) {
   }
 }
 
+/** Delegates to the alumni service's own public-safe, daily-rotating query, rather than duplicating it here. */
 export async function getFeaturedAlumni(limit = 3) {
-  try {
-    return await db.alumniEntry.findMany({
-      where: { status: "APPROVED", isFeatured: true },
-      orderBy: { reviewedAt: "desc" },
-      take: limit,
-      include: { photo: true },
-    });
-  } catch {
-    return [];
-  }
+  return listFeaturedAlumni(db, limit);
 }
 
 export async function getHeroImage(imageId: string | null) {

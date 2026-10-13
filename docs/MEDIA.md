@@ -85,6 +85,25 @@ browser:
   confirms the first bytes are the literal `%PDF` magic number, independent of what Cloudinary
   itself reports, before trusting the file as a real PDF.
 
+## Alumni photo lifecycle (Stage 09)
+
+Researched directly against Cloudinary's current documentation before building this (not from memory): `cloudinary.com/documentation/control_access_to_media` and `cloudinary.com/documentation/image_upload_api_reference_rename_public_id`, checked 2026-10-11.
+
+- **Authenticated delivery type**: an asset uploaded with `type: authenticated` has no working plain URL - fetching `.../image/authenticated/<public_id>` (or any derived transformation of it) returns an error. Every delivery URL for it must be signed. This is exactly the property DECISIONS.md #33/#34 need: a pending alumni photo must not get a public, forever-fetchable URL the instant it is uploaded, and `type: authenticated` guarantees that regardless of whether anyone finds or guesses the URL.
+- **Signed delivery URLs are not time-limited on this plan.** Generating a signed URL (`cloudinary.url(publicId, { type: "authenticated", sign_url: true, resource_type: "image" })`) produces a URL with a cryptographic signature, but that signature does not expire. Real time-limited access (`auth_token` parameters: `duration`, `expiration`, `start_time`, `ip`, `acl`) is a **premium feature requiring Cloudinary's Advanced plan or higher**, with its own signing key issued by Cloudinary support rather than derived from our API secret - not available on this project's plan. Consequence: `getSignedAlumniPhotoUrl` in `src/server/services/alumni-photos.ts` always returns `null` here (no short-lived signed URL is actually available), so the admin review route (`/api/alumni-photo/[entryId]`) always falls back to **streaming the image bytes itself** after checking `alumni.review`, with `Cache-Control: private, no-store`, rather than redirecting to a Cloudinary URL of any kind. If the department later upgrades its Cloudinary plan, swapping in a real signed, expiring URL is a one-function change in that service with no caller-facing change.
+- **Changing an asset's delivery type after upload**: the Upload API's `rename` method takes a `to_type` parameter precisely for this, and can keep the same `public_id` by passing the same value for `from_public_id` and `to_public_id`:
+  ```js
+  cloudinary.uploader.rename(publicId, publicId, {
+    type: "authenticated",   // current delivery type
+    to_type: "upload",       // new delivery type (approval: authenticated -> upload)
+    resource_type: "image",
+    overwrite: true,
+    invalidate: true,        // clears any CDN cache of the old (authenticated) URL
+  });
+  ```
+  `publishAlumniPhoto` in `alumni-photos.ts` calls exactly this on approval, then updates the `MediaAsset` row's `deliveryType` to `"upload"` and its `url` to the new (now-public) `secure_url`. There is no reverse call needed in this codebase: rejection, withdrawal and erasure all delete the asset outright rather than moving it back to `authenticated`.
+- **Deletion must pass the asset's current delivery type**: `cloudinary.api.delete_resources([publicId], { resource_type: "image", type: asset.deliveryType })` - omitting `type` (or passing the wrong one) silently fails to find the resource, since Cloudinary scopes resource lookups by delivery type as well as public ID.
+
 ## Limits to watch on Cloudinary's free plan
 
 - 25 monthly credits (roughly 25GB of combined storage, bandwidth and transformations). Client-side

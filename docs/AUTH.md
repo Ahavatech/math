@@ -39,6 +39,10 @@ As of Stage 06 (see DECISIONS.md's entry amending #23/#24), `site.edit` and `aca
 
 A user can hold several roles; their effective permissions are the union of every role they hold. `canEditLecturerProfile(user, profile)` additionally allows a lecturer to edit their own profile (`user.id === profile.userId`) even without `lecturers.manage`.
 
+### Alumni (Stage 09)
+
+`alumni.review` (HOD, ADMIN, SUPER_ADMIN) covers the whole `/admin/alumni` area: the review queue, link management, inline edits, approve/reject/withdraw/restore and the duplicate-handling actions. "Erase permanently" is a further, narrower restriction checked on top of `alumni.review`: only a user who also holds the `HOD` or `SUPER_ADMIN` role may erase an entry (`hasRole(user, ["HOD", "SUPER_ADMIN"])`, checked in `src/server/actions/alumni-review.ts`'s `eraseAlumniEntryAction`, not just hidden from `ADMIN` in the UI). The public alumni submission form (`/alumni/submit/[token]`) and its upload-signing route need no session at all - they are authorized by a valid alumni link token instead, the only place in this app where a mutation is authorized by something other than a signed-in user's permissions.
+
 ### Media folder permissions
 
 Each Cloudinary media folder (`src/lib/media-folders.ts`) requires the permission of the content it belongs to, not a single blanket permission: `site` (identity, hero, HOD photo) needs `site.edit`; `research` needs `academics.manage`; `lecturers`, `news`, `events` and `alumni` need their own matching `*.manage`/`alumni.review` permission. This means ADMIN can upload research area images but not the site logo or HOD photo, even though both now only required `site.edit` before Stage 06 split the two apart.

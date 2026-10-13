@@ -134,9 +134,12 @@ erDiagram
   AlumniReferenceRecord { string fullName AlumniLevel level int graduationYear }
 ```
 
-- **AlumniLink**: one-time or per-cohort form links; only a hash of the token is stored.
-- **AlumniEntry**: a submission, `PENDING` until an admin approves or rejects it. `dedupeKey` (normalised name + graduation year) is indexed but intentionally **not** unique, since duplicate detection is a review aid, not a hard block.
-- **AlumniReferenceRecord**: the private 519-name cross-check list. No relation to `AlumniEntry`, no public exposure anywhere in the schema.
+- **AlumniLink**: one-time or per-cohort form links; only a hash of the token is stored. Stage 09 added `lastUsedAt DateTime?`, stamped on every successful submission alongside the atomic `useCount` increment.
+- **AlumniEntry**: a submission, `PENDING` until an admin approves, rejects, or (after approval) withdraws it. Stage 09 added `WITHDRAWN` to `AlumniStatus` (reversible: a withdrawn entry keeps its data and can be restored to `APPROVED`, it is just hidden from public queries) and `withdrawnAt DateTime?`. `dedupeKey` (NFKD-normalised name with diacritics and common titles stripped, plus graduation year) is indexed but intentionally **not** unique, since duplicate detection is a review aid, not a hard block - see `src/lib/alumni-dedupe.ts`.
+- **AlumniReferenceRecord**: unused as of Stage 09 (DECISIONS.md #45) - no private cross-check list exists. The table and model are left in place rather than dropped, since removing a table is a bigger, less reversible step than simply not building any UI for it; it holds no rows and nothing reads or writes it.
+- **MediaAsset.deliveryType** (Stage 09): `"upload"` (public, the default, used by every folder before this stage) or `"authenticated"` (a pending alumni photo, uploaded under Cloudinary's `type: authenticated` so it has no public URL until approval moves it to `"upload"`). See docs/MEDIA.md's "Alumni photo lifecycle" section.
+
+**Never selected in any public query, for `AlumniEntry`:** `email`, `consentAt`, `consentVersion`, `linkId`, `reviewedById`, `reviewedAt`, `rejectionReason`, `dedupeKey`, `withdrawnAt`. The public directory select list is exactly: `id`, `fullName`, `level`, `graduationYear`, `organisation`, `roleTitle`, `city`, `country`, `industry`, `photo` (via the public `MediaAsset` fields), `linkedinUrl`, `isFeatured`.
 
 ## Journal
 
@@ -188,6 +191,6 @@ Nothing below is enforced by the schema; it is the contract Stage 03+ query serv
 - `LecturerProfile` — all fields except none; `publicEmail` is deliberately named so the portfolio can show a contact address distinct from the account's private login `email` on `User`
 - `NonTeachingStaff`
 - `NewsPost`, `EventSeries`, `Event`, `EventGalleryImage`
-- `AlumniEntry` — only once `status = APPROVED`, and only the directory-facing fields (`fullName`, `level`, `graduationYear`, `organisation`, `roleTitle`, `city`, `country`, `industry`, `photo`, `linkedinUrl`, `isFeatured`); never `email`, `consentAt`, `consentVersion`, `rejectionReason`, `reviewedById`, `reviewedAt`, `dedupeKey`
+- `AlumniEntry` — only once `status = APPROVED`, and only the directory-facing fields (`fullName`, `level`, `graduationYear`, `organisation`, `roleTitle`, `city`, `country`, `industry`, `photo`, `linkedinUrl`, `isFeatured`); never `email`, `consentAt`, `consentVersion`, `linkId`, `rejectionReason`, `reviewedById`, `reviewedAt`, `dedupeKey`, `withdrawnAt`. `WITHDRAWN` entries are excluded the same as `PENDING`/`REJECTED`.
 - `JournalIssue`, `Article`, `ArticleAuthor`, `EditorialBoardMember` — once `status = PUBLISHED` (issues/articles) or `isActive = true` (board members)
 - `MediaAsset` — the rendering fields (`url`, `width`, `height`, `alt`); `uploadedById` is not public

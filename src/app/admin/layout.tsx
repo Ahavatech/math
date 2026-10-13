@@ -31,7 +31,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Staff", href: "/admin/staff", permission: "lecturers.manage", implemented: true },
   { label: "News", href: "/admin/news", permission: "news.manage", implemented: true },
   { label: "Events", href: "/admin/events", permission: "events.manage", implemented: true },
-  { label: "Alumni", href: "/admin/alumni", permission: "alumni.review", implemented: false },
+  { label: "Alumni", href: "/admin/alumni", permission: "alumni.review", implemented: true },
   { label: "Journal", href: "/admin/journal", permission: "journal.edit", implemented: false },
 ];
 

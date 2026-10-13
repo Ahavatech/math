@@ -10,12 +10,13 @@
  */
 export async function compressImage(
   file: File,
+  overrides?: { maxWidthOrHeight?: number; maxSizeMB?: number },
 ): Promise<{ file: File; originalBytes: number; compressedBytes: number }> {
   const imageCompression = (await import("browser-image-compression")).default;
 
   const compressed = await imageCompression(file, {
-    maxWidthOrHeight: 2000,
-    maxSizeMB: 0.4,
+    maxWidthOrHeight: overrides?.maxWidthOrHeight ?? 2000,
+    maxSizeMB: overrides?.maxSizeMB ?? 0.4,
     fileType: "image/webp",
     useWebWorker: true,
     exifOrientation: undefined, // let the library read and bake in orientation, then strip EXIF

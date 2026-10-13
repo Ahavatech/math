@@ -12,9 +12,10 @@ export default async function AdminPagesListPage() {
     redirect("/403");
   }
 
-  const [pages, importFlags] = await Promise.all([
+  const [pages, importFlags, legalReviewFlags] = await Promise.all([
     db.page.findMany({ orderBy: { title: "asc" } }),
     getSetting(db, "pages.importFlags"),
+    getSetting(db, "pages.legalReviewFlags"),
   ]);
 
   return (
@@ -37,6 +38,11 @@ export default async function AdminPagesListPage() {
                 {importFlags[page.slug] ? (
                   <Badge variant="secondary" className="mt-2">
                     Imported from the old site, needs HOD review
+                  </Badge>
+                ) : null}
+                {legalReviewFlags[page.slug] ? (
+                  <Badge variant="outline" className="mt-2">
+                    Draft. Needs review by OAU legal or the data protection officer.
                   </Badge>
                 ) : null}
               </CardContent>
