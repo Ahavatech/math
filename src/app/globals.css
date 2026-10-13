@@ -154,3 +154,15 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Shared print stylesheet (Stage 10): hides the site header/footer and
+   breadcrumb trail on every public page when printed; individual pages
+   additionally use Tailwind's print:hidden on anything else that only
+   makes sense on screen (table of contents links, prev/next nav). */
+@media print {
+  header[data-site-header],
+  footer[data-site-footer],
+  nav[aria-label="Breadcrumb"] {
+    display: none !important;
+  }
+}
