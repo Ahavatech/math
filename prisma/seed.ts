@@ -416,6 +416,9 @@ export async function seed(db: PrismaClient): Promise<void> {
     "<p>You can ask the department to correct or remove your entry at any time, including after it has " +
     "been approved and published. Use the contact form and mention your entry, or use the link on your " +
     "entry's card on the public alumni page.</p>" +
+    "<h2>Contact form messages</h2>" +
+    "<p>Messages sent through the contact form, including alumni correction and removal requests, are " +
+    "kept for 12 months after a staff member archives them, then permanently deleted.</p>" +
     "<h2>Contact</h2>" +
     "<p>For any question about this notice or your entry, use the contact form and choose Alumni as the " +
     "type.</p>" +
