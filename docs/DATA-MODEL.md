@@ -84,10 +84,10 @@ erDiagram
 
 - **Programme / Specialisation**: B.Sc., M.Sc., Ph.D., each with specialisations.
 - **ResearchArea**: the nine subject areas, each optionally illustrated via `MediaAsset`.
-- **Course**: `code` is unique; prerequisites are a directional self many-to-many (`_CoursePrerequisite`); teaching lecturers are a many-to-many with `LecturerProfile` (`_CourseLecturer`).
-- **HandbookPage**: self-referencing tree of handbook content.
-- **Download**: a file either referenced through `MediaAsset` or (for files not run through the Cloudinary pipeline) a raw `fileUrl`/`filePublicId` pair.
-- **AcademicCalendarEntry**: dated calendar items.
+- **Course**: `code` is unique (e.g. "MTH 101"); prerequisites are a directional self many-to-many (`_CoursePrerequisite`); teaching lecturers are a many-to-many with `LecturerProfile` (`_CourseLecturer`). Stage 10 added `slug String @unique` (derived from `code`, e.g. "mth-101"), `programmeLevel ProgrammeLevel` (required - which degree the course belongs to), `isElective Boolean @default(false)`, and `searchText String @default("")` (normalised via `src/lib/search-text.ts`, recomputed on every save).
+- **HandbookPage**: self-referencing tree of handbook content, capped at two levels by the service layer (not the schema). Stage 10 added `previousSlugs String[]` (the same 308-redirect pattern as `LecturerProfile`/`NewsPost`/`Event`), `searchText String @default("")`, and `summary String?`.
+- **Download**: a file either referenced through `MediaAsset` or (for files not run through the Cloudinary pipeline) a raw `fileUrl`/`filePublicId` pair. `category` is a free string validated by a shared allowlist (`CV`, `HANDBOOK`, `FORM`, `GUIDELINE`, `TIMETABLE`, `OTHER`) rather than a Prisma enum, since the `CV` category already had rows from Stage 07a and converting a populated string column to an enum is a riskier migration than validating the allowlist at the application layer. Stage 10 added `uploadedById String?` (`SetNull`, so removing a staff account never deletes a download they uploaded).
+- **AcademicCalendarEntry**: dated calendar items. Stage 10 changed `startDate`/`endDate` to `@db.Date` (calendar dates, no time-of-day, no timezone - see docs/TIME.md) and made `endDate` optional.
 
 ## People
 
@@ -194,3 +194,4 @@ Nothing below is enforced by the schema; it is the contract Stage 03+ query serv
 - `AlumniEntry` — only once `status = APPROVED`, and only the directory-facing fields (`fullName`, `level`, `graduationYear`, `organisation`, `roleTitle`, `city`, `country`, `industry`, `photo`, `linkedinUrl`, `isFeatured`); never `email`, `consentAt`, `consentVersion`, `linkId`, `rejectionReason`, `reviewedById`, `reviewedAt`, `dedupeKey`, `withdrawnAt`. `WITHDRAWN` entries are excluded the same as `PENDING`/`REJECTED`.
 - `JournalIssue`, `Article`, `ArticleAuthor`, `EditorialBoardMember` — once `status = PUBLISHED` (issues/articles) or `isActive = true` (board members)
 - `MediaAsset` — the rendering fields (`url`, `width`, `height`, `alt`); `uploadedById` is not public
+- `Course`, `HandbookPage`, `Download`, `AcademicCalendarEntry` — once `status = PUBLISHED` (Download's `CV` category is additionally excluded from the public `/students/downloads` listing - CV downloads surface only through their lecturer's own page); `Course.searchText`/`HandbookPage.searchText` are never selected in a public response (the normalised text exists only to be queried against, not displayed), and `Download.uploadedById` is not public
