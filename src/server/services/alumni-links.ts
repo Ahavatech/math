@@ -1,6 +1,7 @@
 import "server-only";
 import { randomBytes, createHash } from "node:crypto";
 import type { AlumniLink, Prisma, PrismaClient } from "@prisma/client";
+import { env } from "@/lib/env";
 import { logAction, type AuditRequestContext } from "./audit";
 
 type Db = PrismaClient | Prisma.TransactionClient;
@@ -17,7 +18,10 @@ function generateToken(): string {
 }
 
 function siteOrigin(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? process.env.AUTH_URL ?? "http://localhost:3000";
+  // env.ts already sanitizes an empty-string env var to undefined, so
+  // this is safe to nullish-coalesce - unlike raw process.env, which
+  // treated NEXT_PUBLIC_SITE_URL="" as set and returned a relative URL.
+  return env.NEXT_PUBLIC_SITE_URL ?? env.AUTH_URL;
 }
 
 export function alumniSubmitUrl(token: string): string {

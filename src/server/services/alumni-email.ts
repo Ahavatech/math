@@ -5,7 +5,10 @@ import { sendAlumniApprovedEmail } from "@/lib/email";
 import { alumniPublicReference } from "@/lib/alumni-reference";
 
 function siteOrigin(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? env.AUTH_URL;
+  // env.ts already sanitizes an empty-string env var to undefined
+  // (see src/lib/env.ts), so `env.NEXT_PUBLIC_SITE_URL` is safe to
+  // nullish-coalesce here, unlike raw `process.env.NEXT_PUBLIC_SITE_URL`.
+  return env.NEXT_PUBLIC_SITE_URL ?? env.AUTH_URL;
 }
 
 /**
