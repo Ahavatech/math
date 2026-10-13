@@ -8,6 +8,8 @@ import { Prose } from "@/components/ui/prose";
 import { renderRichText } from "@/lib/sanitize-html";
 import { isPlaceholder } from "@/lib/placeholder";
 import { levelSlugToEnum } from "@/lib/programme-level";
+import { listCoursesPublic } from "@/server/services/courses";
+import Link from "next/link";
 
 async function getProgramme(levelSlug: string) {
   const level = levelSlugToEnum(levelSlug);
@@ -48,6 +50,7 @@ export default async function ProgrammeLevelPage({ params }: { params: Promise<{
   if (!programme) notFound();
 
   const hasAdmissionRequirements = !isPlaceholder(programme.admissionRequirements);
+  const { courses } = await listCoursesPublic(db, { programmeLevel: programme.level });
 
   return (
     <Section>
@@ -91,7 +94,24 @@ export default async function ProgrammeLevelPage({ params }: { params: Promise<{
           </div>
         ) : null}
 
-        {/* Courses block: hidden until Stage 10 links courses to a programme. */}
+        {courses.length > 0 ? (
+          <div className="mt-10">
+            <h2 className="font-heading text-xl font-semibold">Courses</h2>
+            <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+              {courses.map((course) => (
+                <li key={course.id} className="rounded-md border border-border p-3">
+                  <Link href={`/students/courses/${course.slug}`} className="font-medium text-primary hover:underline">
+                    {course.code}
+                  </Link>
+                  <p className="text-sm text-muted-foreground">{course.title}</p>
+                </li>
+              ))}
+            </ul>
+            <Link href="/students/courses" className="mt-3 inline-block text-sm text-primary underline">
+              View the full course catalogue
+            </Link>
+          </div>
+        ) : null}
       </Container>
     </Section>
   );
