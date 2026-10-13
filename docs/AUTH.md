@@ -29,8 +29,8 @@ As of Stage 06 (see DECISIONS.md's entry amending #23/#24), `site.edit` and `aca
 | Role | Permissions |
 | --- | --- |
 | SUPER_ADMIN | everything |
-| HOD | site.edit, academics.manage, lecturers.manage, news.manage, events.manage, alumni.review, own_profile.edit |
-| ADMIN | academics.manage, lecturers.manage, news.manage, events.manage, alumni.review, own_profile.edit |
+| HOD | site.edit, academics.manage, lecturers.manage, news.manage, events.manage, alumni.review, contact.manage, students.manage, own_profile.edit |
+| ADMIN | academics.manage, lecturers.manage, news.manage, events.manage, alumni.review, contact.manage, students.manage, own_profile.edit |
 | LECTURER | own_profile.edit |
 | JOURNAL_EDITOR_IN_CHIEF | journal.edit, own_profile.edit |
 | JOURNAL_EDITOR | journal.edit, own_profile.edit |
@@ -38,6 +38,10 @@ As of Stage 06 (see DECISIONS.md's entry amending #23/#24), `site.edit` and `aca
 | AUTHOR | journal.submit, own_profile.edit |
 
 A user can hold several roles; their effective permissions are the union of every role they hold. `canEditLecturerProfile(user, profile)` additionally allows a lecturer to edit their own profile (`user.id === profile.userId`) even without `lecturers.manage`.
+
+### Contact inbox and student resources (Stage 10)
+
+`contact.manage` (HOD, ADMIN, SUPER_ADMIN) covers `/admin/messages`: reading, status changes, and resolving an alumni removal-request's reference. `students.manage` (HOD, ADMIN, SUPER_ADMIN) covers the handbook, course catalogue, downloads and academic calendar admin areas. Neither is held by `LECTURER`, matching every other content-manager permission.
 
 ### Alumni (Stage 09)
 

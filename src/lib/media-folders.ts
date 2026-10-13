@@ -15,6 +15,7 @@ export const MEDIA_FOLDERS = [
   "alumni",
   "research",
   "journal",
+  "downloads",
 ] as const;
 
 export type MediaFolder = (typeof MEDIA_FOLDERS)[number];
@@ -28,6 +29,7 @@ const FOLDER_PERMISSIONS: Record<MediaFolder, Permission> = {
   alumni: "alumni.review",
   research: "academics.manage",
   journal: "journal.edit",
+  downloads: "students.manage",
 };
 
 export function isMediaFolder(value: string): value is MediaFolder {
