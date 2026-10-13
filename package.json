@@ -22,7 +22,8 @@
     "admin:invite": "tsx scripts/admin-invite.ts",
     "alumni:cleanup-orphans": "tsx scripts/alumni-cleanup-orphans.ts",
     "alumni:purge-rejected": "tsx scripts/alumni-purge-rejected.ts",
-    "contact:purge-archived": "tsx scripts/contact-purge-archived.ts"
+    "contact:purge-archived": "tsx scripts/contact-purge-archived.ts",
+    "handbook:import": "tsx scripts/handbook-import.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
