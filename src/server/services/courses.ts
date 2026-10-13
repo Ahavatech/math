@@ -193,6 +193,64 @@ export async function listCoursesPublic(
   }
 }
 
+/**
+ * Commits a validated CSV import plan (see src/lib/course-import.ts):
+ * creates every row as a DRAFT course first, then links prerequisites
+ * in a second pass so a row can reference a prerequisite created later
+ * in the same file, in any order.
+ */
+export async function commitCourseImport(
+  db: PrismaClient,
+  rows: { code: string; title: string; units: number; level: number; semester: "FIRST" | "SECOND"; programmeLevel: "BSC" | "MSC" | "PHD"; isElective: boolean; prerequisiteCodes: string[]; description: string }[],
+  actorId: string,
+  context?: AuditRequestContext,
+): Promise<{ created: number }> {
+  const codeToId = new Map<string, string>();
+
+  for (const row of rows) {
+    const slug = await generateUniqueSlug(row.code, async (candidate) => (await db.course.findUnique({ where: { slug: candidate } })) !== null);
+    const created = await db.course.create({
+      data: {
+        code: row.code,
+        title: row.title,
+        units: row.units,
+        level: row.level,
+        semester: row.semester,
+        programmeLevel: row.programmeLevel,
+        isElective: row.isElective,
+        description: row.description,
+        slug,
+        status: "DRAFT",
+        searchText: computeSearchText(row.code, row.title, row.description),
+      },
+    });
+    codeToId.set(row.code, created.id);
+    await logAction(db, { actorId, action: "course.import_create", entityType: "Course", entityId: created.id, summary: `Imported ${created.code}` }, context);
+  }
+
+  for (const row of rows) {
+    if (row.prerequisiteCodes.length === 0) continue;
+    const id = codeToId.get(row.code);
+    if (!id) continue;
+
+    const prerequisiteIds: string[] = [];
+    for (const code of row.prerequisiteCodes) {
+      const batchId = codeToId.get(code);
+      if (batchId) {
+        prerequisiteIds.push(batchId);
+        continue;
+      }
+      const existing = await db.course.findUnique({ where: { code }, select: { id: true } });
+      if (existing) prerequisiteIds.push(existing.id);
+    }
+    if (prerequisiteIds.length > 0) {
+      await db.course.update({ where: { id }, data: { prerequisites: { connect: prerequisiteIds.map((pid) => ({ id: pid })) } } });
+    }
+  }
+
+  return { created: rows.length };
+}
+
 export async function getCourseBySlugPublic(db: PrismaClient, slug: string) {
   try {
     const course = await db.course.findUnique({

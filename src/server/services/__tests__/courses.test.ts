@@ -9,6 +9,7 @@ import {
   listCoursesPublic,
   getCourseBySlugPublic,
   reversePrerequisitesOf,
+  commitCourseImport,
 } from "../courses";
 
 const db = await getTestDb();
@@ -125,5 +126,24 @@ describe.skipIf(db === null)("courses service", () => {
     const b = await create({ code: "TST 502", prerequisiteIds: [a.id] });
     const found = await getCourseByIdAdmin(db!, b.id);
     expect(found.prerequisites.map((p) => p.id)).toContain(a.id);
+  });
+
+  it("commitCourseImport creates every row as DRAFT and links prerequisites across the batch", async () => {
+    const result = await commitCourseImport(
+      db!,
+      [
+        { code: "TST 601", title: "Base", units: 3, level: 600, semester: "FIRST", programmeLevel: "BSC", isElective: false, prerequisiteCodes: [], description: "" },
+        { code: "TST 602", title: "Advanced", units: 3, level: 600, semester: "FIRST", programmeLevel: "BSC", isElective: false, prerequisiteCodes: ["TST 601"], description: "" },
+      ],
+      actorId,
+    );
+    expect(result.created).toBe(2);
+
+    const base = await db!.course.findUniqueOrThrow({ where: { code: "TST 601" } });
+    const advanced = await db!.course.findUniqueOrThrow({ where: { code: "TST 602" }, include: { prerequisites: true } });
+    createdIds.push(base.id, advanced.id);
+
+    expect(base.status).toBe("DRAFT");
+    expect(advanced.prerequisites.map((p) => p.id)).toContain(base.id);
   });
 });
