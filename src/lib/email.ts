@@ -5,6 +5,7 @@ import { env } from "@/lib/env";
 import { InviteEmail } from "@/emails/invite";
 import { PasswordResetEmail } from "@/emails/password-reset";
 import { AlumniApprovedEmail } from "@/emails/alumni-approved";
+import { ContactNotificationEmail } from "@/emails/contact-notification";
 
 const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
 
@@ -61,5 +62,14 @@ export async function sendAlumniApprovedEmail(params: { to: string; name: string
     params.to,
     "Your entry is now on the department website",
     AlumniApprovedEmail({ name: params.name, directoryUrl: params.directoryUrl, contactUrl: params.contactUrl }),
+  );
+}
+
+/** Never includes the message body - see src/emails/contact-notification.tsx. */
+export async function sendContactNotificationEmail(params: { to: string; senderName: string; type: string; adminUrl: string }) {
+  await send(
+    params.to,
+    "New contact message",
+    ContactNotificationEmail({ senderName: params.senderName, type: params.type, adminUrl: params.adminUrl }),
   );
 }
