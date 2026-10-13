@@ -200,6 +200,23 @@ describe.skipIf(db === null)("alumni-entries service", () => {
     expect(updated.organisation).toBe("New Org");
   });
 
+  it("updateAlumniEntry rejects the same invalid input the public form would reject (a javascript: linkedinUrl)", async () => {
+    const entry = await submit();
+    await expect(
+      updateAlumniEntry(db!, entry.id, { linkedinUrl: "javascript:alert(1)" }, actorId),
+    ).rejects.toThrow();
+
+    const unchanged = await db!.alumniEntry.findUniqueOrThrow({ where: { id: entry.id } });
+    expect(unchanged.linkedinUrl).toBeNull();
+  });
+
+  it("updateAlumniEntry rejects angle brackets in a text field", async () => {
+    const entry = await submit();
+    await expect(
+      updateAlumniEntry(db!, entry.id, { organisation: "<script>alert(1)</script>" }, actorId),
+    ).rejects.toThrow();
+  });
+
   it("getAlumniEntryAdmin never exposes a raw Cloudinary URL for a pending entry's photo", async () => {
     const entry = await submit();
     await db!.alumniEntry.update({

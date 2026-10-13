@@ -26,6 +26,7 @@ import {
 function makeDb(overrides: Record<string, unknown> = {}) {
   return {
     mediaAsset: {
+      findFirst: vi.fn(async () => null),
       create: vi.fn(async ({ data }: { data: Record<string, unknown> }) => ({ id: "photo-1", ...data })),
       update: vi.fn(async ({ data }: { data: Record<string, unknown> }) => ({
         id: "photo-1",
@@ -65,6 +66,14 @@ describe("registerPendingAlumniPhoto", () => {
       "oau-maths/alumni/pending/x",
       expect.objectContaining({ resource_type: "image", type: "authenticated" }),
     );
+  });
+
+  it("rejects a publicId that already has a MediaAsset row (replayed from another submission)", async () => {
+    const db = makeDb({ findFirst: vi.fn(async () => ({ id: "existing-photo" })) });
+    await expect(
+      registerPendingAlumniPhoto(db, { publicId: "oau-maths/alumni/pending/x" }),
+    ).rejects.toThrow(/already been registered/i);
+    expect(cloudinary.api.resource).not.toHaveBeenCalled();
   });
 
   it("rejects a publicId outside oau-maths/alumni/pending", async () => {

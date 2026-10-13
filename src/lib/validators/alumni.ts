@@ -38,7 +38,23 @@ const optionalText = (max: number) =>
     })
     .default("");
 
-export const alumniSubmissionSchema = z.object({
+const linkedinUrlField = z
+  .string()
+  .trim()
+  .default("")
+  .refine((v) => v === "" || isLinkedinUrl(v), {
+    message: "LinkedIn link must be an https linkedin.com URL",
+  });
+
+/**
+ * The directory-facing fields shared by the public submission form and
+ * the admin's inline edit screen. Pulled out so an admin edit (which
+ * can change `linkedinUrl` before this stage's only check was the
+ * submission form's own validator) is held to the exact same rules -
+ * otherwise an admin account could save a `javascript:` URL that the
+ * public alumni card then renders directly into an `<a href>`.
+ */
+export const alumniEditableFieldsSchema = z.object({
   fullName: name,
   email: z.string().trim().toLowerCase().max(254, "Email is too long").email("Enter a valid email"),
   level: z.enum(["BSC", "MSC"]),
@@ -52,13 +68,10 @@ export const alumniSubmissionSchema = z.object({
   city: optionalText(120),
   country: optionalText(120),
   industry: optionalText(120),
-  linkedinUrl: z
-    .string()
-    .trim()
-    .default("")
-    .refine((v) => v === "" || isLinkedinUrl(v), {
-      message: "LinkedIn link must be an https linkedin.com URL",
-    }),
+  linkedinUrl: linkedinUrlField,
+});
+
+export const alumniSubmissionSchema = alumniEditableFieldsSchema.extend({
   consent: z.literal(true, { message: "You must agree before submitting" }),
   honeypot: z.string().optional().default(""),
   formToken: z.string().min(1),
@@ -66,3 +79,4 @@ export const alumniSubmissionSchema = z.object({
 });
 
 export type AlumniSubmissionInput = z.infer<typeof alumniSubmissionSchema>;
+export type AlumniEditableFields = z.infer<typeof alumniEditableFieldsSchema>;

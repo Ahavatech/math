@@ -23,6 +23,17 @@ export async function registerPendingAlumniPhoto(
     throw new Error(`publicId must be inside the ${folderPrefix} folder`);
   }
 
+  // A legitimate upload always gets a fresh, Cloudinary-generated
+  // public_id, so the only way this publicId can already have a
+  // MediaAsset row is a replayed value from someone else's upload
+  // response (observed in their own browser, not ours). Refusing it
+  // stops one submission's photo from being attached to - and later
+  // deleted or published alongside - a second, unrelated entry.
+  const existing = await db.mediaAsset.findFirst({ where: { publicId: params.publicId } });
+  if (existing) {
+    throw new Error("This photo has already been registered");
+  }
+
   const resource = await cloudinary.api.resource(params.publicId, {
     resource_type: "image",
     type: "authenticated",

@@ -2,6 +2,7 @@ import "server-only";
 import type { AlumniEntry, AlumniStatus, Prisma, PrismaClient } from "@prisma/client";
 import { computeDedupeKey } from "@/lib/alumni-dedupe";
 import { ALUMNI_CONSENT_VERSION } from "@/lib/alumni-consent";
+import { alumniEditableFieldsSchema } from "@/lib/validators/alumni";
 import { deleteAlumniPhoto } from "./alumni-photos";
 import { logAction, type AuditRequestContext } from "./audit";
 
@@ -292,6 +293,15 @@ export async function bulkApprove(
   return { approved, skipped };
 }
 
+/**
+ * An admin edit is held to exactly the same validation as the public
+ * submission form - same length caps, plain-text-only check, and the
+ * https/linkedin.com-only rule for `linkedinUrl` - since this value
+ * later renders directly into an `<a href>` on the public alumni card.
+ * Without this, an `alumni.review` account (not necessarily HOD/SUPER_ADMIN)
+ * could save a `javascript:` URL or control characters that the public
+ * submission form would have rejected outright.
+ */
 export async function updateAlumniEntry(
   db: Db,
   id: string,
@@ -299,19 +309,34 @@ export async function updateAlumniEntry(
   actorId: string,
   context?: AuditRequestContext,
 ): Promise<AlumniEntry> {
+  const existing = await db.alumniEntry.findUniqueOrThrow({ where: { id } });
+  const parsed = alumniEditableFieldsSchema.parse({
+    fullName: fields.fullName ?? existing.fullName,
+    email: fields.email ?? existing.email,
+    level: fields.level ?? existing.level,
+    graduationYear: fields.graduationYear ?? existing.graduationYear,
+    organisation: fields.organisation ?? existing.organisation ?? "",
+    roleTitle: fields.roleTitle ?? existing.roleTitle ?? "",
+    city: fields.city ?? existing.city ?? "",
+    country: fields.country ?? existing.country ?? "",
+    industry: fields.industry ?? existing.industry ?? "",
+    linkedinUrl: fields.linkedinUrl ?? existing.linkedinUrl ?? "",
+  });
+
   const updated = await db.alumniEntry.update({
     where: { id },
     data: {
-      ...(fields.fullName !== undefined ? { fullName: fields.fullName, dedupeKey: computeDedupeKey(fields.fullName, fields.graduationYear ?? (await db.alumniEntry.findUniqueOrThrow({ where: { id } })).graduationYear) } : {}),
-      ...(fields.email !== undefined ? { email: fields.email } : {}),
-      ...(fields.level !== undefined ? { level: fields.level } : {}),
-      ...(fields.graduationYear !== undefined ? { graduationYear: fields.graduationYear } : {}),
-      ...(fields.organisation !== undefined ? { organisation: fields.organisation || null } : {}),
-      ...(fields.roleTitle !== undefined ? { roleTitle: fields.roleTitle || null } : {}),
-      ...(fields.city !== undefined ? { city: fields.city || null } : {}),
-      ...(fields.country !== undefined ? { country: fields.country || null } : {}),
-      ...(fields.industry !== undefined ? { industry: fields.industry || null } : {}),
-      ...(fields.linkedinUrl !== undefined ? { linkedinUrl: fields.linkedinUrl || null } : {}),
+      fullName: parsed.fullName,
+      email: parsed.email,
+      level: parsed.level,
+      graduationYear: parsed.graduationYear,
+      organisation: parsed.organisation || null,
+      roleTitle: parsed.roleTitle || null,
+      city: parsed.city || null,
+      country: parsed.country || null,
+      industry: parsed.industry || null,
+      linkedinUrl: parsed.linkedinUrl || null,
+      dedupeKey: computeDedupeKey(parsed.fullName, parsed.graduationYear),
     },
   });
 
