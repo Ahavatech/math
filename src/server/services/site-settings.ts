@@ -170,6 +170,18 @@ export const SETTINGS_REGISTRY = {
     label: "Events import flags",
     section: "Events",
   },
+  // Keyed by Page slug, same shape as pages.importFlags but a distinct
+  // signal: "this page's text has not yet been checked by OAU legal or
+  // the data protection officer", not "imported from the old site".
+  // Set once by Stage 09's seed for the privacy page; cleared the same
+  // way (next save of that page), since legal review and saving are
+  // both an admin action on the same record.
+  "pages.legalReviewFlags": {
+    schema: z.record(z.string(), z.boolean()),
+    default: {},
+    label: "Pages needing legal review",
+    section: "Pages",
+  },
 } as const;
 
 export type SettingsKey = keyof typeof SETTINGS_REGISTRY;

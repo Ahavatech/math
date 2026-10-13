@@ -65,16 +65,24 @@ export async function savePageAction(
     );
   });
 
-  // Editing a page IS the HOD review this flag exists to prompt - clear it.
-  const flags = await getSetting(db, "pages.importFlags");
+  // Editing a page IS the HOD/legal review either flag exists to prompt - clear both.
+  const [flags, legalFlags] = await Promise.all([
+    getSetting(db, "pages.importFlags"),
+    getSetting(db, "pages.legalReviewFlags"),
+  ]);
   const page = await db.page.findUnique({ where: { id: parsed.data.id }, select: { slug: true } });
   if (page && flags[page.slug]) {
     const { [page.slug]: _removed, ...rest } = flags;
     await setSetting(db, "pages.importFlags", rest, actor.id);
   }
+  if (page && legalFlags[page.slug]) {
+    const { [page.slug]: _removed, ...rest } = legalFlags;
+    await setSetting(db, "pages.legalReviewFlags", rest, actor.id);
+  }
 
   revalidatePath("/admin/pages");
   revalidatePath(`/${parsed.data.id}`);
   revalidatePath("/about");
+  revalidatePath("/privacy");
   return { success: true };
 }

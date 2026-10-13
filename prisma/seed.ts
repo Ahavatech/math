@@ -71,8 +71,9 @@ const NAV_ITEMS: Array<{
   { label: "Staff", href: "/staff", location: "FOOTER", order: 2 },
   { label: "News", href: "/news", location: "FOOTER", order: 3 },
   { label: "Events", href: "/events", location: "FOOTER", order: 4 },
-  { label: "Journal", href: "/journal", location: "FOOTER", order: 5 },
-  { label: "Student Resources", href: "/students", location: "FOOTER", order: 6 },
+  { label: "Alumni", href: "/alumni", location: "FOOTER", order: 5 },
+  { label: "Journal", href: "/journal", location: "FOOTER", order: 6 },
+  { label: "Student Resources", href: "/students", location: "FOOTER", order: 7 },
   // No "Contact" FOOTER link here: SiteFooter already renders a
   // dedicated Contact block from SiteSetting; a seeded nav link with
   // the same label duplicated it (Stage 05 fix).
