@@ -17,9 +17,13 @@ const TYPE_LABELS: Record<string, string> = {
 export function ContactForm({
   defaultType,
   reference,
+  formToken,
+  formRenderedAt,
 }: {
   defaultType: "ADMISSIONS" | "RESEARCH" | "COLLABORATION" | "ALUMNI" | "GENERAL";
   reference?: string;
+  formToken: string;
+  formRenderedAt: number;
 }) {
   const [state, action, pending] = useActionState(submitContactMessageAction, undefined);
 
@@ -29,13 +33,22 @@ export function ContactForm({
 
   return (
     <form action={action} className="mt-6 space-y-4">
+      <input type="hidden" name="formToken" value={formToken} />
+      <input type="hidden" name="formRenderedAt" value={formRenderedAt} />
+
+      {/* Honeypot: hidden from sighted users, out of the tab order. A genuine visitor never sees or fills this. */}
+      <div style={{ position: "absolute", left: "-9999px", top: "-9999px" }} aria-hidden="true">
+        <label htmlFor="website">Leave this field empty</label>
+        <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+      </div>
+
       <div className="space-y-1.5">
         <Label htmlFor="name">Name</Label>
-        <Input id="name" name="name" required />
+        <Input id="name" name="name" required maxLength={120} />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" required />
+        <Input id="email" name="email" type="email" required maxLength={254} />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="type">Type</Label>
@@ -51,6 +64,7 @@ export function ContactForm({
           id="subject"
           name="subject"
           required
+          maxLength={200}
           defaultValue={reference ? `Alumni entry ${reference}` : ""}
         />
       </div>
@@ -60,6 +74,7 @@ export function ContactForm({
           id="message"
           name="message"
           required
+          maxLength={4000}
           className="min-h-32 w-full rounded-md border border-input bg-background p-2 text-sm"
           defaultValue={reference ? `Reference: ${reference}\n\n` : ""}
         />
