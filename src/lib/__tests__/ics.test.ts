@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { generateEventIcs, generateIcsFeed } from "../ics";
+import { generateEventIcs, generateIcsFeed, generateAllDayIcsFeed } from "../ics";
 
 function baseEvent(overrides: Partial<Parameters<typeof generateEventIcs>[0]> = {}) {
   return {
@@ -99,6 +99,53 @@ describe("generateIcsFeed", () => {
 
   it("produces a valid empty calendar for no events", () => {
     const ics = generateIcsFeed([]);
+    expect(ics).toContain("BEGIN:VCALENDAR");
+    expect(ics).toContain("END:VCALENDAR");
+    expect(ics).not.toContain("BEGIN:VEVENT");
+  });
+});
+
+describe("generateAllDayIcsFeed", () => {
+  function baseEntry(overrides: Partial<Parameters<typeof generateAllDayIcsFeed>[0][number]> = {}) {
+    return {
+      id: "cal-1",
+      title: "Resumption of lectures",
+      description: "",
+      startDate: new Date("2026-09-14T00:00:00.000Z"),
+      endDate: null,
+      ...overrides,
+    };
+  }
+
+  it("emits an all-day DTSTART;VALUE=DATE with no time component", () => {
+    const ics = generateAllDayIcsFeed([baseEntry()]);
+    expect(ics).toContain("DTSTART;VALUE=DATE:20260914");
+    expect(ics).not.toMatch(/DTSTART;VALUE=DATE:\d{8}T/);
+  });
+
+  it("defaults DTEND to the day after startDate when no endDate is given (a single all-day event)", () => {
+    const ics = generateAllDayIcsFeed([baseEntry()]);
+    expect(ics).toContain("DTEND;VALUE=DATE:20260915");
+  });
+
+  it("uses the day after the given endDate (DTEND is exclusive per RFC 5545)", () => {
+    const ics = generateAllDayIcsFeed([baseEntry({ endDate: new Date("2026-09-18T00:00:00.000Z") })]);
+    expect(ics).toContain("DTEND;VALUE=DATE:20260919");
+  });
+
+  it("still escapes and folds text fields the same way as timed events", () => {
+    const ics = generateAllDayIcsFeed([baseEntry({ title: "A, B; C\\D" })]);
+    expect(ics).toContain("SUMMARY:A\\, B\\; C\\\\D");
+  });
+
+  it("rejects CRLF injection the same way timed events do", () => {
+    const malicious = "Normal\r\nBEGIN:VEVENT\r\nSUMMARY:Injected";
+    const ics = generateAllDayIcsFeed([baseEntry({ title: malicious })]);
+    expect((ics.match(/^BEGIN:VEVENT$/gm) ?? []).length).toBe(1);
+  });
+
+  it("produces a valid empty calendar for no entries", () => {
+    const ics = generateAllDayIcsFeed([]);
     expect(ics).toContain("BEGIN:VCALENDAR");
     expect(ics).toContain("END:VCALENDAR");
     expect(ics).not.toContain("BEGIN:VEVENT");

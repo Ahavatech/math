@@ -102,3 +102,46 @@ export function generateIcsFeed(events: IcsEventInput[]): string {
   const dtstamp = formatUtc(new Date());
   return wrapCalendar(events.map((e) => buildVEvent(e, dtstamp)));
 }
+
+export type IcsAllDayEventInput = {
+  id: string;
+  title: string;
+  description: string;
+  startDate: Date;
+  endDate: Date | null;
+};
+
+function formatDateOnly(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getUTCFullYear()}${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}`;
+}
+
+function addDays(date: Date, days: number): Date {
+  const result = new Date(date);
+  result.setUTCDate(result.getUTCDate() + days);
+  return result;
+}
+
+function buildAllDayVEvent(entry: IcsAllDayEventInput, dtstamp: string): string {
+  // RFC 5545: an all-day DTEND is exclusive, i.e. the day AFTER the
+  // event's own last day - a one-day entry with no endDate therefore
+  // gets DTEND = startDate + 1 day, not DTEND = startDate itself.
+  const exclusiveEnd = addDays(entry.endDate ?? entry.startDate, 1);
+  const lines = [
+    "BEGIN:VEVENT",
+    property("UID", `${entry.id}@maths.oauife.edu.ng`),
+    `DTSTAMP:${dtstamp}`,
+    `DTSTART;VALUE=DATE:${formatDateOnly(entry.startDate)}`,
+    `DTEND;VALUE=DATE:${formatDateOnly(exclusiveEnd)}`,
+    property("SUMMARY", entry.title),
+  ];
+  if (entry.description) lines.push(property("DESCRIPTION", entry.description));
+  lines.push("END:VEVENT");
+  return lines.join(CRLF);
+}
+
+/** A multi-event all-day .ics feed (the academic calendar) for subscribing or downloading. */
+export function generateAllDayIcsFeed(entries: IcsAllDayEventInput[]): string {
+  const dtstamp = formatUtc(new Date());
+  return wrapCalendar(entries.map((e) => buildAllDayVEvent(e, dtstamp)));
+}
