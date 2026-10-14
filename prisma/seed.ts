@@ -476,6 +476,25 @@ export async function seed(db: PrismaClient): Promise<void> {
     }
   }
 
+  // The four fixed journal pages (Stage 11). Seeded PUBLISHED with the
+  // "Needs editor input" sentinel (journal-pages.ts's own
+  // isJournalPagePlaceholder check), so the admin list shows them as
+  // needing attention while the public /journal/* pages self-hide until
+  // an editor replaces the placeholder with real content.
+  const JOURNAL_PAGES: { slug: string; title: string }[] = [
+    { slug: "journal-about", title: "About the Journal" },
+    { slug: "journal-guidelines", title: "Author Guidelines" },
+    { slug: "journal-call-for-papers", title: "Call for Papers" },
+    { slug: "journal-policies", title: "Journal Policies" },
+  ];
+  for (const page of JOURNAL_PAGES) {
+    await db.page.upsert({
+      where: { slug: page.slug },
+      create: { slug: page.slug, title: page.title, body: "<p>Needs editor input.</p>", status: "PUBLISHED" },
+      update: {},
+    });
+  }
+
   // Non-teaching staff, from the live site's "Non-Teaching & Administrative
   // Staff" section (re-checked by curl before writing this list - no
   // difference found). Names and positions only; no emails or phones are

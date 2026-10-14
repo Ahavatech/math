@@ -360,6 +360,62 @@ Go to Admin, then Messages. Opening a new message marks it as read automatically
 - If you want to be told by email whenever a new message arrives, set your address in the
   notification box at the top of the Messages page.
 
+## Set up the journal
+
+Go to Admin, then Journal settings. Fill in the journal's name, short name, ISSN (if it has one),
+publisher, frequency, and the licence that applies to articles. Until you set a name here, the
+public journal pages show the neutral label "Departmental Journal" instead. You will see a banner
+reminding you to set the name, ISSN and licence before you announce the journal publicly.
+
+The journal also has four pages you can edit under Admin, then Journal pages: About, Guidelines,
+Call for Papers, and Policies. Each one starts with placeholder text that says "Needs editor
+input." A page with that placeholder text never shows up on the public site, so visitors never see
+unfinished content. Replace the placeholder with your own text and save, and the page goes live.
+
+## Add the editorial board
+
+Go to Admin, then Editorial board. For each member, either:
+
+- Choose one of our own lecturers from the list (their name, photo and department come from their
+  own profile automatically), or
+- Enter an external member by hand: name, affiliation, country, and optionally an ORCID number and
+  a website link.
+
+Give each member a role title (Editor-in-Chief, Associate Editor, Editorial Board Member, Advisory
+Board Member, or your own wording), then use the up and down arrows to put them in the order you
+want them to appear. If a lecturer's own profile is later taken offline, they disappear from the
+public board automatically until it is restored.
+
+## Publish an issue and articles
+
+Go to Admin, then Journal issues, and click New issue. Give it a volume number, an issue number,
+and a year - these three must be unique together. Add an optional title, description and cover
+image. Save it as Draft while you are still preparing it, then change the status to Published when
+it is ready to go live.
+
+Next, go to Journal articles and click New article. Fill in the title, the abstract (you can use
+the same rich text editor and maths notation as everywhere else on the site), keywords, and the
+authors in the order they should appear - each author can have an affiliation, an ORCID number and
+a private email address that is never shown publicly. Choose which issue the article belongs to,
+or leave it blank for an "online first" article that is not yet tied to an issue.
+
+Before you can publish an article, you need: a title, an abstract, at least one author, and an
+uploaded PDF. The edit page shows a checklist so you always know what is still missing. Once an
+article is saved and has an id, a PDF upload box appears - choose the file and it uploads straight
+away.
+
+If you give an article the same title as one that already exists in the same issue, you will see a
+warning when you move away from the title field. This is just a warning - you can save anyway if
+it is intentional (for example, a correction or an erratum).
+
+Changing an article's title before it has ever been published also changes its web address
+automatically. Once an article has been published for the first time, its web address stays fixed
+even if you later change the title, so that links and citations to it keep working.
+
+Unpublishing an issue immediately hides every article inside it from the public site, including
+their PDF downloads - this happens automatically, you do not need to unpublish each article one by
+one.
+
 ## If something looks wrong on the live site
 
 Open the section in Admin and check Version history. If the problem is not something you changed,

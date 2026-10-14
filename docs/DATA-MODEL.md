@@ -164,8 +164,9 @@ erDiagram
   EditorialDecision { string editorId EditorialDecisionType decision }
 ```
 
-- **JournalIssue / Article**: the public side. `(volume, number)` is unique per issue. Deleting an issue is `Restrict` while it still has articles, since a published article's place in the record is not disposable the way draft content is.
-- **ArticleAuthor**: byline entries; `userId` is optional and `SetNull`, since a byline survives even if the matching account is removed.
+- **JournalIssue / Article**: the public side. `(volume, number)` is unique per issue. Deleting an issue is `Restrict` while it still has articles, since a published article's place in the record is not disposable the way draft content is. Stage 11 added `JournalIssue.description`; made `Article.issueId` optional (an article with no issue is "online first"); added `Article.previousSlugs` (same 308-redirect pattern as other content types), `searchText` (normalised title+abstract+keywords, never selected publicly), `type` (`ArticleType`: RESEARCH_ARTICLE/REVIEW/SHORT_COMMUNICATION/OTHER), `receivedAt`/`acceptedAt` (`@db.Date`, calendar dates like `AcademicCalendarEntry`, no WAT conversion).
+- **ArticleAuthor**: byline entries; `userId` is optional and `SetNull`, since a byline survives even if the matching account is removed. Stage 11 added `orcid`.
+- **EditorialBoardMember**: Stage 11 added the external-member fields (`affiliationCountry`, `orcid`, `externalUrl`, `photoId` - a `MediaAsset` relation, `onDelete: SetNull`) used when `lecturerProfileId` is null.
 - **Manuscript / ManuscriptRound / ManuscriptFile**: the private submission-and-review side. `ManuscriptFile.storageKey` is a path inside `PRIVATE_STORAGE_DIR`, never a URL.
 - **ReviewAssignment / Review**: one review per assignment (`assignmentId` unique); `(manuscriptId, roundId, reviewerId)` is unique so a reviewer cannot be double-assigned to the same round.
 - **EditorialDecision**: the editor's call for a round. `editorId` is `Restrict`, same reasoning as `ReviewAssignment.reviewerId`: the record of who decided what must survive even if that editor's account is later removed.
@@ -192,6 +193,6 @@ Nothing below is enforced by the schema; it is the contract Stage 03+ query serv
 - `NonTeachingStaff`
 - `NewsPost`, `EventSeries`, `Event`, `EventGalleryImage`
 - `AlumniEntry` — only once `status = APPROVED`, and only the directory-facing fields (`fullName`, `level`, `graduationYear`, `organisation`, `roleTitle`, `city`, `country`, `industry`, `photo`, `linkedinUrl`, `isFeatured`); never `email`, `consentAt`, `consentVersion`, `linkId`, `rejectionReason`, `reviewedById`, `reviewedAt`, `dedupeKey`, `withdrawnAt`. `WITHDRAWN` entries are excluded the same as `PENDING`/`REJECTED`.
-- `JournalIssue`, `Article`, `ArticleAuthor`, `EditorialBoardMember` — once `status = PUBLISHED` (issues/articles) or `isActive = true` (board members)
+- `JournalIssue`, `Article`, `ArticleAuthor`, `EditorialBoardMember` — once `status = PUBLISHED` (issues; and articles only when their issue, if any, is also `PUBLISHED` — see docs/JOURNAL.md's visibility rule) or `isActive = true` (board members); `Article.searchText` and `Article.manuscriptId` are never selected publicly, and `ArticleAuthor.email`/`.userId` are never selected publicly (the public byline shows only `name`/`affiliation`/`orcid`)
 - `MediaAsset` — the rendering fields (`url`, `width`, `height`, `alt`); `uploadedById` is not public
 - `Course`, `HandbookPage`, `Download`, `AcademicCalendarEntry` — once `status = PUBLISHED` (Download's `CV` category is additionally excluded from the public `/students/downloads` listing - CV downloads surface only through their lecturer's own page); `Course.searchText`/`HandbookPage.searchText` are never selected in a public response (the normalised text exists only to be queried against, not displayed), and `Download.uploadedById` is not public

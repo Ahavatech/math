@@ -29,15 +29,19 @@ As of Stage 06 (see DECISIONS.md's entry amending #23/#24), `site.edit` and `aca
 | Role | Permissions |
 | --- | --- |
 | SUPER_ADMIN | everything |
-| HOD | site.edit, academics.manage, lecturers.manage, news.manage, events.manage, alumni.review, contact.manage, students.manage, own_profile.edit |
+| HOD | site.edit, academics.manage, lecturers.manage, news.manage, events.manage, alumni.review, contact.manage, students.manage, journal.manage, journal.edit, own_profile.edit |
 | ADMIN | academics.manage, lecturers.manage, news.manage, events.manage, alumni.review, contact.manage, students.manage, own_profile.edit |
 | LECTURER | own_profile.edit |
-| JOURNAL_EDITOR_IN_CHIEF | journal.edit, own_profile.edit |
+| JOURNAL_EDITOR_IN_CHIEF | journal.manage, journal.edit, own_profile.edit |
 | JOURNAL_EDITOR | journal.edit, own_profile.edit |
 | REVIEWER | journal.review, own_profile.edit |
 | AUTHOR | journal.submit, own_profile.edit |
 
 A user can hold several roles; their effective permissions are the union of every role they hold. `canEditLecturerProfile(user, profile)` additionally allows a lecturer to edit their own profile (`user.id === profile.userId`) even without `lecturers.manage`.
+
+### Journal (Stage 11)
+
+`journal.manage` (SUPER_ADMIN, HOD, JOURNAL_EDITOR_IN_CHIEF) covers `/admin/journal/settings`, `/admin/journal/pages` and `/admin/journal/board`. `journal.edit` (the same roles plus JOURNAL_EDITOR) covers `/admin/journal/issues` and `/admin/journal/articles`. ADMIN holds neither unless it also holds a journal role (DECISIONS.md #54, editorial independence - pending HOD confirmation). The admin sidebar's "Journal" group shows only the items a role's permissions allow; a role holding only a journal permission (no other admin permission) gets a minimal shell of just those Journal items plus Change password and Sign out, the same idea as the existing lecturer-only shell. The manuscript file access policy (`src/server/services/manuscript-access.ts`, for Stage 12) deliberately checks role membership instead of these permissions - see DECISIONS.md #55 and docs/JOURNAL.md.
 
 ### Contact inbox and student resources (Stage 10)
 

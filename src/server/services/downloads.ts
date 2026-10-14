@@ -141,15 +141,20 @@ export async function reorderDownload(db: PrismaClient, id: string, direction: "
   ]);
 }
 
-/** Excludes CV - that category belongs to lecturers and is never listed here. */
+/** Excludes CV (belongs to lecturers) and JOURNAL_ARTICLE (belongs to journal articles' own PDF route). */
+const NON_ADMIN_DOWNLOAD_CATEGORIES = ["CV", "JOURNAL_ARTICLE"];
+
 export async function listDownloadsAdmin(db: PrismaClient) {
-  return db.download.findMany({ where: { category: { not: "CV" } }, orderBy: [{ category: "asc" }, { order: "asc" }] });
+  return db.download.findMany({
+    where: { category: { notIn: NON_ADMIN_DOWNLOAD_CATEGORIES } },
+    orderBy: [{ category: "asc" }, { order: "asc" }],
+  });
 }
 
 export async function listDownloadsPublic(db: PrismaClient) {
   try {
     return await db.download.findMany({
-      where: { status: "PUBLISHED", category: { not: "CV" } },
+      where: { status: "PUBLISHED", category: { notIn: NON_ADMIN_DOWNLOAD_CATEGORIES } },
       select: { id: true, title: true, description: true, category: true, fileUrl: true, fileSize: true, order: true },
       orderBy: [{ category: "asc" }, { order: "asc" }],
     });

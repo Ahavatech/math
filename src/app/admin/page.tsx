@@ -15,13 +15,15 @@ const ADMIN_PERMISSIONS: Permission[] = [
   "alumni.review",
   "contact.manage",
   "students.manage",
-  "journal.edit",
 ];
 
 export default async function AdminDashboardPage() {
   const user = await getCurrentUser();
-  const isLecturerOnly = !user || !ADMIN_PERMISSIONS.some((permission) => hasPermission(user, permission));
-  if (isLecturerOnly) {
+  // Journal-only roles (journal.manage/journal.edit with nothing else)
+  // have no dashboard content here - same minimal-shell treatment as a
+  // bare LECTURER, redirected to their own profile instead.
+  const hasDashboardAccess = !!user && ADMIN_PERMISSIONS.some((permission) => hasPermission(user, permission));
+  if (!hasDashboardAccess) {
     redirect("/admin/my-profile");
   }
 
@@ -36,6 +38,8 @@ export default async function AdminDashboardPage() {
     newMessagesCount,
     courseCount,
     handbookPageCount,
+    journalIssueCount,
+    journalArticleCount,
   ] = await Promise.all([
     db.user.count(),
     db.lecturerProfile.count(),
@@ -47,6 +51,8 @@ export default async function AdminDashboardPage() {
     db.contactMessage.count({ where: { status: "NEW" } }),
     db.course.count({ where: { status: "PUBLISHED" } }),
     db.handbookPage.count({ where: { status: "PUBLISHED" } }),
+    db.journalIssue.count({ where: { status: "PUBLISHED" } }),
+    db.article.count({ where: { status: "PUBLISHED" } }),
   ]);
   const upcomingEventCount = publishedEvents.filter((e) => isUpcoming(e)).length;
 
@@ -61,6 +67,8 @@ export default async function AdminDashboardPage() {
     { label: "New messages", value: newMessagesCount, href: "/admin/messages" },
     { label: "Courses", value: courseCount, href: null },
     { label: "Handbook pages", value: handbookPageCount, href: null },
+    { label: "Journal issues", value: journalIssueCount, href: null },
+    { label: "Journal articles", value: journalArticleCount, href: null },
   ];
 
   return (

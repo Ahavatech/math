@@ -15,6 +15,7 @@ export const MEDIA_FOLDERS = [
   "alumni",
   "research",
   "journal",
+  "journal-board",
   "downloads",
 ] as const;
 
@@ -29,6 +30,7 @@ const FOLDER_PERMISSIONS: Record<MediaFolder, Permission> = {
   alumni: "alumni.review",
   research: "academics.manage",
   journal: "journal.edit",
+  "journal-board": "journal.manage",
   downloads: "students.manage",
 };
 

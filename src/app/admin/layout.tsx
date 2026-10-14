@@ -37,8 +37,14 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Downloads", href: "/admin/downloads", permission: "students.manage", implemented: true },
   { label: "Calendar", href: "/admin/calendar", permission: "students.manage", implemented: true },
   { label: "Messages", href: "/admin/messages", permission: "contact.manage", implemented: true },
-  { label: "Journal", href: "/admin/journal", permission: "journal.edit", implemented: false },
+  { label: "Journal settings", href: "/admin/journal/settings", permission: "journal.manage", implemented: true },
+  { label: "Journal pages", href: "/admin/journal/pages", permission: "journal.manage", implemented: true },
+  { label: "Editorial board", href: "/admin/journal/board", permission: "journal.manage", implemented: true },
+  { label: "Journal issues", href: "/admin/journal/issues", permission: "journal.edit", implemented: true },
+  { label: "Journal articles", href: "/admin/journal/articles", permission: "journal.edit", implemented: true },
 ];
+
+const JOURNAL_PERMISSIONS: Permission[] = ["journal.manage", "journal.edit", "journal.review", "journal.submit"];
 
 /**
  * Every real admin permission except own_profile.edit (which every role,
@@ -57,6 +63,7 @@ const ADMIN_PERMISSIONS: Permission[] = [
   "alumni.review",
   "contact.manage",
   "students.manage",
+  "journal.manage",
   "journal.edit",
 ];
 
@@ -66,14 +73,30 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect("/login");
   }
 
-  const isLecturerOnly = !ADMIN_PERMISSIONS.some((permission) => hasPermission(user, permission));
+  const hasAnyJournalPermission = JOURNAL_PERMISSIONS.some((permission) => hasPermission(user, permission));
+  const otherThanJournal = ADMIN_PERMISSIONS.filter((p) => !p.startsWith("journal."));
+  const hasOtherAdminPermission = otherThanJournal.some((permission) => hasPermission(user, permission));
 
-  const visibleItems = isLecturerOnly
-    ? ([
-        { label: "My profile", href: "/admin/my-profile", permission: null, implemented: true },
-        { label: "Change password", href: "/admin/my-profile/security", permission: null, implemented: true },
-      ] as NavItem[])
-    : NAV_ITEMS.filter((item) => item.permission === null || hasPermission(user, item.permission));
+  const baseMinimalShell: NavItem[] = [
+    { label: "My profile", href: "/admin/my-profile", permission: null, implemented: true },
+    { label: "Change password", href: "/admin/my-profile/security", permission: null, implemented: true },
+  ];
+
+  let visibleItems: NavItem[];
+  if (hasOtherAdminPermission) {
+    // Full admin shell (may or may not also include the Journal items).
+    visibleItems = NAV_ITEMS.filter((item) => item.permission === null || hasPermission(user, item.permission));
+  } else if (hasAnyJournalPermission) {
+    // Journal-only role (e.g. JOURNAL_EDITOR, JOURNAL_EDITOR_IN_CHIEF
+    // without any other admin permission): a minimal shell like the
+    // lecturer one, but with the Journal items they can open.
+    visibleItems = [
+      ...NAV_ITEMS.filter((item) => item.permission?.startsWith("journal.") && hasPermission(user, item.permission)),
+      ...baseMinimalShell,
+    ];
+  } else {
+    visibleItems = baseMinimalShell;
+  }
 
   const dbUser = await db.user.findUnique({
     where: { id: user.id },

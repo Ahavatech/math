@@ -13,9 +13,20 @@ import {
   type SettingsKey,
 } from "@/server/services/site-settings";
 import { revalidatePathsFor } from "@/server/services/site-settings";
+import type { Permission } from "@/lib/rbac";
+
+/** Most settings keys need site.edit; a key here needs its own permission instead. */
+const SETTINGS_KEY_PERMISSION: Partial<Record<SettingsKey, Permission>> = {
+  "journal.settings": "journal.manage",
+};
+
+function permissionFor(key: SettingsKey): Permission {
+  return SETTINGS_KEY_PERMISSION[key] ?? "site.edit";
+}
 
 export async function listSettingRevisionsAction(key: SettingsKey) {
-  await requireSiteEdit();
+  const user = await getCurrentUser();
+  requirePermission(user, permissionFor(key));
   const revisions = await listRevisions(db, key);
   return revisions.map((r) => ({
     id: r.id,
@@ -27,13 +38,9 @@ export async function listSettingRevisionsAction(key: SettingsKey) {
 
 type ActionResult = { error?: string; success?: boolean };
 
-async function requireSiteEdit() {
-  const user = await getCurrentUser();
-  return requirePermission(user, "site.edit");
-}
-
 async function saveAndRevalidate(key: SettingsKey, value: unknown) {
-  const actor = await requireSiteEdit();
+  const user = await getCurrentUser();
+  const actor = requirePermission(user, permissionFor(key));
   await setSetting(db, key, value, actor.id, contextFromHeaders(await headers()));
   for (const path of revalidatePathsFor(key)) {
     revalidatePath(path);
@@ -209,8 +216,9 @@ export async function saveFooterTextAction(
 }
 
 export async function restoreSettingAction(formData: FormData): Promise<void> {
-  const actor = await requireSiteEdit();
   const key = str(formData, "key") as SettingsKey;
+  const user = await getCurrentUser();
+  const actor = requirePermission(user, permissionFor(key));
   const revisionId = str(formData, "revisionId");
 
   await restoreSetting(db, key, revisionId, actor.id, contextFromHeaders(await headers()));
@@ -218,4 +226,30 @@ export async function restoreSettingAction(formData: FormData): Promise<void> {
     revalidatePath(path);
   }
   revalidatePath("/admin/site");
+}
+
+export async function saveJournalSettingsAction(
+  _prevState: ActionResult | undefined,
+  formData: FormData,
+): Promise<ActionResult> {
+  try {
+    await saveAndRevalidate("journal.settings", {
+      name: str(formData, "name"),
+      shortName: str(formData, "shortName"),
+      issn: str(formData, "issn"),
+      eissn: str(formData, "eissn"),
+      publisher: str(formData, "publisher"),
+      frequency: str(formData, "frequency"),
+      license: str(formData, "license"),
+      licenseUrl: str(formData, "licenseUrl"),
+      customLicenseText: str(formData, "customLicenseText"),
+      contactEmail: str(formData, "contactEmail"),
+      submissionsOpen: formData.get("submissionsOpen") === "on",
+      citeAsPublisher: str(formData, "citeAsPublisher"),
+    });
+    revalidatePath("/admin/journal/settings");
+    return { success: true };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not save" };
+  }
 }
