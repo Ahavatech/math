@@ -293,6 +293,73 @@ message with a reference to their entry.
 3. If they want to be removed, withdraw their entry (hides it, keeps the data, reversible) or erase
    it permanently if they specifically asked for deletion.
 
+## Add a handbook page
+
+Go to Admin, then Handbook, then "New page".
+
+1. Write a title. The web address fills in automatically from the title.
+2. Write a short summary (shown on the handbook's start page) and the full page using the text
+   editor, the same one used everywhere else.
+3. If this page belongs under another page, choose it as the parent. The handbook only supports
+   two levels, so you cannot nest a page under a page that already has a parent.
+4. Set the status to Published and save.
+
+Use the up and down arrows on the Handbook list to reorder pages. Changing a page's web address
+later still works, since the old address keeps redirecting to the new one.
+
+## Import the handbook
+
+If you have handbook content already written as Markdown files, put them in the
+`docs/handbook-import` folder (see that folder's own instructions for the exact format) and run:
+
+```bash
+npm run handbook:import
+```
+
+This only shows you a plan of what would happen. Nothing is written until you run it again with
+`-- --apply`. Every imported page starts as a draft, so you can review it before publishing, and
+the importer never overwrites a page you have already edited.
+
+## Import the course list
+
+Go to Admin, then Courses, then "Import CSV". The file needs these columns: code, title, units,
+level, semester, programme, elective, prerequisites, description. Prerequisite codes go in one
+cell separated by semicolons, for example "MTH 101;MTH 102".
+
+Choose your file and you will see a dry-run report: which rows are valid and which have a problem
+(an invalid code, a duplicate, an unknown prerequisite, or prerequisites that would create a loop).
+Nothing is created until you click the button to commit. Every imported course starts as a draft.
+
+## Add a form to Downloads
+
+Go to Admin, then Downloads.
+
+1. Choose a PDF file (up to 10MB), give it a title, an optional description, and a category
+   (Handbook, Form, Guideline, Timetable or Other).
+2. Set the status to Published and upload.
+
+Use the up and down arrows to reorder files within their category. Uploading a replacement file for
+an existing download removes the old file automatically once nothing else is using it.
+
+## Update the calendar
+
+Go to Admin, then Calendar. Add an entry with a session label (for example "2026/2027"), a title,
+a start date, and an optional end date. Visitors can subscribe to the calendar or download it as a
+file that works with most calendar apps.
+
+## Answer a contact message
+
+Go to Admin, then Messages. Opening a new message marks it as read automatically.
+
+- Use "Reply by email" to open your own email program with the sender's address filled in. This
+  site never sends a reply for you.
+- If a message is about an alumni entry, you will see a link straight to that entry so you can
+  check it and take action.
+- Change a message's status (New, Read, Replied, Archived) as you work through it. Archived
+  messages are kept for 12 months, then deleted automatically.
+- If you want to be told by email whenever a new message arrives, set your address in the
+  notification box at the top of the Messages page.
+
 ## If something looks wrong on the live site
 
 Open the section in Admin and check Version history. If the problem is not something you changed,
