@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
+import { db as prisma } from "@/lib/db";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ export default async function SubmitStep2Page({
     redirect("/journal/submit");
   }
 
-  const authors = ms.authors.length > 0 ? ms.authors : [{ name: "", affiliation: "", email: "", orcid: "", isCorresponding: true }];
+  const authors = ms.authors.length > 0 ? ms.authors : [{ name: "", affiliation: "", email: "", isCorresponding: true }];
 
   return (
     <Section>
@@ -65,10 +65,7 @@ export default async function SubmitStep2Page({
                 <Label htmlFor={`author-email-${i}`}>Email</Label>
                 <Input id={`author-email-${i}`} type="email" name={`authors[${i}][email]`} defaultValue={a.email ?? ""} />
               </div>
-              <div className="space-y-1">
-                <Label htmlFor={`author-orcid-${i}`}>ORCID</Label>
-                <Input id={`author-orcid-${i}`} name={`authors[${i}][orcid]`} defaultValue={a.orcid ?? ""} placeholder="0000-0000-0000-0000" />
-              </div>
+
               <div className="flex items-center gap-2">
                 <input
                   type="radio"

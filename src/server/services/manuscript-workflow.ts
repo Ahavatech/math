@@ -142,7 +142,7 @@ export async function transition(
               manuscriptId,
               roundId: round.id,
               editorId: actor.id,
-              decision: "REJECTED",
+              decision: "REJECT",
               letter: opts?.letter ?? null,
             },
           });

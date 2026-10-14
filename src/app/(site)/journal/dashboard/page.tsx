@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { hasRole } from "@/lib/rbac";
-import { prisma } from "@/lib/prisma";
+import { db as prisma } from "@/lib/db";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { getAuthorManuscripts } from "@/server/services/author-dashboard";

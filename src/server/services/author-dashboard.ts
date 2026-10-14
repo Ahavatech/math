@@ -27,7 +27,7 @@ export interface AuthorManuscriptSummary {
   reference: string | null;
   title: string;
   status: ManuscriptStatus;
-  submittedById: string;
+  submittedById: string | null;
   createdAt: Date;
   submittedAt: Date | null;
   plainLanguageStatus: string;

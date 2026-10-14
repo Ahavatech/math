@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
-import { prisma } from "@/lib/prisma";
+import { db as prisma } from "@/lib/db";
 import { listManuscripts } from "@/server/services/manuscript-screening";
 
 export const metadata = { title: "Manuscripts" };

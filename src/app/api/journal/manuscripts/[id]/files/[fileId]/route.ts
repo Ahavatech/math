@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/rbac";
-import { prisma } from "@/lib/prisma";
+import { db as prisma } from "@/lib/db";
 import { deleteManuscriptFile } from "@/server/services/manuscript-upload";
 
 export async function DELETE(

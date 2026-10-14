@@ -3,8 +3,8 @@ import type { PrismaClient } from "@prisma/client";
 import { hasPermission, hasRole, type SessionUser } from "@/lib/rbac";
 import { logAction } from "@/server/services/audit";
 
-function isConflicted(userEmail: string, userId: string, ms: { submittedById: string; authors: Array<{ email: string | null }> }): boolean {
-  if (ms.submittedById === userId) return true;
+function isConflicted(userEmail: string, userId: string, ms: { submittedById: string | null; authors: Array<{ email: string | null }> }): boolean {
+  if (ms.submittedById && ms.submittedById === userId) return true;
   return ms.authors.some((a) => a.email && a.email.toLowerCase() === userEmail.toLowerCase());
 }
 
@@ -240,7 +240,7 @@ export async function deskReject(
     });
     if (round) {
       await tx.editorialDecision.create({
-        data: { manuscriptId, roundId: round.id, editorId: actor.id, decision: "REJECTED", letter },
+        data: { manuscriptId, roundId: round.id, editorId: actor.id, decision: "DESK_REJECT", letter },
       });
     }
     await logAction(tx as unknown as PrismaClient, {

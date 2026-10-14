@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { Readable } from "node:stream";
 import { getCurrentUser } from "@/lib/rbac";
-import { prisma } from "@/lib/prisma";
+import { db as prisma } from "@/lib/db";
 import { journalUploadRateLimiter } from "@/lib/rate-limit";
 import { processManuscriptUpload } from "@/server/services/manuscript-upload";
 

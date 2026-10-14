@@ -81,7 +81,6 @@ export async function updateDraftStep(
           name: a.name,
           affiliation: a.affiliation,
           email: a.email,
-          orcid: a.orcid,
           isCorresponding: a.isCorresponding,
           order: i,
         },

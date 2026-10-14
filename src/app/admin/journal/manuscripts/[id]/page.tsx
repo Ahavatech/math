@@ -1,7 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
-import { prisma } from "@/lib/prisma";
+import { db as prisma } from "@/lib/db";
 import { getManuscriptDetail } from "@/server/services/manuscript-screening";
 import {
   assignHandlingEditorAction,

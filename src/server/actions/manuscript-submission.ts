@@ -1,7 +1,7 @@
 "use server";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
+import { db as prisma } from "@/lib/db";
 import { hasRole } from "@/lib/rbac";
 import {
   createDraft,
@@ -74,7 +74,6 @@ export async function saveStep2Action(formData: FormData): Promise<never> {
       name: formData.get(`authors[${i}][name]`) as string,
       affiliation: (formData.get(`authors[${i}][affiliation]`) as string) || undefined,
       email: (formData.get(`authors[${i}][email]`) as string) || undefined,
-      orcid: (formData.get(`authors[${i}][orcid]`) as string) || undefined,
       isCorresponding: i === correspondingIndex,
     }));
 
