@@ -33,8 +33,9 @@ export default async function HandbookPageDetail({ params }: { params: Promise<{
   const [page, tree] = await Promise.all([getHandbookPageBySlugPublic(db, slug), listHandbookTreePublic(db)]);
   if (!page) notFound();
 
-  const renderedBody = addHeadingIds(renderRichText(page.body));
-  const toc = extractTableOfContents(renderedBody);
+  const plainRenderedBody = renderRichText(page.body);
+  const toc = extractTableOfContents(plainRenderedBody);
+  const renderedBody = addHeadingIds(plainRenderedBody);
 
   const siblings = tree.filter((p) => p.parentId === page.parentId).sort((a, b) => a.order - b.order);
   const index = siblings.findIndex((p) => p.id === page.id);

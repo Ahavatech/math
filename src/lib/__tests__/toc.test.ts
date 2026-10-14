@@ -30,4 +30,13 @@ describe("addHeadingIds", () => {
     const result = addHeadingIds(html);
     expect(result).toContain('<h2 id="overview">Overview</h2>');
   });
+
+  it("the ids it produces match extractTableOfContents' ids for the same source HTML (regression: calling addHeadingIds before extractTableOfContents broke the public page's table of contents, since the extractor's regex does not match a heading that already has an id attribute)", () => {
+    const html = "<h2>Overview</h2><h3>Details</h3>";
+    const toc = extractTableOfContents(html);
+    const withIds = addHeadingIds(html);
+    for (const entry of toc) {
+      expect(withIds).toContain(`id="${entry.id}"`);
+    }
+  });
 });
