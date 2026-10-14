@@ -440,6 +440,42 @@ export async function seed(db: PrismaClient): Promise<void> {
     update: {},
   });
 
+  // The /students hub's intro text (Stage 10). Seeded PUBLISHED, like
+  // the privacy page above, since the hub page needs something to show
+  // from the start - flagged via the existing pages.importFlags key so
+  // it shows up for HOD review in /admin/pages without claiming to be
+  // imported from anywhere (the flag's badge wording is a close enough
+  // fit: "needs review" is the part that matters here).
+  const STUDENTS_INTRO_BODY =
+    "<p>[PLACEHOLDER - neutral starter text for the Students hub page. The department will provide final copy " +
+    "about student life, support services and where to get help.]</p>" +
+    "<p>Find the student handbook, course catalogue, academic calendar and downloadable forms below.</p>";
+
+  const studentsIntroPage = await db.page.upsert({
+    where: { slug: "students-intro" },
+    create: { slug: "students-intro", title: "Students", body: STUDENTS_INTRO_BODY, status: "PUBLISHED" },
+    update: {},
+  });
+  // Gated on the page still holding the exact placeholder sentinel
+  // (PATTERNS.md item 8's rule), not on whether the flag key happens to
+  // exist yet: pages.importFlags is itself only ever written once per
+  // key by the PAGES loop above (`update: {}`), so a later stage like
+  // this one cannot rely on merging into that already-created row -
+  // re-adding this flag only while the page is provably unedited avoids
+  // ever reinstating a flag an admin has already cleared by saving it.
+  if (studentsIntroPage.body === STUDENTS_INTRO_BODY) {
+    const existingImportFlags = await db.siteSetting.findUnique({ where: { key: "pages.importFlags" } });
+    const importFlagsValue = (existingImportFlags?.value as Record<string, boolean> | undefined) ?? {};
+    if (!importFlagsValue[studentsIntroPage.slug]) {
+      await db.siteSetting.update({
+        where: { key: "pages.importFlags" },
+        data: { value: { ...importFlagsValue, [studentsIntroPage.slug]: true } },
+      }).catch(() =>
+        db.siteSetting.create({ data: { key: "pages.importFlags", value: { [studentsIntroPage.slug]: true } } }),
+      );
+    }
+  }
+
   // Non-teaching staff, from the live site's "Non-Teaching & Administrative
   // Staff" section (re-checked by curl before writing this list - no
   // difference found). Names and positions only; no emails or phones are
