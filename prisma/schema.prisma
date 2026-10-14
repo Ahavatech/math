@@ -173,15 +173,16 @@ model MediaAsset {
 
   uploadedBy User? @relation("MediaUploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
 
-  researchAreaImages ResearchArea[]      @relation("ResearchAreaImage")
-  lecturerPhotos     LecturerProfile[]   @relation("LecturerPhoto")
-  nonTeachingPhotos  NonTeachingStaff[]  @relation("NonTeachingPhoto")
-  newsPostCovers     NewsPost[]          @relation("NewsPostCover")
-  eventFlyers        Event[]             @relation("EventFlyer")
-  eventGalleryImages EventGalleryImage[] @relation("EventGalleryMedia")
-  alumniPhotos       AlumniEntry[]       @relation("AlumniPhoto")
-  journalIssueCovers JournalIssue[]      @relation("JournalIssueCover")
-  downloads          Download[]          @relation("DownloadMedia")
+  researchAreaImages   ResearchArea[]         @relation("ResearchAreaImage")
+  lecturerPhotos       LecturerProfile[]      @relation("LecturerPhoto")
+  nonTeachingPhotos    NonTeachingStaff[]     @relation("NonTeachingPhoto")
+  newsPostCovers       NewsPost[]             @relation("NewsPostCover")
+  eventFlyers          Event[]                @relation("EventFlyer")
+  eventGalleryImages   EventGalleryImage[]    @relation("EventGalleryMedia")
+  alumniPhotos         AlumniEntry[]          @relation("AlumniPhoto")
+  journalIssueCovers   JournalIssue[]         @relation("JournalIssueCover")
+  downloads            Download[]             @relation("DownloadMedia")
+  editorialBoardPhotos EditorialBoardMember[] @relation("EditorialBoardMemberPhoto")
 
   @@index([provider, publicId])
 }
@@ -721,27 +722,39 @@ model JournalIssue {
   @@index([status, publishedAt])
 }
 
+enum ArticleType {
+  RESEARCH_ARTICLE
+  REVIEW
+  SHORT_COMMUNICATION
+  OTHER
+}
+
 model Article {
   id            String        @id @default(cuid())
   slug          String        @unique
+  previousSlugs String[]      @default([])
   title         String
   abstract      String
   keywords      String[]
-  issueId       String
+  searchText    String        @default("")
+  issueId       String?
   pageStart     Int?
   pageEnd       Int?
+  type          ArticleType   @default(RESEARCH_ARTICLE)
   pdfDownloadId String?
   doi           String?
   license       String?
+  receivedAt    DateTime?     @db.Date
+  acceptedAt    DateTime?     @db.Date
   publishedAt   DateTime?
   status        ContentStatus @default(DRAFT)
   manuscriptId  String?       @unique
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
-  issue      JournalIssue @relation(fields: [issueId], references: [id], onDelete: Restrict)
-  pdf        Download?    @relation("ArticlePdf", fields: [pdfDownloadId], references: [id], onDelete: SetNull)
-  manuscript Manuscript?  @relation(fields: [manuscriptId], references: [id], onDelete: SetNull)
+  issue      JournalIssue? @relation(fields: [issueId], references: [id], onDelete: Restrict)
+  pdf        Download?     @relation("ArticlePdf", fields: [pdfDownloadId], references: [id], onDelete: SetNull)
+  manuscript Manuscript?   @relation(fields: [manuscriptId], references: [id], onDelete: SetNull)
 
   authors ArticleAuthor[]
 
@@ -753,6 +766,7 @@ model ArticleAuthor {
   articleId   String
   name        String
   affiliation String?
+  orcid       String?
   email       String?
   order       Int      @default(0)
   userId      String?
@@ -766,17 +780,22 @@ model ArticleAuthor {
 }
 
 model EditorialBoardMember {
-  id                String   @id @default(cuid())
-  lecturerProfileId String?
-  name              String
-  roleTitle         String
-  affiliation       String?
-  order             Int      @default(0)
-  isActive          Boolean  @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  lecturerProfileId  String?
+  name               String
+  roleTitle          String
+  affiliation        String?
+  affiliationCountry String?
+  orcid              String?
+  externalUrl        String?
+  photoId            String?
+  order              Int      @default(0)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   lecturerProfile LecturerProfile? @relation(fields: [lecturerProfileId], references: [id], onDelete: SetNull)
+  photo           MediaAsset?      @relation("EditorialBoardMemberPhoto", fields: [photoId], references: [id], onDelete: SetNull)
 
   @@index([isActive])
 }
