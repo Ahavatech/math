@@ -40,6 +40,7 @@ export default async function AdminDashboardPage() {
     handbookPageCount,
     journalIssueCount,
     journalArticleCount,
+    awaitingScreeningCount,
   ] = await Promise.all([
     db.user.count(),
     db.lecturerProfile.count(),
@@ -53,6 +54,7 @@ export default async function AdminDashboardPage() {
     db.handbookPage.count({ where: { status: "PUBLISHED" } }),
     db.journalIssue.count({ where: { status: "PUBLISHED" } }),
     db.article.count({ where: { status: "PUBLISHED" } }),
+    db.manuscript.count({ where: { status: "SUBMITTED" } }),
   ]);
   const upcomingEventCount = publishedEvents.filter((e) => isUpcoming(e)).length;
 
@@ -69,6 +71,7 @@ export default async function AdminDashboardPage() {
     { label: "Handbook pages", value: handbookPageCount, href: null },
     { label: "Journal issues", value: journalIssueCount, href: null },
     { label: "Journal articles", value: journalArticleCount, href: null },
+    { label: "Awaiting screening", value: awaitingScreeningCount, href: "/admin/journal/manuscripts?status=SUBMITTED" },
   ];
 
   return (

@@ -42,6 +42,8 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Editorial board", href: "/admin/journal/board", permission: "journal.manage", implemented: true },
   { label: "Journal issues", href: "/admin/journal/issues", permission: "journal.edit", implemented: true },
   { label: "Journal articles", href: "/admin/journal/articles", permission: "journal.edit", implemented: true },
+  { label: "Manuscripts", href: "/admin/journal/manuscripts", permission: "journal.editorial", implemented: true },
+  { label: "Manuscripts (read)", href: "/admin/journal/manuscripts", permission: "journal.manuscripts.read", implemented: true },
 ];
 
 const JOURNAL_PERMISSIONS: Permission[] = ["journal.manage", "journal.edit", "journal.review", "journal.submit"];
@@ -65,6 +67,8 @@ const ADMIN_PERMISSIONS: Permission[] = [
   "students.manage",
   "journal.manage",
   "journal.edit",
+  "journal.editorial",
+  "journal.manuscripts.read",
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
