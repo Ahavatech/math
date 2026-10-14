@@ -1,4 +1,9 @@
-import "server-only";
+// No "server-only" guard here (unlike cloudinary.ts/email.ts): this
+// module is pure Node filesystem/crypto logic with no client-bundle
+// risk, and journal:dev-fixture / private-storage:orphans need to
+// import it directly as plain Node scripts (via tsx), where
+// "server-only" unconditionally throws - see the comment in
+// alumni-cleanup-orphans.ts for the same issue with cloudinary.ts.
 import { randomBytes, createHash } from "node:crypto";
 import { createReadStream, createWriteStream } from "node:fs";
 import { mkdir, rename, rm, stat, chmod, readFile } from "node:fs/promises";
