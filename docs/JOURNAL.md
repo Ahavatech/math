@@ -85,7 +85,30 @@ Hand-written, not a dependency, for the same reasoning DECISIONS.md already give
 - `PRIVATE_STORAGE_DIR` must be included in whatever backup job Stage 14 sets up for the database - a `ManuscriptFile` row with no corresponding file on disk is unrecoverable.
 - `npm run private-storage:orphans` should run on the same schedule as the existing `alumni:cleanup-orphans`/`alumni:purge-rejected`/`contact:purge-archived` scripts (docs/ROADMAP.md's Stage 14 entry already lists those three; this one joins them).
 
-## What Stage 12 will add
+## What Stage 12a adds
+
+Stage 12a adds the author-facing submission workflow and the editor screening tools. After this stage:
+
+- Authors can register at `/journal/register` (submissionsOpen must be true), verify their email, sign in, and access `/journal/dashboard`. Registration uses a 24-hour single-use EMAIL_VERIFY token.
+- A verified author creates a manuscript draft and completes the 5-step submission wizard: (1) article type/title/abstract/keywords, (2) authors with ORCID validation, (3) files and anonymisation confirmation, (4) author agreement (JOURNAL_AUTHOR_AGREEMENT_V1, stored version+timestamp), (5) review and submit. Server-side autosave after each step. Works without JavaScript (server actions with redirects). Mobile-first.
+- On final submission: reference number assigned (MS-YYYY-NNNN, atomic JournalCounter), ManuscriptRound 1 created, status changes from INCOMPLETE to SUBMITTED, confirmation email sent to author (reference only), notification sent to editors (reference + link, no title).
+- Authors track their submissions on `/journal/dashboard` with plain-language statuses and can withdraw pending submissions.
+- Editors access `/admin/journal/manuscripts` (gated by `journal.manuscripts.read`). They can: assign a handling editor, return for technical fixes (message required), desk-reject (letter required, stored as EditorialDecision DESK_REJECT), or approve for peer review. Only the EiC and the handling editor may desk-reject or approve. The HOD sees the list and detail but has no action controls.
+- Conflict of interest: a user who submitted or is an author on a manuscript gets no editorial or read access to it (list, detail, files), regardless of roles (DECISIONS.md #59). Every SUPER_ADMIN/HOD detail-page or file read is audit-logged (ids only).
+- `npm run journal:purge-drafts` (dry run by default, `--apply`): deletes INCOMPLETE drafts untouched for 60 days with their files. Submitted manuscripts are never selected.
+- Email templates (React Email, plain text, no em dashes): verification, already-registered, submission-received, new-submission-to-editors, returned-to-author, decision-available, moved-to-review. Reference and sign-in link only — never title, author name, abstract, filename or letter body.
+
+### Updated manuscript file access policy
+
+| Caller | Access | Audit required |
+|---|---|---|
+| SUPER_ADMIN, JOURNAL_EDITOR_IN_CHIEF, JOURNAL_EDITOR (not conflicted) | Any file, any kind, any round | SUPER_ADMIN: yes |
+| HOD (not conflicted, not in editorial roles) | Any file, any kind, except TITLE_PAGE — read only, no actions | yes |
+| AUTHOR (own manuscript) | Any file of their own manuscript, any round | no |
+| REVIEWER | Only their assigned round, only MANUSCRIPT/SUPPLEMENTARY/REVISED/RESPONSE_TO_REVIEWERS — never TITLE_PAGE | no |
+| Conflicted user (submitter or email-matching author), ADMIN, inactive user | None — 404 identical to not-found | no |
+
+## What Stage 12 will add (original note)
 
 - Author registration/login against the existing `AUTHOR` role and manuscript submission UI, writing through `private-storage.ts` for the first time.
 - Editor screening, reviewer invitation/accept/decline, review reports and recommendations, editorial decisions per round - all against the `Manuscript`/`ManuscriptRound`/`ReviewAssignment`/`Review`/`EditorialDecision` models that already exist in the schema (Stage 02).

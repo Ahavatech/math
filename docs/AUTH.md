@@ -15,7 +15,7 @@
 
 - `src/server/services/tokens.ts` issues and consumes `UserToken` rows.
 - 32 random bytes, base64url-encoded, shown once to the caller. Only a sha256 hash is ever persisted (`UserToken.tokenHash`).
-- INVITE tokens expire in 7 days, PASSWORD_RESET tokens in 1 hour.
+- INVITE tokens expire in 7 days, PASSWORD_RESET tokens in 1 hour, EMAIL_VERIFY tokens in 24 hours.
 - A token is single-use: consuming it sets `usedAt`, and a second consume attempt on the same token returns `null`.
 - Issuing a new token of a given type for a user invalidates (marks used) any earlier unused token of that same type for that user, so only the newest token can ever work.
 - Consuming a token of the wrong type, or past its `expiresAt`, returns `null` the same way an invalid token does — callers cannot distinguish "wrong type" from "expired" from "already used" from "never existed", which is intentional (no information leakage).
@@ -29,15 +29,23 @@ As of Stage 06 (see DECISIONS.md's entry amending #23/#24), `site.edit` and `aca
 | Role | Permissions |
 | --- | --- |
 | SUPER_ADMIN | everything |
-| HOD | site.edit, academics.manage, lecturers.manage, news.manage, events.manage, alumni.review, contact.manage, students.manage, journal.manage, journal.edit, own_profile.edit |
+| HOD | site.edit, academics.manage, lecturers.manage, news.manage, events.manage, alumni.review, contact.manage, students.manage, journal.manage, journal.edit, journal.manuscripts.read, own_profile.edit |
 | ADMIN | academics.manage, lecturers.manage, news.manage, events.manage, alumni.review, contact.manage, students.manage, own_profile.edit |
 | LECTURER | own_profile.edit |
-| JOURNAL_EDITOR_IN_CHIEF | journal.manage, journal.edit, own_profile.edit |
-| JOURNAL_EDITOR | journal.edit, own_profile.edit |
+| JOURNAL_EDITOR_IN_CHIEF | journal.manage, journal.edit, journal.editorial, journal.manuscripts.read, own_profile.edit |
+| JOURNAL_EDITOR | journal.edit, journal.editorial, journal.manuscripts.read, own_profile.edit |
 | REVIEWER | journal.review, own_profile.edit |
 | AUTHOR | journal.submit, own_profile.edit |
 
 A user can hold several roles; their effective permissions are the union of every role they hold. `canEditLecturerProfile(user, profile)` additionally allows a lecturer to edit their own profile (`user.id === profile.userId`) even without `lecturers.manage`.
+
+### Journal (Stage 12a)
+
+`journal.editorial` (SUPER_ADMIN, JOURNAL_EDITOR_IN_CHIEF, JOURNAL_EDITOR) gates every editorial action on a manuscript: assigning a handling editor, returning to author, desk-rejecting, and approving for peer review. `journal.manuscripts.read` (SUPER_ADMIN, HOD, JOURNAL_EDITOR_IN_CHIEF, JOURNAL_EDITOR) gates read-only access to the manuscript list and detail pages. The HOD holds `journal.manuscripts.read` but not `journal.editorial` — they may open any manuscript and download files but may not perform any editorial action. ADMIN holds neither (editorial independence, DECISIONS.md #54).
+
+Authors register on `/journal/register` without an admin invite. Registration uses an email-verified `emailVerifiedAt` flag on `User`. Unverified authors cannot create or submit manuscripts. The `EMAIL_VERIFY` token type (`UserTokenType`) expires in 24 hours, is single-use and hash-only, like the other token types.
+
+Conflict of interest (DECISIONS.md #59): a user who is the submitter or an author of a manuscript has no editorial or read access to it regardless of their roles, including SUPER_ADMIN and HOD. The conflict check is computed in the service layer before any role or permission check.
 
 ### Journal (Stage 11)
 
