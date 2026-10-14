@@ -80,3 +80,8 @@ export const journalVerifyEmailRateLimiter = new InMemoryRateLimiter({
   limit: 3,
   windowMs: 60 * 60_000,
 });
+// Manuscript file upload: 30 per user per hour
+export const journalUploadRateLimiter = new InMemoryRateLimiter({
+  limit: 30,
+  windowMs: 60 * 60_000,
+});
