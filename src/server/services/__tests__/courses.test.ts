@@ -121,6 +121,14 @@ describe.skipIf(db === null)("courses service", () => {
     expect(await getCourseBySlugPublic(db!, published.slug)).not.toBeNull();
   });
 
+  it("never includes searchText in a public response (listCoursesPublic or getCourseBySlugPublic)", async () => {
+    const published = await create({ status: "PUBLISHED" });
+    const { courses } = await listCoursesPublic(db!, {});
+    const detail = await getCourseBySlugPublic(db!, published.slug);
+    expect(JSON.stringify(courses)).not.toContain("searchText");
+    expect(JSON.stringify(detail)).not.toContain("searchText");
+  });
+
   it("getCourseByIdAdmin includes prerequisite and lecturer relations", async () => {
     const a = await create({ code: "TST 501" });
     const b = await create({ code: "TST 502", prerequisiteIds: [a.id] });
