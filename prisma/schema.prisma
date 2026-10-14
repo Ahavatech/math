@@ -709,6 +709,7 @@ model JournalIssue {
   number      Int
   year        Int
   title       String?
+  description String?
   coverId     String?
   publishedAt DateTime?
   status      ContentStatus @default(DRAFT)

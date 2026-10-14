@@ -2,6 +2,7 @@ import "server-only";
 import { z } from "zod";
 import type { Prisma, PrismaClient } from "@prisma/client";
 import { logAction, type AuditRequestContext } from "@/server/services/audit";
+import { journalSettingsSchema } from "@/lib/validators/journal";
 
 const identitySchema = z.object({
   name: z.string().min(1),
@@ -186,6 +187,12 @@ export const SETTINGS_REGISTRY = {
   // real address. Validated as an email or the empty string, never an
   // arbitrary string, since it feeds directly into an outgoing email's
   // `to` field.
+  "journal.settings": {
+    schema: journalSettingsSchema,
+    default: journalSettingsSchema.parse({}),
+    label: "Journal settings",
+    section: "Journal",
+  },
   "contact.notificationEmail": {
     schema: z.string().refine((v) => v === "" || z.string().email().safeParse(v).success, {
       message: "Must be empty or a valid email",
@@ -209,6 +216,7 @@ const PUBLIC_REVALIDATE_PATHS: Partial<Record<SettingsKey, string[]>> = {
   "contact.details": ["/", "/contact"],
   "social.links": ["/"],
   "footer.text": ["/"],
+  "journal.settings": ["/journal", "/journal/rss.xml"],
 };
 
 export function revalidatePathsFor(key: SettingsKey): string[] {

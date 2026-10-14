@@ -18,6 +18,9 @@ ADD COLUMN     "externalUrl" TEXT,
 ADD COLUMN     "orcid" TEXT,
 ADD COLUMN     "photoId" TEXT;
 
+-- AlterTable
+ALTER TABLE "JournalIssue" ADD COLUMN     "description" TEXT;
+
 -- AddForeignKey
 ALTER TABLE "EditorialBoardMember" ADD CONSTRAINT "EditorialBoardMember_photoId_fkey" FOREIGN KEY ("photoId") REFERENCES "MediaAsset"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
