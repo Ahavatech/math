@@ -307,6 +307,25 @@ export async function findArticleBySlugOrPrevious(db: PrismaClient, slug: string
   }
 }
 
+/** Returns the Cloudinary file URL and a clean citation filename for a public, published article's PDF. */
+export async function getArticlePdfForRoute(db: PrismaClient, slug: string) {
+  const article = await db.article.findFirst({
+    where: { slug, status: "PUBLISHED" },
+    select: {
+      title: true,
+      publishedAt: true,
+      issue: { select: { status: true, year: true } },
+      authors: { orderBy: { order: "asc" }, take: 1, select: { name: true } },
+      pdf: { select: { fileUrl: true } },
+    },
+  });
+  if (!article || !article.pdf?.fileUrl) return null;
+  if (article.issue && article.issue.status !== "PUBLISHED") return null;
+
+  const year = article.issue?.year ?? article.publishedAt?.getUTCFullYear() ?? new Date().getUTCFullYear();
+  return { fileUrl: article.pdf.fileUrl, firstAuthorName: article.authors[0]?.name ?? "Article", year, title: article.title };
+}
+
 export async function getLatestArticlesPublic(db: PrismaClient, limit = 6) {
   const { articles } = await listArticlesPublic(db, { perPage: limit, page: 1 });
   return articles;
