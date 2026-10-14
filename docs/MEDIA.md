@@ -35,6 +35,7 @@ registering the asset:
 | alumni | oau-maths/alumni | alumni.review |
 | research | oau-maths/research | academics.manage |
 | journal | oau-maths/journal | journal.edit |
+| downloads | oau-maths/downloads | students.manage |
 
 See `src/lib/media-folders.ts`.
 

@@ -467,6 +467,7 @@ export async function getPublishedLecturerBySlug(db: PrismaClient, slug: string)
         photo: true,
         researchAreas: { where: { status: "PUBLISHED" }, select: { id: true, slug: true, title: true } },
         publications: { orderBy: [{ year: "desc" }, { order: "asc" }] },
+        courses: { where: { status: "PUBLISHED" }, select: { id: true, slug: true, code: true, title: true }, orderBy: { code: "asc" } },
         cvDownload: true,
         user: { select: { isActive: true } },
       },

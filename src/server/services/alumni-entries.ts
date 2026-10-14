@@ -2,6 +2,7 @@ import "server-only";
 import type { AlumniEntry, AlumniStatus, Prisma, PrismaClient } from "@prisma/client";
 import { computeDedupeKey } from "@/lib/alumni-dedupe";
 import { ALUMNI_CONSENT_VERSION } from "@/lib/alumni-consent";
+import { alumniPublicReference } from "@/lib/alumni-reference";
 import { alumniEditableFieldsSchema } from "@/lib/validators/alumni";
 import { deleteAlumniPhoto } from "./alumni-photos";
 import { logAction, type AuditRequestContext } from "./audit";
@@ -69,6 +70,20 @@ export async function findPossibleDuplicates(
       ...(excludeId ? { id: { not: excludeId } } : {}),
     },
   });
+}
+
+/**
+ * Resolves an opaque public reference (see src/lib/alumni-reference.ts)
+ * back to its entry, for the admin side of a contact-form removal
+ * request. The hash is non-reversible by design, so this recomputes it
+ * for every row rather than looking it up directly - acceptable at
+ * this table's size, and it never runs on a public-facing path.
+ */
+export async function findAlumniEntryByReference(db: PrismaClient, ref: string): Promise<AlumniEntry | null> {
+  const entries = await db.alumniEntry.findMany({ select: { id: true } });
+  const match = entries.find((e) => alumniPublicReference(e.id) === ref);
+  if (!match) return null;
+  return db.alumniEntry.findUnique({ where: { id: match.id } });
 }
 
 /**

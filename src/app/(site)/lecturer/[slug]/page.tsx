@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
@@ -198,6 +199,22 @@ export default async function LecturerPage({ params }: { params: Promise<{ slug:
                 </ul>
               </div>
             ))}
+          </div>
+        ) : null}
+
+        {lecturer.courses.length > 0 ? (
+          <div className="mt-10">
+            <h2 className="font-heading text-xl font-semibold">Courses taught</h2>
+            <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+              {lecturer.courses.map((course) => (
+                <li key={course.id} className="rounded-md border border-border p-3">
+                  <Link href={`/students/courses/${course.slug}`} className="font-medium text-primary hover:underline">
+                    {course.code}
+                  </Link>
+                  <p className="text-sm text-muted-foreground">{course.title}</p>
+                </li>
+              ))}
+            </ul>
           </div>
         ) : null}
 

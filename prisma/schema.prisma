@@ -48,6 +48,7 @@ model User {
   auditLogs               AuditLog[]          @relation("AuditLogActor")
   createdAlumniLinks      AlumniLink[]        @relation("AlumniLinkCreatedBy")
   reviewedAlumniEntries   AlumniEntry[]       @relation("AlumniEntryReviewedBy")
+  uploadedDownloads       Download[]          @relation("DownloadUploadedBy")
   authoredNewsPosts       NewsPost[]          @relation("NewsPostAuthor")
   submittedManuscripts    Manuscript[]        @relation("ManuscriptSubmittedBy")
   handledManuscripts      Manuscript[]        @relation("ManuscriptHandlingEditor")
@@ -300,16 +301,20 @@ model ResearchArea {
 }
 
 model Course {
-  id          String        @id @default(cuid())
-  code        String        @unique
-  title       String
-  units       Int
-  level       Int
-  semester    Semester
-  description String
-  status      ContentStatus @default(DRAFT)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id             String         @id @default(cuid())
+  code           String         @unique
+  slug           String         @unique
+  title          String
+  units          Int
+  level          Int
+  semester       Semester
+  programmeLevel ProgrammeLevel
+  isElective     Boolean        @default(false)
+  description    String
+  searchText     String         @default("")
+  status         ContentStatus  @default(DRAFT)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
   prerequisites Course[] @relation("CoursePrerequisite")
   requiredFor   Course[] @relation("CoursePrerequisite")
@@ -318,18 +323,22 @@ model Course {
 
   @@index([status])
   @@index([semester])
+  @@index([programmeLevel])
 }
 
 model HandbookPage {
-  id        String        @id @default(cuid())
-  slug      String        @unique
-  title     String
-  body      String
-  parentId  String?
-  order     Int           @default(0)
-  status    ContentStatus @default(DRAFT)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  id            String        @id @default(cuid())
+  slug          String        @unique
+  previousSlugs String[]      @default([])
+  title         String
+  summary       String?
+  body          String
+  searchText    String        @default("")
+  parentId      String?
+  order         Int           @default(0)
+  status        ContentStatus @default(DRAFT)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   parent   HandbookPage?  @relation("HandbookPageChildren", fields: [parentId], references: [id], onDelete: Cascade)
   children HandbookPage[] @relation("HandbookPageChildren")
@@ -348,10 +357,12 @@ model Download {
   fileSize     Int?
   order        Int           @default(0)
   status       ContentStatus @default(DRAFT)
+  uploadedById String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
-  media MediaAsset? @relation("DownloadMedia", fields: [mediaId], references: [id], onDelete: SetNull)
+  media      MediaAsset? @relation("DownloadMedia", fields: [mediaId], references: [id], onDelete: SetNull)
+  uploadedBy User?       @relation("DownloadUploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
 
   lecturerCvFor LecturerProfile[] @relation("LecturerCv")
   articlePdfFor Article[]         @relation("ArticlePdf")
@@ -360,14 +371,14 @@ model Download {
 }
 
 model AcademicCalendarEntry {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   session     String
   title       String
-  startDate   DateTime
-  endDate     DateTime
+  startDate   DateTime  @db.Date
+  endDate     DateTime? @db.Date
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([startDate])
 }

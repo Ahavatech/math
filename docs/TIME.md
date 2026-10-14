@@ -59,6 +59,10 @@ revalidate it by hand, within five minutes of its `publishedAt` passing. The pos
 page at `/news/[slug]` is revalidated the same way, so visiting the URL directly also respects the
 schedule without needing the list page to have refreshed first.
 
+## Academic calendar dates (Stage 10)
+
+`AcademicCalendarEntry.startDate`/`endDate` are `@db.Date` columns: a calendar date with no time-of-day and no timezone attached, unlike every other date in this app. A session's resumption date is "14 September 2026", not an instant - there is no WAT-to-UTC conversion to do, and `src/lib/time.ts` is not involved. The admin form uses a plain `<input type="date">`, and the public calendar page and the `.ics` feed both render/emit the date exactly as stored (the `.ics` feed uses `DTSTART;VALUE=DATE` all-day events, per RFC 5545, with an exclusive `DTEND` the day after the entry's own end date).
+
 ## Why no DST handling
 
 Nigeria has used WAT (UTC+1) year-round since it stopped observing British double summer time in

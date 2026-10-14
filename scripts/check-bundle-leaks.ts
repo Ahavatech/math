@@ -39,6 +39,7 @@ function main() {
   const htmlFiles = globSync("**/*.html", { cwd: appDir }).filter(isPublicHtmlFile);
   const leaks: { page: string; chunk: string; library: string }[] = [];
   const chunkCache = new Map<string, string>();
+  let katexStylesheetFound = false;
 
   for (const relativeHtml of htmlFiles) {
     const html = readFileSync(path.join(appDir, relativeHtml), "utf8");
@@ -61,6 +62,28 @@ function main() {
         }
       }
     }
+
+    // Regression check for AUDIT.md Entry 021: a public page's own CSS
+    // must carry KaTeX's rules, or math renders twice (its hidden MathML
+    // accessibility layer becomes visible) - see katex-stylesheet.test.ts.
+    if (!katexStylesheetFound) {
+      const cssUrls = [...html.matchAll(/\/_next\/static\/[^"'\s]+\.css/g)].map((m) => m[0]);
+      for (const cssUrl of new Set(cssUrls)) {
+        const cssFullPath = path.join(process.cwd(), ".next", cssUrl.replace(/^\/_next\//, ""));
+        if (existsSync(cssFullPath) && /\.katex\b/.test(readFileSync(cssFullPath, "utf8"))) {
+          katexStylesheetFound = true;
+          break;
+        }
+      }
+    }
+  }
+
+  if (!katexStylesheetFound) {
+    console.error(
+      "Bundle leak check failed: no public page's CSS references KaTeX's stylesheet.\n" +
+        "  Math would render twice (see AUDIT.md Entry 021) - check src/app/globals.css imports katex/dist/katex.min.css.",
+    );
+    process.exit(1);
   }
 
   if (leaks.length > 0) {
@@ -71,7 +94,7 @@ function main() {
     process.exit(1);
   }
 
-  console.log(`Bundle leak check passed (${htmlFiles.length} public pages scanned).`);
+  console.log(`Bundle leak check passed (${htmlFiles.length} public pages scanned, KaTeX stylesheet present).`);
 }
 
 main();

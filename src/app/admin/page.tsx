@@ -13,6 +13,8 @@ const ADMIN_PERMISSIONS: Permission[] = [
   "news.manage",
   "events.manage",
   "alumni.review",
+  "contact.manage",
+  "students.manage",
   "journal.edit",
 ];
 
@@ -23,16 +25,29 @@ export default async function AdminDashboardPage() {
     redirect("/admin/my-profile");
   }
 
-  const [userCount, lecturerCount, publishedLecturerCount, nonTeachingStaffCount, pendingAlumniCount, publishedEvents, draftNewsCount] =
-    await Promise.all([
-      db.user.count(),
-      db.lecturerProfile.count(),
-      db.lecturerProfile.count({ where: { status: "PUBLISHED" } }),
-      db.nonTeachingStaff.count({ where: { isActive: true } }),
-      db.alumniEntry.count({ where: { status: "PENDING" } }),
-      db.event.findMany({ where: { status: "PUBLISHED" }, select: { startsAt: true, endsAt: true } }),
-      db.newsPost.count({ where: { status: "DRAFT" } }),
-    ]);
+  const [
+    userCount,
+    lecturerCount,
+    publishedLecturerCount,
+    nonTeachingStaffCount,
+    pendingAlumniCount,
+    publishedEvents,
+    draftNewsCount,
+    newMessagesCount,
+    courseCount,
+    handbookPageCount,
+  ] = await Promise.all([
+    db.user.count(),
+    db.lecturerProfile.count(),
+    db.lecturerProfile.count({ where: { status: "PUBLISHED" } }),
+    db.nonTeachingStaff.count({ where: { isActive: true } }),
+    db.alumniEntry.count({ where: { status: "PENDING" } }),
+    db.event.findMany({ where: { status: "PUBLISHED" }, select: { startsAt: true, endsAt: true } }),
+    db.newsPost.count({ where: { status: "DRAFT" } }),
+    db.contactMessage.count({ where: { status: "NEW" } }),
+    db.course.count({ where: { status: "PUBLISHED" } }),
+    db.handbookPage.count({ where: { status: "PUBLISHED" } }),
+  ]);
   const upcomingEventCount = publishedEvents.filter((e) => isUpcoming(e)).length;
 
   const cards = [
@@ -43,6 +58,9 @@ export default async function AdminDashboardPage() {
     { label: "Pending alumni", value: pendingAlumniCount, href: "/admin/alumni" },
     { label: "Upcoming events", value: upcomingEventCount, href: null },
     { label: "Draft posts", value: draftNewsCount, href: null },
+    { label: "New messages", value: newMessagesCount, href: "/admin/messages" },
+    { label: "Courses", value: courseCount, href: null },
+    { label: "Handbook pages", value: handbookPageCount, href: null },
   ];
 
   return (

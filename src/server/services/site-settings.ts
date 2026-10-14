@@ -182,6 +182,18 @@ export const SETTINGS_REGISTRY = {
     label: "Pages needing legal review",
     section: "Pages",
   },
+  // Empty by default: no notification is sent until an admin sets a
+  // real address. Validated as an email or the empty string, never an
+  // arbitrary string, since it feeds directly into an outgoing email's
+  // `to` field.
+  "contact.notificationEmail": {
+    schema: z.string().refine((v) => v === "" || z.string().email().safeParse(v).success, {
+      message: "Must be empty or a valid email",
+    }),
+    default: "",
+    label: "Contact notification address",
+    section: "Contact",
+  },
 } as const;
 
 export type SettingsKey = keyof typeof SETTINGS_REGISTRY;

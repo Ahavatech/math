@@ -18,7 +18,7 @@ export function SiteFooter({
   const socialEntries = Object.entries(social);
 
   return (
-    <footer className="border-t border-border bg-muted/40">
+    <footer data-site-footer className="border-t border-border bg-muted/40">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-4 lg:px-8">
         <div className="space-y-2 lg:col-span-1">
           <p className="font-heading text-sm font-semibold">Department of Mathematics</p>
