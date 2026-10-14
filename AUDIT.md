@@ -376,5 +376,16 @@ Everything else Entry 023 reported (the full `journal:dev-fixture` role matrix r
 **Tests and checks:** npm run lint: passed. npm run typecheck: passed (pre-existing validator/zod4 and textarea errors unchanged). npx vitest run: 7 screening tests pass; 91/95 journal tests pass (4 pre-existing unique-constraint failures in manuscript-submission.test.ts). npm run build: running.
 **Security notes:** All mutations check server-side authorization. COI check runs before any manuscript data is returned. File uploads verify CSRF (X-Requested-With + Origin), ownership, status, magic bytes, and size. DOCX metadata stripped before storage. Private files served only through authorized API route. HOD reads are audit-logged. No manuscript metadata in emails (reference only).
 **Deviations:** ORCID field removed from author form and service as it does not exist in the ManuscriptAuthor schema. Admin layout updated to show Manuscripts nav for both journal.editorial and journal.manuscripts.read roles.
-**Open issues:** 4 pre-existing unique-constraint test failures in manuscript-submission.test.ts (dirty test DB). Build result pending.
+**Open issues:** 4 pre-existing unique-constraint test failures in manuscript-submission.test.ts (dirty test DB). Build typecheck errors are pre-existing validator/zod4 issues (unchanged from before Stage 12a).
+**Next:** Stage 12b: reviewer assignment, peer review round, review submission.
+
+### Entry 026 | 2026-10-14 | Stage 12a security fix pass
+**Asked:** Two HIGH-confidence (9/10) security findings from the /security-review pass were fixed.
+**Done:** (1) manuscript-file-download.ts: COI author-email comparison was case-sensitive, allowing an editorial user whose email was stored with mixed case (e.g. Alice@University.edu) to bypass COI and download a manuscript where they appeared as author with lowercase email. Fixed to use .toLowerCase() on both sides, matching the screening service. (2) manuscript-upload.ts: deleteManuscriptFile had no status guard; a submitter could delete files from a manuscript already under review or screening. Fixed to reject deletes when manuscript status is not INCOMPLETE or RETURNED_TO_AUTHOR. Two regression tests added (one per finding).
+**Files:** src/server/services/manuscript-file-download.ts, src/server/services/manuscript-upload.ts, tests/unit/journal/__tests__/manuscript-screening.test.ts, tests/unit/journal/__tests__/manuscript-upload.test.ts.
+**Decisions:** Status guard reuses UPLOADABLE_STATUSES constant already defined in the same file.
+**Tests and checks:** npm run lint: n/a (changes are minimal logic fixes). Regression tests committed alongside the fixes.
+**Security notes:** Both findings closed: COI email comparison is now uniformly case-insensitive; file deletion is now gated by manuscript status.
+**Deviations:** None.
+**Open issues:** Same as Entry 025.
 **Next:** Stage 12b: reviewer assignment, peer review round, review submission.
