@@ -349,6 +349,26 @@ describe.skipIf(db === null)("manuscript upload service", () => {
     ).rejects.toThrow(/not found|forbidden/i);
   });
 
+  it("deleteManuscriptFile: rejects delete when manuscript status is SUBMITTED", async () => {
+    const user = await makeUser("delete-submitted@example.com");
+    const ms = await makeManuscript(user.id, "SUBMITTED");
+    // Create a file directly — bypass upload which also blocks SUBMITTED
+    const file = await db!.manuscriptFile.create({
+      data: {
+        manuscriptId: ms.id,
+        kind: "MANUSCRIPT",
+        originalName: "paper.pdf",
+        storageKey: `test/${ms.id}/paper.pdf`,
+        mimeType: "application/pdf",
+        sizeBytes: 1000,
+      },
+    });
+
+    await expect(
+      deleteManuscriptFile(db!, { userId: user.id, fileId: file.id }),
+    ).rejects.toThrow(/state/i);
+  });
+
   it("rejects upload when manuscript status is SUBMITTED (not INCOMPLETE/RETURNED_TO_AUTHOR)", async () => {
     const user = await makeUser("upload-submitted@example.com");
     const ms = await makeManuscript(user.id, "SUBMITTED");

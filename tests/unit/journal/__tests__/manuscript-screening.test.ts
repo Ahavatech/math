@@ -136,6 +136,29 @@ describe.skipIf(db === null)("manuscript screening service", () => {
     ).rejects.toThrow(/conflict|COI/i);
   });
 
+  it("listManuscripts: COI detection is case-insensitive (mixed-case email matches lowercase author)", async () => {
+    const { listManuscripts } = await import("@/server/services/manuscript-screening");
+    // Editor's verified email stored with mixed case in users table
+    const editor = await makeUser("Mixed.Case@Example.COM", ["JOURNAL_EDITOR_IN_CHIEF"]);
+    // A different user submits, but lists the editor as an author with lowercase email
+    const submitter = await makeUser("scr-coi-case-submitter@example.com", ["AUTHOR"]);
+    const ms = await makeManuscript(submitter.id, "scr-coi-case-submitter@example.com");
+    // Add editor as an author with lowercase version of their email
+    await db!.manuscriptAuthor.create({
+      data: {
+        manuscriptId: ms.id,
+        name: "Mixed Case Editor",
+        email: "mixed.case@example.com",
+        isCorresponding: false,
+        order: 1,
+      },
+    });
+
+    const results = await listManuscripts(db!, editor);
+    const found = results.find((r) => r.id === ms.id);
+    expect(found, "COI manuscript must be hidden even when email casing differs").toBeUndefined();
+  });
+
   it("addInternalNote: creates ManuscriptEvent with visibleToAuthor false", async () => {
     const { addInternalNote } = await import("@/server/services/manuscript-screening");
     const author = await makeUser("scr-note-author@example.com", ["AUTHOR"]);

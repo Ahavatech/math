@@ -270,11 +270,15 @@ export async function deleteManuscriptFile(
 ): Promise<void> {
   const file = await db.manuscriptFile.findUnique({
     where: { id: input.fileId },
-    select: { id: true, storageKey: true, manuscript: { select: { submittedById: true } } },
+    select: { id: true, storageKey: true, manuscript: { select: { submittedById: true, status: true } } },
   });
 
   if (!file || file.manuscript.submittedById !== input.userId) {
     throw new Error("File not found or forbidden");
+  }
+
+  if (!UPLOADABLE_STATUSES.has(file.manuscript.status)) {
+    throw new Error("Cannot delete files from a manuscript in this state");
   }
 
   await db.manuscriptFile.delete({ where: { id: file.id } });

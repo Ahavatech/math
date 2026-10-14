@@ -50,9 +50,10 @@ export async function decideManuscriptFileDownload(
 
   const conflictOfInterest =
     file.manuscript.submittedById === user.id ||
-    file.manuscript.authors.some(
-      (a) => a.email === verifiedEmail,
-    );
+    (verifiedEmail !== null &&
+      file.manuscript.authors.some(
+        (a) => a.email !== null && a.email.toLowerCase() === verifiedEmail.toLowerCase(),
+      ));
 
   const assignment = await db.reviewAssignment.findFirst({
     where: { manuscriptId: file.manuscriptId, reviewerId: user.id },
