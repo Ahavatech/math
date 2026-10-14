@@ -11,19 +11,22 @@ export const ARTICLE_PDF_FOLDER = "oau-maths/journal/articles";
 // exceed 5MB. See docs/JOURNAL.md.
 export const MAX_ARTICLE_PDF_BYTES = 10 * 1024 * 1024; // 10MB
 
+/** NFD-folds diacritics (e.g. "Ọlábísí" -> "Olabisi") before stripping, same technique as slugify.ts. */
+function asciiFold(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-zA-Z0-9-]/g, "");
+}
+
 function surnameFrom(fullName: string): string {
   const parts = fullName.trim().split(/\s+/);
-  return (parts[parts.length - 1] || "Article").replace(/[^a-zA-Z0-9-]/g, "");
+  return asciiFold(parts[parts.length - 1] || "Article") || "Article";
 }
 
 /** Builds the clean, citation-friendly filename used for Content-Disposition. */
 export function articlePdfFilename(firstAuthorName: string, year: number, title: string): string {
-  const shortTitle = title
-    .trim()
-    .split(/\s+/)
-    .slice(0, 5)
-    .join("-")
-    .replace(/[^a-zA-Z0-9-]/g, "");
+  const shortTitle = asciiFold(title.trim().split(/\s+/).slice(0, 5).join("-"));
   return `${surnameFrom(firstAuthorName)}-${year}-${shortTitle || "Article"}.pdf`;
 }
 

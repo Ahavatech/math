@@ -87,6 +87,7 @@ export default async function JournalArticleDetailPage({ params }: { params: Pro
     authors: article.authors.map((a) => a.name),
     publishedAt,
     journalName,
+    doi: article.doi,
     pdfUrl,
     abstractUrl,
     keywords: article.keywords,

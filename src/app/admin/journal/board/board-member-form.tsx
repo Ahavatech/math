@@ -16,7 +16,12 @@ export function BoardMemberForm({ lecturers }: { lecturers: { id: string; fullNa
 
   function save(formData: FormData) {
     if (mode === "lecturer") {
-      formData.delete("name");
+      const lecturerId = String(formData.get("lecturerProfileId") ?? "");
+      const lecturer = lecturers.find((l) => l.id === lecturerId);
+      // The row's own `name` is still required by the schema even for a
+      // linked lecturer (the public query only prefers the live profile
+      // name over it, it never relies on `name` being empty).
+      formData.set("name", lecturer?.fullName ?? "");
       formData.delete("affiliation");
       formData.delete("affiliationCountry");
       formData.delete("orcid");
