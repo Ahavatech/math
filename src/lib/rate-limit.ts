@@ -65,3 +65,18 @@ export const changePasswordRateLimiter = new InMemoryRateLimiter({
   limit: 5,
   windowMs: 60_000,
 });
+// Journal author registration: 5 registrations per IP per hour
+export const journalRegisterIpRateLimiter = new InMemoryRateLimiter({
+  limit: 5,
+  windowMs: 60 * 60_000,
+});
+// Verification token consumption: 3 per IP per hour
+export const journalVerifyIpRateLimiter = new InMemoryRateLimiter({
+  limit: 3,
+  windowMs: 60 * 60_000,
+});
+// Resend verification: 3 per email per hour (keyed by email)
+export const journalVerifyEmailRateLimiter = new InMemoryRateLimiter({
+  limit: 3,
+  windowMs: 60 * 60_000,
+});

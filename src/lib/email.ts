@@ -6,6 +6,8 @@ import { InviteEmail } from "@/emails/invite";
 import { PasswordResetEmail } from "@/emails/password-reset";
 import { AlumniApprovedEmail } from "@/emails/alumni-approved";
 import { ContactNotificationEmail } from "@/emails/contact-notification";
+import { JournalVerifyEmail } from "@/emails/journal-verify";
+import { JournalAlreadyRegisteredEmail } from "@/emails/journal-already-registered";
 
 const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
 
@@ -72,4 +74,14 @@ export async function sendContactNotificationEmail(params: { to: string; senderN
     "New contact message",
     ContactNotificationEmail({ senderName: params.senderName, type: params.type, adminUrl: params.adminUrl }),
   );
+}
+
+export async function sendVerificationEmail(params: { to: string; token: string }) {
+  const verifyUrl = new URL(`/journal/verify/${params.token}`, env.AUTH_URL).toString();
+  await send(params.to, "Verify your email address", JournalVerifyEmail({ verifyUrl }));
+}
+
+export async function sendAlreadyRegisteredEmail(params: { to: string }) {
+  const signInUrl = new URL("/journal/login", env.AUTH_URL).toString();
+  await send(params.to, "You already have an account", JournalAlreadyRegisteredEmail({ signInUrl }));
 }
