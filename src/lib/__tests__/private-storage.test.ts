@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
-import { mkdtempSync, rmSync, existsSync, statSync, readFileSync } from "node:fs";
+import { mkdtempSync, rmSync, statSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
@@ -151,7 +151,6 @@ describe("createLocalPrivateStorage", () => {
     await storage.put(streamOf(content), { kind: "pdf" });
 
     function walk(dir: string): string[] {
-      const { readdirSync } = require("node:fs") as typeof import("node:fs");
       return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
         const full = path.join(dir, entry.name);
         return entry.isDirectory() ? walk(full) : [full];
