@@ -81,11 +81,51 @@ describe("schema shape (no database required)", () => {
     expect(hasStorageKey).toBe(true);
   });
 
+  it("ManuscriptStatus includes INCOMPLETE and RETURNED_TO_AUTHOR", () => {
+    expect(schemaSource).toContain("INCOMPLETE");
+    expect(schemaSource).toContain("RETURNED_TO_AUTHOR");
+  });
+
+  it("ManuscriptFileKind includes TITLE_PAGE", () => {
+    expect(schemaSource).toContain("TITLE_PAGE");
+  });
+
+  it("UserTokenType includes EMAIL_VERIFY", () => {
+    expect(schemaSource).toContain("EMAIL_VERIFY");
+  });
+
+  it("ManuscriptEvent model exists", () => {
+    const model = models.find((m) => m.name === "ManuscriptEvent");
+    expect(model).toBeDefined();
+  });
+
+  it("JournalCounter model exists", () => {
+    const model = models.find((m) => m.name === "JournalCounter");
+    expect(model).toBeDefined();
+  });
+
+  it("User has emailVerifiedAt field", () => {
+    const user = models.find((m) => m.name === "User");
+    expect(user).toBeDefined();
+    const hasField = user!.lines.some((line) => fieldName(line) === "emailVerifiedAt");
+    expect(hasField).toBe(true);
+  });
+
+  it("Manuscript has reference field", () => {
+    const manuscript = models.find((m) => m.name === "Manuscript");
+    expect(manuscript).toBeDefined();
+    const hasRef = manuscript!.lines.some((line) => fieldName(line) === "reference");
+    expect(hasRef).toBe(true);
+  });
+
   it("every model has a primary key and a createdAt column", () => {
+    // JournalCounter is a counter-only table (year + value) with no timestamps — excluded.
+    const COUNTER_ONLY = new Set(["JournalCounter"]);
     for (const model of models) {
       const hasPrimaryKey = model.lines.some((line) => line.includes("@id"));
       expect(hasPrimaryKey, `${model.name} has no @id field`).toBe(true);
 
+      if (COUNTER_ONLY.has(model.name)) continue;
       const hasCreatedAt = model.lines.some(
         (line) => fieldName(line) === "createdAt",
       );

@@ -24,6 +24,7 @@ enum Role {
 enum UserTokenType {
   INVITE
   PASSWORD_RESET
+  EMAIL_VERIFY
 }
 
 model User {
@@ -32,6 +33,7 @@ model User {
   name              String
   passwordHash      String?
   passwordChangedAt DateTime?
+  emailVerifiedAt   DateTime?
   isActive          Boolean   @default(true)
   lastLoginAt       DateTime?
   createdAt         DateTime  @default(now())
@@ -53,6 +55,7 @@ model User {
   submittedManuscripts    Manuscript[]        @relation("ManuscriptSubmittedBy")
   handledManuscripts      Manuscript[]        @relation("ManuscriptHandlingEditor")
   uploadedManuscriptFiles ManuscriptFile[]    @relation("ManuscriptFileUploadedBy")
+  manuscriptEvents        ManuscriptEvent[]   @relation("ManuscriptEventActor")
   reviewAssignments       ReviewAssignment[]  @relation("ReviewAssignmentReviewer")
   editorialDecisions      EditorialDecision[] @relation("EditorialDecisionEditor")
   articleAuthorLinks      ArticleAuthor[]     @relation("ArticleAuthorUser")
@@ -662,10 +665,12 @@ model AlumniReferenceRecord {
 // ---------------------------------------------------------------------------
 
 enum ManuscriptStatus {
+  INCOMPLETE
   SUBMITTED
   SCREENING
   UNDER_REVIEW
   REVISION_REQUESTED
+  RETURNED_TO_AUTHOR
   ACCEPTED
   REJECTED
   WITHDRAWN
@@ -697,6 +702,7 @@ enum EditorialDecisionType {
 
 enum ManuscriptFileKind {
   MANUSCRIPT
+  TITLE_PAGE
   SUPPLEMENTARY
   RESPONSE_TO_REVIEWERS
   REVISED
@@ -802,16 +808,25 @@ model EditorialBoardMember {
 }
 
 model Manuscript {
-  id               String           @id @default(cuid())
-  title            String
-  abstract         String
-  keywords         String[]
-  status           ManuscriptStatus @default(SUBMITTED)
-  submittedById    String?
-  handlingEditorId String?
-  currentRound     Int              @default(1)
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  id                     String           @id @default(cuid())
+  reference              String?          @unique
+  title                  String
+  abstract               String
+  keywords               String[]
+  articleType            ArticleType      @default(RESEARCH_ARTICLE)
+  coverLetter            String?
+  suggestedReviewers     Json?
+  excludedReviewers      Json?
+  anonymisedConfirmedAt  DateTime?
+  agreementVersion       String?
+  agreementAcceptedAt    DateTime?
+  submittedAt            DateTime?
+  status                 ManuscriptStatus @default(INCOMPLETE)
+  submittedById          String?
+  handlingEditorId       String?
+  currentRound           Int              @default(1)
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
 
   submittedBy    User? @relation("ManuscriptSubmittedBy", fields: [submittedById], references: [id], onDelete: SetNull)
   handlingEditor User? @relation("ManuscriptHandlingEditor", fields: [handlingEditorId], references: [id], onDelete: SetNull)
@@ -819,11 +834,14 @@ model Manuscript {
   authors            ManuscriptAuthor[]
   rounds             ManuscriptRound[]
   files              ManuscriptFile[]
+  events             ManuscriptEvent[]
   reviewAssignments  ReviewAssignment[]
   editorialDecisions EditorialDecision[]
   article            Article?
 
   @@index([status])
+  @@index([submittedById])
+  @@index([handlingEditorId])
 }
 
 model ManuscriptAuthor {
@@ -928,4 +946,38 @@ model EditorialDecision {
   editor     User            @relation("EditorialDecisionEditor", fields: [editorId], references: [id], onDelete: Restrict)
 
   @@index([manuscriptId])
+}
+
+enum ManuscriptEventType {
+  CREATED
+  SUBMITTED
+  FILE_ADDED
+  FILE_REMOVED
+  EDITOR_ASSIGNED
+  RETURNED_TO_AUTHOR
+  RESUBMITTED
+  DESK_REJECTED
+  APPROVED_FOR_REVIEW
+  WITHDRAWN
+  INTERNAL_NOTE
+}
+
+model ManuscriptEvent {
+  id              String              @id @default(cuid())
+  manuscriptId    String
+  type            ManuscriptEventType
+  actorId         String?
+  visibleToAuthor Boolean             @default(false)
+  note            String?
+  createdAt       DateTime            @default(now())
+
+  manuscript Manuscript @relation(fields: [manuscriptId], references: [id], onDelete: Cascade)
+  actor      User?      @relation("ManuscriptEventActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([manuscriptId, createdAt])
+}
+
+model JournalCounter {
+  year  Int @id
+  value Int
 }

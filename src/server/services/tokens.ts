@@ -5,6 +5,7 @@ import type { Prisma, PrismaClient, UserTokenType } from "@prisma/client";
 const TOKEN_TTL: Record<UserTokenType, number> = {
   INVITE: 7 * 24 * 60 * 60 * 1000,
   PASSWORD_RESET: 60 * 60 * 1000,
+  EMAIL_VERIFY: 24 * 60 * 60 * 1000,
 };
 
 type Db = PrismaClient | Prisma.TransactionClient;

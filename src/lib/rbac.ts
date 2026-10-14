@@ -12,6 +12,8 @@ export const PERMISSIONS = [
   "students.manage",
   "journal.manage",
   "journal.edit",
+  "journal.editorial",
+  "journal.manuscripts.read",
   "journal.review",
   "journal.submit",
   "own_profile.edit",
@@ -42,6 +44,7 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "students.manage",
     "journal.manage",
     "journal.edit",
+    "journal.manuscripts.read",
     "own_profile.edit",
   ],
   ADMIN: [
@@ -55,8 +58,8 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "own_profile.edit",
   ],
   LECTURER: ["own_profile.edit"],
-  JOURNAL_EDITOR_IN_CHIEF: ["journal.manage", "journal.edit", "own_profile.edit"],
-  JOURNAL_EDITOR: ["journal.edit", "own_profile.edit"],
+  JOURNAL_EDITOR_IN_CHIEF: ["journal.manage", "journal.edit", "journal.editorial", "journal.manuscripts.read", "own_profile.edit"],
+  JOURNAL_EDITOR: ["journal.edit", "journal.editorial", "journal.manuscripts.read", "own_profile.edit"],
   REVIEWER: ["journal.review", "own_profile.edit"],
   AUTHOR: ["journal.submit", "own_profile.edit"],
 };
