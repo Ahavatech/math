@@ -345,3 +345,25 @@ Manual verification against the dev server (Docker had stopped again between ses
 **Open issues:** (1) DECISIONS.md #54 (the journal.manage/journal.edit split and ADMIN's exclusion) still needs the HOD's confirmation, as the prompt itself asked to record. (2) No reference-manager import of the RIS/BibTeX output was done against a real desktop app, for the same sandboxed-desktop reason Entry 021 documents for calendar apps - the output is RIS/BibTeX-spec-correct and unit-tested, but has not been confirmed against, say, Zotero or EndNote by hand. (3) All open issues carried from Entries 020-022 that are not specific to this stage (First Load JS reduction scheduled for Stage 13, privacy-notice legal review, alumni/contact cleanup script scheduling, the admin seed password being reset during verification) remain. (4) npm run private-storage:orphans needs scheduling alongside the existing cleanup scripts once deployed (Stage 14, noted in ROADMAP.md), and PRIVATE_STORAGE_DIR needs to be included in that stage's backup job. (5) Docker Desktop stopped running again at the start of this session (the same recurring host-level issue noted in every prior stage) and had to be restarted before any database-backed work could proceed.
 
 **Next:** Stage 12: Journal submission and peer review (authors, editors, reviewers, rounds, notifications), once this stage is reviewed and merged.
+
+### Entry 024 | 2026-10-14 | Stage 11 pre-merge: closed the remaining verification gaps
+
+**Asked:** Before merging, report which items the original Stage 11 prompt asked to verify were not explicitly covered in Entry 023, say whether each was verified by hand, covered only by unit tests, or not verified, and verify anything unverified. Specifically: the actual AuditLog row content written for an allowed journal file download (Entry 023 had confirmed the policy matrix and the --remove cleanup, but not read the real audit row); and the empty journal state at phone width with no issues and no settings.
+
+**Done:** Docker had stopped again since Entry 023 (same recurring host issue) - restarted and polled before any database-backed check could run. (1) Ran `journal:dev-fixture`, logged in as the fixture author in the real browser, fetched `GET /api/journal/files/[fileId]` for a real 200, then read the resulting `AuditLog` row directly from the database: exactly one row, `actorId` and `entityId` only, summary "Downloaded a manuscript file" - no filename, no author name, no manuscript title anywhere in the row. Logged in as the unassigned reviewer and fetched the same file (404 confirmed again), then confirmed the audit table still held exactly one row - a denied attempt writes nothing. Ran `journal:dev-fixture --remove` and confirmed the fixture user's own AuditLog rows were deleted as part of removal (the script deletes them before deleting the user, since `AuditLog.actorId` is `Restrict` on delete) - final state: zero fixture manuscripts, zero fixture users, zero matching audit rows, empty private-storage directory. (2) Confirmed the database genuinely held zero `JournalIssue`/`Article`/`EditorialBoardMember` rows and no `journal.settings` row, then loaded `/journal` at 375px width: renders cleanly with the title correctly falling back to "Departmental Journal", only the nav strip and an archive button show - no "latest issue," "latest articles" or "call for papers" block renders at all (confirmed via the page's own text content, not just a visual check). `/journal/issues` and `/journal/editorial-board` both show their written empty-state messages ("No issues have been published yet." / "The editorial board has not been announced yet.") rather than breaking or rendering a blank block.
+
+Everything else Entry 023 reported (the full `journal:dev-fixture` role matrix result itself, the published article's Scholar/DC/JSON-LD tags and no-Cloudinary-URL check, the PDF opening from our own domain, unpublishing an issue 404ing both the article page and its PDF route, and the LECTURER-only/ADMIN-only 403 checks on `/admin/journal`) had already been verified by hand in that same session, not merely covered by unit tests - re-confirmed by rereading Entry 023's own text rather than re-running them, since nothing about the code changed since then.
+
+**Files:** None - this entry is verification only, no code changed.
+
+**Decisions:** None new.
+
+**Tests and checks:** No new automated tests; this entry is a manual verification pass. `git status` confirmed a clean working tree before and after.
+
+**Security notes:** Confirms Entry 023's security claim about the audit row with direct evidence rather than code reading alone: the row genuinely contains no filename or name, matching the blind-review requirement.
+
+**Deviations:** None.
+
+**Open issues:** Unchanged from Entry 023.
+
+**Next:** Stage 12: Journal submission and peer review (authors, editors, reviewers, rounds, notifications), once this stage is reviewed and merged.
