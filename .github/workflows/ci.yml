@@ -20,6 +20,9 @@ jobs:
       # triggers env.ts's "RESEND_API_KEY required in production"
       # check. This placeholder is never used to actually send mail.
       RESEND_API_KEY: ci-placeholder-resend-key-not-used-for-anything-real
+      # Stage 11 made this required in production for the same reason -
+      # a path only, never written to or read from during the build.
+      PRIVATE_STORAGE_DIR: /tmp/ci-placeholder-private-storage
       # Stage 05 made these required. Never used to call Cloudinary for
       # real; the media routes that would use them are only exercised
       # by unit tests with the Cloudinary client mocked.
