@@ -326,6 +326,18 @@ export async function getArticlePdfForRoute(db: PrismaClient, slug: string) {
   return { fileUrl: article.pdf.fileUrl, firstAuthorName: article.authors[0]?.name ?? "Article", year, title: article.title };
 }
 
+export async function listArticlesByIssuePublic(db: PrismaClient, issueId: string) {
+  try {
+    return await db.article.findMany({
+      where: { issueId, status: "PUBLISHED" },
+      orderBy: { pageStart: "asc" },
+      select: PUBLIC_ARTICLE_SELECT,
+    });
+  } catch {
+    return [];
+  }
+}
+
 export async function getLatestArticlesPublic(db: PrismaClient, limit = 6) {
   const { articles } = await listArticlesPublic(db, { perPage: limit, page: 1 });
   return articles;

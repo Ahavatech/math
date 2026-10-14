@@ -41,7 +41,8 @@ function buildItem(item: RssItem): string {
   ].join("");
 }
 
-export function generateNewsRss(feed: RssFeedInput): string {
+/** Generic RSS 2.0 generator; also used for /journal/rss.xml. */
+export function generateRssFeed(feed: RssFeedInput): string {
   const items = feed.items.map(buildItem).join("");
   return (
     `<?xml version="1.0" encoding="UTF-8"?>` +
@@ -53,3 +54,6 @@ export function generateNewsRss(feed: RssFeedInput): string {
     `</channel></rss>`
   );
 }
+
+/** Pre-existing name kept for /news/rss.xml's import. */
+export const generateNewsRss = generateRssFeed;
