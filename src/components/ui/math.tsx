@@ -1,5 +1,4 @@
 import katex from "katex";
-import "katex/dist/katex.min.css";
 
 /**
  * Server-renders LaTeX to HTML via KaTeX's renderToString. `trust:
