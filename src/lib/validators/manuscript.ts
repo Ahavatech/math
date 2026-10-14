@@ -4,7 +4,7 @@ export const registerAuthorSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(200),
   email: z.string().email("Valid email required"),
   password: z.string().min(10, "Password must be at least 10 characters"),
-  privacyConsent: z.literal(true, { errorMap: () => ({ message: "You must accept the privacy notice" }) }),
+  privacyConsent: z.literal(true, { message: "You must accept the privacy notice" }),
   honeypot: z.string().max(0, "Unexpected input"),
   formToken: z.string(),
   formRenderedAt: z.number().int(),
@@ -61,7 +61,7 @@ export const step3Schema = z.object({
   coverLetter: z.string().trim().min(1, "Cover letter is required").max(5000),
   suggestedReviewers: z.array(reviewerEntrySchema).max(5).default([]),
   excludedReviewers: z.array(reviewerEntrySchema).max(5).default([]),
-  anonymisedConfirmed: z.literal(true, { errorMap: () => ({ message: "You must confirm anonymisation" }) }),
+  anonymisedConfirmed: z.literal(true, { message: "You must confirm anonymisation" }),
 });
 export type Step3Input = z.infer<typeof step3Schema>;
 

@@ -8,8 +8,8 @@ if (db === null) {
   console.warn("[manuscript-workflow.test.ts] skipped: no reachable TEST_DATABASE_URL");
 }
 
-let createdManuscriptIds: string[] = [];
-let createdUserIds: string[] = [];
+const createdManuscriptIds: string[] = [];
+const createdUserIds: string[] = [];
 
 describe.skipIf(db === null)("manuscript state machine", () => {
   afterEach(async () => {
@@ -49,7 +49,7 @@ describe.skipIf(db === null)("manuscript state machine", () => {
         title: "Test Manuscript",
         abstract: "Abstract",
         keywords: ["a", "b", "c"],
-        status: status as any,
+        status: status as import("@prisma/client").ManuscriptStatus,
         submittedById,
         reference: status !== "INCOMPLETE" ? `MS-2026-${Date.now().toString().slice(-4)}` : null,
         submittedAt: status !== "INCOMPLETE" ? new Date() : null,

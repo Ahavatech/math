@@ -233,7 +233,7 @@ export async function processManuscriptUpload(
   const file = await db.manuscriptFile.create({
     data: {
       manuscriptId: input.manuscriptId,
-      kind: input.kind as any,
+      kind: input.kind as import("@prisma/client").ManuscriptFileKind,
       originalName: sanitised,
       storageKey: putResult.key,
       mimeType: input.mimeType,

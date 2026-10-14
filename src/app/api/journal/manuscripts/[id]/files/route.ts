@@ -57,7 +57,8 @@ export async function POST(
   const { id: manuscriptId } = await params;
 
   try {
-    const stream = Readable.fromWeb(request.body as ReadableStream<Uint8Array>);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const stream = Readable.fromWeb(request.body as any);
     const result = await processManuscriptUpload(prisma, {
       userId: user.id,
       manuscriptId,

@@ -1,16 +1,36 @@
-import { afterAll, afterEach, describe, expect, it } from "vitest";
+import { beforeAll, afterAll, afterEach, describe, expect, it } from "vitest";
 import { getTestDb } from "../../database/test-db";
 
 const db = await getTestDb();
+
+/** Unique suffix so parallel/repeated runs never collide on emails or counters */
+const RUN_ID = Date.now().toString(36);
 
 if (db === null) {
   console.warn("[manuscript-submission.test.ts] skipped: no reachable TEST_DATABASE_URL");
 }
 
-let createdManuscriptIds: string[] = [];
-let createdUserIds: string[] = [];
+const createdManuscriptIds: string[] = [];
+const createdUserIds: string[] = [];
 
 describe.skipIf(db === null)("manuscript submission service", () => {
+  beforeAll(async () => {
+    if (!db) return;
+    // Purge any stale submitted manuscripts left by a crashed previous run.
+    // On a clean run afterEach handles this; beforeAll is a safety net.
+    await db.journalCounter.deleteMany({});
+    const staleIds = (
+      await db.manuscript.findMany({ where: { reference: { not: null } }, select: { id: true } })
+    ).map((m) => m.id);
+    if (staleIds.length > 0) {
+      await db.manuscriptFile.deleteMany({ where: { manuscriptId: { in: staleIds } } });
+      await db.manuscriptEvent.deleteMany({ where: { manuscriptId: { in: staleIds } } });
+      await db.manuscriptRound.deleteMany({ where: { manuscriptId: { in: staleIds } } });
+      await db.manuscriptAuthor.deleteMany({ where: { manuscriptId: { in: staleIds } } });
+      await db.manuscript.deleteMany({ where: { id: { in: staleIds } } });
+    }
+  });
+
   afterEach(async () => {
     if (createdManuscriptIds.length > 0) {
       await db!.manuscriptFile.deleteMany({ where: { manuscriptId: { in: createdManuscriptIds } } });
@@ -62,7 +82,7 @@ describe.skipIf(db === null)("manuscript submission service", () => {
 
   it("createDraft: creates INCOMPLETE manuscript with no reference", async () => {
     const { createDraft } = await import("@/server/services/manuscript-submission");
-    const user = await makeVerifiedAuthor("draft-create@example.com");
+    const user = await makeVerifiedAuthor(`draft-create-${RUN_ID}@example.com`);
 
     const draft = await createDraft(db!, user.id);
     createdManuscriptIds.push(draft.id);
@@ -75,7 +95,7 @@ describe.skipIf(db === null)("manuscript submission service", () => {
 
   it("updateDraftStep: validates step1 including Yoruba diacritics in title", async () => {
     const { createDraft, updateDraftStep } = await import("@/server/services/manuscript-submission");
-    const user = await makeVerifiedAuthor("draft-step1@example.com");
+    const user = await makeVerifiedAuthor(`draft-step1-${RUN_ID}@example.com`);
     const draft = await createDraft(db!, user.id);
     createdManuscriptIds.push(draft.id);
 
@@ -91,7 +111,7 @@ describe.skipIf(db === null)("manuscript submission service", () => {
 
   it("updateDraftStep: rejects angle brackets in title", async () => {
     const { createDraft, updateDraftStep } = await import("@/server/services/manuscript-submission");
-    const user = await makeVerifiedAuthor("draft-step1-xss@example.com");
+    const user = await makeVerifiedAuthor(`draft-step1-xss-${RUN_ID}@example.com`);
     const draft = await createDraft(db!, user.id);
     createdManuscriptIds.push(draft.id);
 
@@ -107,7 +127,7 @@ describe.skipIf(db === null)("manuscript submission service", () => {
 
   it("updateDraftStep: rejects < 3 keywords", async () => {
     const { createDraft, updateDraftStep } = await import("@/server/services/manuscript-submission");
-    const user = await makeVerifiedAuthor("draft-step1-kw@example.com");
+    const user = await makeVerifiedAuthor(`draft-step1-kw-${RUN_ID}@example.com`);
     const draft = await createDraft(db!, user.id);
     createdManuscriptIds.push(draft.id);
 
@@ -123,7 +143,7 @@ describe.skipIf(db === null)("manuscript submission service", () => {
 
   it("updateDraftStep: rejects ORCID with invalid checksum", async () => {
     const { createDraft, updateDraftStep } = await import("@/server/services/manuscript-submission");
-    const user = await makeVerifiedAuthor("draft-step2-orcid@example.com");
+    const user = await makeVerifiedAuthor(`draft-step2-orcid-${RUN_ID}@example.com`);
     const draft = await createDraft(db!, user.id);
     createdManuscriptIds.push(draft.id);
 
@@ -143,7 +163,7 @@ describe.skipIf(db === null)("manuscript submission service", () => {
 
   it("updateDraftStep: requires exactly one corresponding author", async () => {
     const { createDraft, updateDraftStep } = await import("@/server/services/manuscript-submission");
-    const user = await makeVerifiedAuthor("draft-step2-corr@example.com");
+    const user = await makeVerifiedAuthor(`draft-step2-corr-${RUN_ID}@example.com`);
     const draft = await createDraft(db!, user.id);
     createdManuscriptIds.push(draft.id);
 
@@ -159,7 +179,7 @@ describe.skipIf(db === null)("manuscript submission service", () => {
 
   it("submitManuscript: INCOMPLETE → SUBMITTED, sets submittedAt and reference", async () => {
     const { createDraft, updateDraftStep, submitManuscript } = await import("@/server/services/manuscript-submission");
-    const user = await makeVerifiedAuthor("submit-ok@example.com");
+    const user = await makeVerifiedAuthor(`submit-ok-${RUN_ID}@example.com`);
     const draft = await createDraft(db!, user.id);
     createdManuscriptIds.push(draft.id);
 
@@ -170,7 +190,7 @@ describe.skipIf(db === null)("manuscript submission service", () => {
       keywords: ["math", "algebra", "topology"],
     });
     await updateDraftStep(db!, user.id, draft.id, 2, {
-      authors: [{ name: "Test Author", email: "submit-ok@example.com", isCorresponding: true }],
+      authors: [{ name: "Test Author", email: `submit-ok-${RUN_ID}@example.com`, isCorresponding: true }],
     });
     await updateDraftStep(db!, user.id, draft.id, 3, {
       coverLetter: "Please consider this paper.",
@@ -208,7 +228,7 @@ describe.skipIf(db === null)("manuscript submission service", () => {
 
   it("submitManuscript: unverified email throws", async () => {
     const { createDraft, submitManuscript } = await import("@/server/services/manuscript-submission");
-    const user = await makeUnverifiedAuthor("submit-unverified@example.com");
+    const user = await makeUnverifiedAuthor(`submit-unverified-${RUN_ID}@example.com`);
     const draft = await createDraft(db!, user.id);
     createdManuscriptIds.push(draft.id);
 
@@ -217,7 +237,7 @@ describe.skipIf(db === null)("manuscript submission service", () => {
 
   it("submitManuscript: missing MANUSCRIPT file throws", async () => {
     const { createDraft, updateDraftStep, submitManuscript } = await import("@/server/services/manuscript-submission");
-    const user = await makeVerifiedAuthor("submit-nofile@example.com");
+    const user = await makeVerifiedAuthor(`submit-nofile-${RUN_ID}@example.com`);
     const draft = await createDraft(db!, user.id);
     createdManuscriptIds.push(draft.id);
 
@@ -228,7 +248,7 @@ describe.skipIf(db === null)("manuscript submission service", () => {
       keywords: ["math", "algebra", "topology"],
     });
     await updateDraftStep(db!, user.id, draft.id, 2, {
-      authors: [{ name: "Test Author", email: "submit-nofile@example.com", isCorresponding: true }],
+      authors: [{ name: "Test Author", email: `submit-nofile-${RUN_ID}@example.com`, isCorresponding: true }],
     });
     await updateDraftStep(db!, user.id, draft.id, 3, {
       coverLetter: "Please consider this paper.",
@@ -246,7 +266,7 @@ describe.skipIf(db === null)("manuscript submission service", () => {
 
   it("submitManuscript: creates ManuscriptRound number 1", async () => {
     const { createDraft, updateDraftStep, submitManuscript } = await import("@/server/services/manuscript-submission");
-    const user = await makeVerifiedAuthor("submit-round@example.com");
+    const user = await makeVerifiedAuthor(`submit-round-${RUN_ID}@example.com`);
     const draft = await createDraft(db!, user.id);
     createdManuscriptIds.push(draft.id);
 
@@ -257,7 +277,7 @@ describe.skipIf(db === null)("manuscript submission service", () => {
       keywords: ["a", "b", "c"],
     });
     await updateDraftStep(db!, user.id, draft.id, 2, {
-      authors: [{ name: "Author", email: "submit-round@example.com", isCorresponding: true }],
+      authors: [{ name: "Author", email: `submit-round-${RUN_ID}@example.com`, isCorresponding: true }],
     });
     await updateDraftStep(db!, user.id, draft.id, 3, {
       coverLetter: "Letter.",
@@ -291,7 +311,7 @@ describe.skipIf(db === null)("manuscript submission service", () => {
 
   it("submitManuscript: creates ManuscriptEvent SUBMITTED with visibleToAuthor true", async () => {
     const { createDraft, updateDraftStep, submitManuscript } = await import("@/server/services/manuscript-submission");
-    const user = await makeVerifiedAuthor("submit-event@example.com");
+    const user = await makeVerifiedAuthor(`submit-event-${RUN_ID}@example.com`);
     const draft = await createDraft(db!, user.id);
     createdManuscriptIds.push(draft.id);
 
@@ -302,7 +322,7 @@ describe.skipIf(db === null)("manuscript submission service", () => {
       keywords: ["a", "b", "c"],
     });
     await updateDraftStep(db!, user.id, draft.id, 2, {
-      authors: [{ name: "Author", email: "submit-event@example.com", isCorresponding: true }],
+      authors: [{ name: "Author", email: `submit-event-${RUN_ID}@example.com`, isCorresponding: true }],
     });
     await updateDraftStep(db!, user.id, draft.id, 3, {
       coverLetter: "Letter.",
@@ -336,7 +356,7 @@ describe.skipIf(db === null)("manuscript submission service", () => {
 
   it("submitManuscript: AuditLog summary contains no title or author name", async () => {
     const { createDraft, updateDraftStep, submitManuscript } = await import("@/server/services/manuscript-submission");
-    const user = await makeVerifiedAuthor("submit-audit@example.com");
+    const user = await makeVerifiedAuthor(`submit-audit-${RUN_ID}@example.com`);
     const draft = await createDraft(db!, user.id);
     createdManuscriptIds.push(draft.id);
 
@@ -348,7 +368,7 @@ describe.skipIf(db === null)("manuscript submission service", () => {
       keywords: ["a", "b", "c"],
     });
     await updateDraftStep(db!, user.id, draft.id, 2, {
-      authors: [{ name: "SECRET_AUTHOR_NAME", email: "submit-audit@example.com", isCorresponding: true }],
+      authors: [{ name: "SECRET_AUTHOR_NAME", email: `submit-audit-${RUN_ID}@example.com`, isCorresponding: true }],
     });
     await updateDraftStep(db!, user.id, draft.id, 3, {
       coverLetter: "Letter.",

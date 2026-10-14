@@ -8,8 +8,8 @@ if (db === null) {
   console.warn("[manuscript-screening.test.ts] skipped: no reachable TEST_DATABASE_URL");
 }
 
-let createdManuscriptIds: string[] = [];
-let createdUserIds: string[] = [];
+const createdManuscriptIds: string[] = [];
+const createdUserIds: string[] = [];
 
 describe.skipIf(db === null)("manuscript screening service", () => {
   afterEach(async () => {
@@ -48,7 +48,7 @@ describe.skipIf(db === null)("manuscript screening service", () => {
         title: "Test Manuscript",
         abstract: "Abstract",
         keywords: ["a"],
-        status: (opts?.status ?? "SUBMITTED") as any,
+        status: (opts?.status ?? "SUBMITTED") as import("@prisma/client").ManuscriptStatus,
         submittedById,
         reference: `MS-2026-SCR${Date.now().toString().slice(-4)}`,
         submittedAt: new Date(),

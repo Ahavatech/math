@@ -169,7 +169,7 @@ describe("validator: password min length", () => {
       formRenderedAt: Date.now() - 5000,
     });
     // Only fails on schema fields, not on honeypot/timing checks (those happen server-side)
-    const passwordError = result.error?.errors.find((e) => e.path.includes("password"));
+    const passwordError = result.error?.issues.find((e) => e.path.includes("password"));
     expect(passwordError).toBeUndefined();
   });
 });

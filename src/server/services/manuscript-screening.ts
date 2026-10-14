@@ -37,7 +37,7 @@ export async function listManuscripts(
 
   const rows = await db.manuscript.findMany({
     where: {
-      status: filters?.status ? (filters.status as any) : { not: "INCOMPLETE" },
+      status: filters?.status ? (filters.status as import("@prisma/client").ManuscriptStatus) : { not: "INCOMPLETE" as const },
       ...(filters?.search
         ? { title: { contains: filters.search, mode: "insensitive" } }
         : {}),

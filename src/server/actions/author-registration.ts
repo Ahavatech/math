@@ -41,7 +41,7 @@ export async function registerAuthorAction(
 
   const parsed = registerAuthorSchema.safeParse(raw);
   if (!parsed.success) {
-    const first = parsed.error.errors[0];
+    const first = parsed.error.issues[0];
     return { error: first?.message ?? "Invalid input." };
   }
 

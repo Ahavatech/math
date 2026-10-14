@@ -26,8 +26,9 @@ export type FileDownloadDecision =
 export async function decideManuscriptFileDownload(
   user: SessionUser,
   fileId: string,
+  _db: typeof db = db,
 ): Promise<FileDownloadDecision> {
-  const file = await db.manuscriptFile.findUnique({
+  const file = await _db.manuscriptFile.findUnique({
     where: { id: fileId },
     include: {
       manuscript: {
@@ -42,7 +43,7 @@ export async function decideManuscriptFileDownload(
   if (!file) return { allowed: false };
 
   // Compute COI: submitter or email-matching author
-  const userRecord = await db.user.findUnique({
+  const userRecord = await _db.user.findUnique({
     where: { id: user.id },
     select: { email: true, emailVerifiedAt: true },
   });
@@ -55,7 +56,7 @@ export async function decideManuscriptFileDownload(
         (a) => a.email !== null && a.email.toLowerCase() === verifiedEmail.toLowerCase(),
       ));
 
-  const assignment = await db.reviewAssignment.findFirst({
+  const assignment = await _db.reviewAssignment.findFirst({
     where: { manuscriptId: file.manuscriptId, reviewerId: user.id },
     select: { roundId: true, status: true },
   });

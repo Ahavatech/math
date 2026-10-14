@@ -1,4 +1,4 @@
-import { beforeAll, afterAll, afterEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, describe, expect, it } from "vitest";
 import { Readable } from "node:stream";
 import { getTestDb } from "../../database/test-db";
 
@@ -48,13 +48,12 @@ import {
   extractDocxMetadataWarning,
   MAX_FILE_BYTES,
   MAX_TOTAL_BYTES,
-  MAX_FILE_COUNT,
 } from "@/server/services/manuscript-upload";
 
 // ---- per-test state --------------------------------------------------------
 
-let createdManuscriptIds: string[] = [];
-let createdUserIds: string[] = [];
+const createdManuscriptIds: string[] = [];
+const createdUserIds: string[] = [];
 
 describe.skipIf(db === null)("manuscript upload service", () => {
   afterEach(async () => {
@@ -87,7 +86,7 @@ describe.skipIf(db === null)("manuscript upload service", () => {
         title: "Test",
         abstract: "Abstract",
         keywords: ["a"],
-        status: status as any,
+        status: status as import("@prisma/client").ManuscriptStatus,
         submittedById: userId,
       },
     });
@@ -349,6 +348,46 @@ describe.skipIf(db === null)("manuscript upload service", () => {
     ).rejects.toThrow(/not found|forbidden/i);
   });
 
+  it("sha256 of stored file equals sha256 of uploaded bytes (PDF)", async () => {
+    const user = await makeUser("upload-sha256-pdf@example.com");
+    const ms = await makeManuscript(user.id);
+    const pdfBytes = makePdf(4096);
+    const expected = (await import("node:crypto")).createHash("sha256").update(pdfBytes).digest("hex");
+
+    const result = await processManuscriptUpload(db!, {
+      userId: user.id,
+      manuscriptId: ms.id,
+      kind: "MANUSCRIPT",
+      originalName: "paper.pdf",
+      mimeType: "application/pdf",
+      stream: makeStream(pdfBytes),
+      hasXRequestedWith: true,
+      origin: null,
+    });
+
+    expect(result.sha256).toBe(expected);
+  });
+
+  it("sha256 of stored file equals sha256 of uploaded bytes (DOCX)", async () => {
+    const user = await makeUser("upload-sha256-docx@example.com");
+    const ms = await makeManuscript(user.id);
+    const docxBytes = makeDocx(8192);
+    const expected = (await import("node:crypto")).createHash("sha256").update(docxBytes).digest("hex");
+
+    const result = await processManuscriptUpload(db!, {
+      userId: user.id,
+      manuscriptId: ms.id,
+      kind: "MANUSCRIPT",
+      originalName: "paper.docx",
+      mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      stream: makeStream(docxBytes),
+      hasXRequestedWith: true,
+      origin: null,
+    });
+
+    expect(result.sha256).toBe(expected);
+  });
+
   it("deleteManuscriptFile: rejects delete when manuscript status is SUBMITTED", async () => {
     const user = await makeUser("delete-submitted@example.com");
     const ms = await makeManuscript(user.id, "SUBMITTED");
@@ -358,9 +397,10 @@ describe.skipIf(db === null)("manuscript upload service", () => {
         manuscriptId: ms.id,
         kind: "MANUSCRIPT",
         originalName: "paper.pdf",
-        storageKey: `test/${ms.id}/paper.pdf`,
+        storageKey: "aa/bb/fakestatusguard12345678901234",
         mimeType: "application/pdf",
-        sizeBytes: 1000,
+        size: 1000,
+        sha256: "a".repeat(64),
       },
     });
 

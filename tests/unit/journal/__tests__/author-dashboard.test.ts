@@ -7,8 +7,8 @@ if (db === null) {
   console.warn("[author-dashboard.test.ts] skipped: no reachable TEST_DATABASE_URL");
 }
 
-let createdManuscriptIds: string[] = [];
-let createdUserIds: string[] = [];
+const createdManuscriptIds: string[] = [];
+const createdUserIds: string[] = [];
 
 describe.skipIf(db === null)("author dashboard service", () => {
   afterEach(async () => {
@@ -42,7 +42,7 @@ describe.skipIf(db === null)("author dashboard service", () => {
         title: "Test Manuscript",
         abstract: "Abstract",
         keywords: ["a"],
-        status: (opts?.status ?? "INCOMPLETE") as any,
+        status: (opts?.status ?? "INCOMPLETE") as import("@prisma/client").ManuscriptStatus,
         submittedById: userId,
         reference: opts?.reference ?? null,
         submittedAt: opts?.reference ? new Date() : null,
