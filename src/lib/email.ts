@@ -8,6 +8,11 @@ import { AlumniApprovedEmail } from "@/emails/alumni-approved";
 import { ContactNotificationEmail } from "@/emails/contact-notification";
 import { JournalVerifyEmail } from "@/emails/journal-verify";
 import { JournalAlreadyRegisteredEmail } from "@/emails/journal-already-registered";
+import { JournalSubmissionReceivedEmail } from "@/emails/journal-submission-received";
+import { JournalNewSubmissionEditorsEmail } from "@/emails/journal-new-submission-editors";
+import { JournalReturnedToAuthorEmail } from "@/emails/journal-returned-to-author";
+import { JournalDecisionAvailableEmail } from "@/emails/journal-decision-available";
+import { JournalMovedToReviewEmail } from "@/emails/journal-moved-to-review";
 
 const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
 
@@ -84,4 +89,56 @@ export async function sendVerificationEmail(params: { to: string; token: string 
 export async function sendAlreadyRegisteredEmail(params: { to: string }) {
   const signInUrl = new URL("/journal/login", env.AUTH_URL).toString();
   await send(params.to, "You already have an account", JournalAlreadyRegisteredEmail({ signInUrl }));
+}
+
+export async function sendSubmissionReceivedEmail(params: { to: string; reference: string }) {
+  const signInUrl = new URL("/journal/dashboard", env.AUTH_URL).toString();
+  await send(
+    params.to,
+    `Submission received: ${params.reference}`,
+    JournalSubmissionReceivedEmail({ reference: params.reference, signInUrl }),
+  );
+}
+
+export async function sendNewSubmissionToEditorsEmail(params: {
+  emails: string[];
+  reference: string;
+  manuscriptUrl: string;
+}) {
+  await Promise.all(
+    params.emails.map((to) =>
+      send(
+        to,
+        `New submission: ${params.reference}`,
+        JournalNewSubmissionEditorsEmail({ reference: params.reference, manuscriptUrl: params.manuscriptUrl }),
+      ),
+    ),
+  );
+}
+
+export async function sendReturnedToAuthorEmail(params: { to: string; reference: string }) {
+  const signInUrl = new URL("/journal/dashboard", env.AUTH_URL).toString();
+  await send(
+    params.to,
+    `Action required: ${params.reference}`,
+    JournalReturnedToAuthorEmail({ reference: params.reference, signInUrl }),
+  );
+}
+
+export async function sendDecisionAvailableEmail(params: { to: string; reference: string }) {
+  const signInUrl = new URL("/journal/dashboard", env.AUTH_URL).toString();
+  await send(
+    params.to,
+    `Decision available: ${params.reference}`,
+    JournalDecisionAvailableEmail({ reference: params.reference, signInUrl }),
+  );
+}
+
+export async function sendMovedToReviewEmail(params: { to: string; reference: string }) {
+  const signInUrl = new URL("/journal/dashboard", env.AUTH_URL).toString();
+  await send(
+    params.to,
+    `Your submission is in peer review: ${params.reference}`,
+    JournalMovedToReviewEmail({ reference: params.reference, signInUrl }),
+  );
 }
