@@ -24,6 +24,14 @@ const envSchema = z
         message: "RESEND_API_KEY is required in production",
       });
     }
+    if (data.NODE_ENV === "production" && !data.PRIVATE_STORAGE_DIR) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["PRIVATE_STORAGE_DIR"],
+        message:
+          "PRIVATE_STORAGE_DIR is required in production (an absolute path outside the web root and the public/ folder)",
+      });
+    }
   });
 
 function loadEnv() {

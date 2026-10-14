@@ -52,6 +52,30 @@ describe("rbac permission matrix", () => {
     expect(hasPermission(u, "academics.manage")).toBe(true);
   });
 
+  it("ADMIN has neither journal.manage nor journal.edit (editorial independence)", () => {
+    const u = user(["ADMIN"]);
+    expect(hasPermission(u, "journal.manage")).toBe(false);
+    expect(hasPermission(u, "journal.edit")).toBe(false);
+  });
+
+  it("HOD has both journal.manage and journal.edit", () => {
+    const u = user(["HOD"]);
+    expect(hasPermission(u, "journal.manage")).toBe(true);
+    expect(hasPermission(u, "journal.edit")).toBe(true);
+  });
+
+  it("JOURNAL_EDITOR_IN_CHIEF has both journal.manage and journal.edit", () => {
+    const u = user(["JOURNAL_EDITOR_IN_CHIEF"]);
+    expect(hasPermission(u, "journal.manage")).toBe(true);
+    expect(hasPermission(u, "journal.edit")).toBe(true);
+  });
+
+  it("JOURNAL_EDITOR has journal.edit but not journal.manage", () => {
+    const u = user(["JOURNAL_EDITOR"]);
+    expect(hasPermission(u, "journal.edit")).toBe(true);
+    expect(hasPermission(u, "journal.manage")).toBe(false);
+  });
+
   it("SUPER_ADMIN has academics.manage", () => {
     expect(hasPermission(user(["SUPER_ADMIN"]), "academics.manage")).toBe(true);
   });
