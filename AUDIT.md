@@ -291,3 +291,23 @@ Manual walkthrough against the dev server (Docker's Postgres container had stopp
 **Open issues:** All of Entry 020's open issues stand except items (4) and (5), which this entry closes (the per-IP rate limit remains intentionally unverified live, per Entry 020's own reasoning - the unit-tested boundary is exact and a raw fetch outside a real form submission does not prove anything a test doesn't already). New: (1) `.ics` GUI-app import was validated with an independent parser library, not a real calendar application's window, because this session has no interactive desktop - worth a real device check (phone calendar app, or a desktop with a GUI session) before the first real academic-calendar entries go out widely. (2) The admin seed account's password was reset during this entry's verification pass (local dev database only); whoever next develops against this branch should treat the current local dev admin password as unknown/to-be-reset, not assume an old one still works.
 
 **Next:** Stage 11: Journal public side (landing, issues, articles, editorial board, private file storage), once this stage is reviewed and merged.
+
+### Entry 022 | 2026-10-14 | Stage 10 pre-merge: regression coverage for the KaTeX stylesheet bug
+
+**Asked:** Add a regression test that fails if the KaTeX stylesheet is not imported in the root layout or globals.css, so the Entry 021 bug (math rendering twice) cannot silently come back. Add a one-line check to the post-build bundle-leak guard, or a test against the built HTML of a handbook page, that a rendered math page actually references the KaTeX stylesheet. Record a line in docs/ROADMAP.md's Stage 13 entry: measure First Load JS the same way every time (standalone production server) and compare against the 159 kB baseline, not older numbers.
+
+**Done:** Added `src/app/__tests__/katex-stylesheet.test.ts`: one assertion that `src/app/globals.css` contains `@import "katex/dist/katex.min.css"`, one that `src/app/layout.tsx` imports `./globals.css`. Verified it fails for the right reason by temporarily deleting the globals.css import and re-running the test (failed), then restored it (passed). Extended `scripts/check-bundle-leaks.ts` (the existing post-build guard) with a second check alongside its library-leak scan: for every public page's prerendered HTML already being scanned, it now also resolves every referenced `.css` chunk and checks at least one contains a `.katex` rule; if none of the built public pages' CSS carries KaTeX's styles, the build fails with a message pointing at `src/app/globals.css`. Verified the same way - removed the import, ran `npm run build`, confirmed the postbuild step failed with the new message; restored the import, confirmed it passes again. Added the requested line to docs/ROADMAP.md's Stage 13 entry.
+
+**Files:** src/app/__tests__/katex-stylesheet.test.ts (new), scripts/check-bundle-leaks.ts, docs/ROADMAP.md.
+
+**Decisions:** None new.
+
+**Tests and checks:** `npm run lint` (0 errors, same 20 pre-existing-pattern warnings), `npm run typecheck` (clean), `npm run test` (550/550, up from 548 - the two new assertions), `npm run build` (bundle-leak guard: "Bundle leak check passed (26 public pages scanned, KaTeX stylesheet present)") all pass. Both new checks were deliberately broken and re-fixed once each to confirm they fail for the right reason, not just pass by coincidence.
+
+**Security notes:** None - this entry adds test coverage only, no production code paths changed.
+
+**Deviations:** None. Used the build-output option offered ("a one-line check to the post-build bundle-leak guard") rather than a handbook-page HTML test, since `/students/handbook/[slug]` is a dynamic (`ƒ`) route with no prerendered HTML in `.next/server/app` to test against; the bundle-leak guard already scans every public page's HTML and CSS chunks and was the more reliable place to add the check.
+
+**Open issues:** Unchanged from Entry 021.
+
+**Next:** Stage 11: Journal public side (landing, issues, articles, editorial board, private file storage), once this stage is reviewed and merged.
