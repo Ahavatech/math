@@ -203,11 +203,18 @@ describe.skipIf(db === null)("journal-articles service", () => {
     expect(visible?.id).toBe(created.id);
   });
 
-  it("public query never selects searchText", async () => {
-    const created = await createArticle(db!, input({ status: "PUBLISHED" }), actorId);
+  it("public query never selects searchText, manuscriptId, or any author email/userId", async () => {
+    const created = await createArticle(
+      db!,
+      input({ status: "PUBLISHED", authors: [{ name: "Jane Doe", order: 0, email: "jane@example.com" }] }),
+      actorId,
+    );
     createdArticleIds.push(created.id);
 
     const visible = await getArticleBySlugPublic(db!, created.slug);
     expect(visible).not.toHaveProperty("searchText");
+    expect(visible).not.toHaveProperty("manuscriptId");
+    expect(visible?.authors[0]).not.toHaveProperty("email");
+    expect(visible?.authors[0]).not.toHaveProperty("userId");
   });
 });

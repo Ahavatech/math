@@ -240,7 +240,7 @@ const PUBLIC_ARTICLE_SELECT = {
   issue: { select: { id: true, volume: true, number: true, year: true, status: true } },
   authors: {
     orderBy: { order: "asc" as const },
-    select: { id: true, name: true, affiliation: true, orcid: true, order: true, userId: true },
+    select: { id: true, name: true, affiliation: true, orcid: true, order: true },
   },
 } as const;
 
