@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { auth } from "@/auth";
 import { getJournalSettingsPublic, journalDisplayName } from "@/server/services/journal-settings";
 import { getJournalPagePublic } from "@/server/services/journal-pages";
 import { getLatestPublicIssue } from "@/server/services/journal-issues";
@@ -13,7 +14,7 @@ import { Prose } from "@/components/ui/prose";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getJournalSettingsPublic();
@@ -25,12 +26,15 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function JournalHomePage() {
-  const [settings, callForPapers, latestIssue, latestArticles] = await Promise.all([
+  const [settings, callForPapers, latestIssue, latestArticles, session] = await Promise.all([
     getJournalSettingsPublic(),
     getJournalPagePublic("journal-call-for-papers"),
     getLatestPublicIssue(),
     getLatestArticlesPublic(db, 6),
+    auth(),
   ]);
+
+  const isLoggedIn = !!session?.user;
 
   const name = journalDisplayName(settings);
 
@@ -41,11 +45,32 @@ export default async function JournalHomePage() {
         <h1 className="mt-4 font-heading text-3xl font-semibold sm:text-4xl">{name}</h1>
         {settings.publisher ? <p className="mt-2 text-muted-foreground">{settings.publisher}</p> : null}
 
-        <nav className="mt-6 flex flex-wrap gap-3 text-sm" aria-label="Journal sections">
+        <nav className="mt-6 flex flex-wrap items-center gap-3 text-sm" aria-label="Journal sections">
           <Link href="/journal/about" className="text-primary hover:underline">About</Link>
           <Link href="/journal/guidelines" className="text-primary hover:underline">Guidelines</Link>
           <Link href="/journal/editorial-board" className="text-primary hover:underline">Editorial board</Link>
           <Link href="/journal/issues" className="text-primary hover:underline">Archive</Link>
+          <span className="ml-auto flex items-center gap-2">
+            {isLoggedIn ? (
+              <Link href="/journal/dashboard">
+                <Button size="sm" variant="outline">My submissions</Button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/journal/register">
+                  <Button size="sm" variant="outline">Register</Button>
+                </Link>
+                <Link href="/journal/login">
+                  <Button size="sm">Log in</Button>
+                </Link>
+              </>
+            )}
+            {settings.submissionsOpen && (
+              <Link href="/journal/submit">
+                <Button size="sm">Submit a manuscript</Button>
+              </Link>
+            )}
+          </span>
         </nav>
 
         {callForPapers ? (
