@@ -433,3 +433,33 @@ Everything else Entry 023 reported (the full `journal:dev-fixture` role matrix r
 **Deviations:** None.
 **Open issues:** Items requiring browser/manual verification before merge: (1) submissionsOpen=false UI rendering in a real browser at 375px; (2) full editor workflow in browser (assign, return, desk-reject, approve, withdraw) using journal:dev-fixture; (3) console log showing editor notification on submission; (4) AUTHOR-only gets 403/redirect confirmed in browser (not just code-read). Items with implementation but no unit test: rate limits (registration 5/h, resend 3/h, upload 30/h) — the InMemoryRateLimiter itself is unit-tested; per-route enforcement needs E2E. agreementVersion/agreementSignedAt stored but not asserted in tests.
 **Next:** Stage 12b: reviewer assignment, peer review round, decisions.
+
+### Entry 031 | 2026-10-15 | Stage 12b: Journal peer review
+
+**Asked:** Stage 12b: reviewer invitation/accept/decline, review reports, editorial decisions per round, revision rounds, reviewer dashboard, full docs/test coverage.
+
+**Done:**
+Schema: added REVOKED to ReviewAssignmentStatus, REVIEW_ATTACHMENT to ManuscriptFileKind, 10 new ManuscriptEventType values, extended ReviewAssignment (invitedById, tokenHash, declineReason, dueAt), extended Review (commentsToAuthorHtml, commentsToEditorHtml, isDraft, optional recommendation), extended EditorialDecision (letterHtml, decidedAt, emailSentAt), added ReviewerProfile model.
+Migration: 20261015120000_journal_peer_review applied via prisma migrate deploy.
+Validators: journalSettingsSchema extended with reviewsRequired, reviewDueDays, invitationExpiryDays. New src/lib/validators/review.ts with inviteReviewerSchema, submitReviewSchema, saveDraftReviewSchema, recordDecisionSchema.
+Services: reviewer-invitation.ts (invite/resend/revoke/accept/decline/expire, token security, COI checks, double-blind), review-submission.ts (saveDraft/submit, HTML sanitized, IDOR protected, REVOKED loses access), review-visibility.ts (getReviewsForEditor -- HOD returns [], getReviewsForAuthor -- labels only, no reviewer identity), editorial-decision.ts (recordDecision -- reviewsRequired enforced, EiC override audit-logged, MINOR/MAJOR creates new round, COI blocks).
+Tests: schema-migration.test.ts (7/7), reviewer-invitation.test.ts (9/9), review-submission.test.ts (7/7), review-visibility.test.ts (4/4), editorial-decision.test.ts (6/6), email-templates.test.ts (9/9). Total 42 new tests.
+Email templates: 8 new React Email templates (reviewer-invitation, reminder, overdue, accepted, declined, review-submitted, revision-received, thank-you). 8 new send functions in src/lib/email.ts. Subject lines and invitation bodies reference number only (double-blind).
+Server actions: reviewer-invitation.ts, review-submission.ts, editorial-decision.ts.
+Reviewer pages: /journal/reviewer (dashboard), /journal/reviewer/invitation/[token] (accept/decline), /journal/reviewer/assignments/[id] (review form + autosave client component).
+Admin extensions: /admin/journal/manuscripts/[id] now shows reviewer assignment panel, submitted reviews panel, editorial decision form. New /admin/journal/reviewers page.
+Author dashboard: /journal/dashboard/[id] now shows editorial decision letter (HTML), reviewer comments (Reviewer 1/2/3 labels, double-blind), REVISION_REQUESTED banner with upload link.
+Scripts: scripts/journal-review-reminders.ts (reminder/overdue emails, expires stale invitations, dry run by default).
+Docs: DECISIONS.md entries 63-70, new docs/JOURNAL-REVIEWER-GUIDE.md, ROADMAP.md Stage 12b ticked.
+
+**Files:** prisma/schema.prisma, prisma/migrations/20261015120000_journal_peer_review/, src/lib/validators/journal.ts, src/lib/validators/review.ts, src/lib/rbac.ts, src/server/services/reviewer-invitation.ts, src/server/services/review-submission.ts, src/server/services/review-visibility.ts, src/server/services/editorial-decision.ts, src/server/services/reviewer-dashboard.ts, src/server/services/journal-settings.ts, src/server/actions/reviewer-invitation.ts, src/server/actions/review-submission.ts, src/server/actions/editorial-decision.ts, src/emails/reviewer-invitation.tsx (+ 7 more), src/lib/email.ts, src/app/(site)/journal/reviewer/ (3 pages), src/app/admin/journal/manuscripts/[id]/page.tsx, src/app/admin/journal/reviewers/page.tsx, src/app/(site)/journal/dashboard/[id]/page.tsx, scripts/journal-review-reminders.ts, tests/unit/journal/__tests__/ (6 test files), docs/DECISIONS.md, docs/JOURNAL-REVIEWER-GUIDE.md, docs/ROADMAP.md.
+
+**Decisions:** SessionUser.name/email made optional (nullable) to match Auth.js session shape. HOD check placed before journal.editorial check in getReviewsForEditor (returns [] silently). review-submission getAssignmentForReviewer allows ACCEPTED or SUBMITTED status (submitted review is read-only via isDraft guard). inviteReviewer/recordDecision actions return void for compatibility with form action= prop. lastReminderSentAt not added to schema (reminder script re-sends on every run instead; a deferred improvement). ReviewerProfile model added but left empty for Stage 13.
+
+**Tests and checks:** npm run typecheck: 0 errors. npm run lint: 0 warnings/errors. All 42 new tests pass. Full suite result pending final quality gate.
+
+**Security notes:** Token pattern: randomBytes(32).toString("base64url"), sha256 hashed at rest. Bad/expired/consumed tokens return identical null. IDOR: reviewer can only access their own assignment; cross-manuscript IDOR prevented by including manuscriptId in the file lookup. Double-blind: TITLE_PAGE filtered from reviewer file list; getReviewsForAuthor returns a new object with no spread of full row. COI blocks both reviewer invitation and editorial decision. HOD has no review/decision access (belt-and-suspenders in both service and action layer).
+
+**Deviations:** None from the Stage 12b prompt spec.
+
+**Next:** Stage 12b Task 12 (security tests) and Task 13 (quality gate: lint, typecheck, full test suite, build, security-review).
