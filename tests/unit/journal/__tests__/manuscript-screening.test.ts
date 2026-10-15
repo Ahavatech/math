@@ -159,6 +159,37 @@ describe.skipIf(db === null)("manuscript screening service", () => {
     expect(found, "COI manuscript must be hidden even when email casing differs").toBeUndefined();
   });
 
+  it("getManuscriptDetail: HOD read creates an AuditLog entry with action journal.manuscript.hod_read", async () => {
+    const { getManuscriptDetail } = await import("@/server/services/manuscript-screening");
+    const author = await makeUser("scr-audit-hod-author@example.com", ["AUTHOR"]);
+    const hod = await makeUser("scr-audit-hod@example.com", ["HOD"]);
+    const ms = await makeManuscript(author.id, "scr-audit-hod-author@example.com");
+
+    await getManuscriptDetail(db!, hod, ms.id);
+
+    const logs = await db!.auditLog.findMany({
+      where: { actorId: hod.id, entityId: ms.id },
+    });
+    expect(logs).toHaveLength(1);
+    expect(logs[0]!.action).toBe("journal.manuscript.hod_read");
+    expect(logs[0]!.summary).not.toContain("Test Manuscript");
+  });
+
+  it("getManuscriptDetail: SUPER_ADMIN read creates an AuditLog entry with action journal.manuscript.admin_read", async () => {
+    const { getManuscriptDetail } = await import("@/server/services/manuscript-screening");
+    const author = await makeUser("scr-audit-sa-author@example.com", ["AUTHOR"]);
+    const superAdmin = await makeUser("scr-audit-sa@example.com", ["SUPER_ADMIN"]);
+    const ms = await makeManuscript(author.id, "scr-audit-sa-author@example.com");
+
+    await getManuscriptDetail(db!, superAdmin, ms.id);
+
+    const logs = await db!.auditLog.findMany({
+      where: { actorId: superAdmin.id, entityId: ms.id },
+    });
+    expect(logs).toHaveLength(1);
+    expect(logs[0]!.action).toBe("journal.manuscript.admin_read");
+  });
+
   it("addInternalNote: creates ManuscriptEvent with visibleToAuthor false", async () => {
     const { addInternalNote } = await import("@/server/services/manuscript-screening");
     const author = await makeUser("scr-note-author@example.com", ["AUTHOR"]);

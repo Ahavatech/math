@@ -11,6 +11,18 @@ export async function getTestDb(): Promise<PrismaClient | null> {
   const url = process.env.TEST_DATABASE_URL;
   if (!url) return null;
 
+  // Safety guard: refuse to connect unless the database name ends in _test.
+  // This prevents accidental connection to the dev or production database when
+  // TEST_DATABASE_URL is misconfigured.
+  const dbName = url.split("/").pop()?.split("?")[0] ?? "";
+  if (!dbName.endsWith("_test")) {
+    console.error(
+      `[test-db.ts] Refusing to connect: database "${dbName}" does not end in "_test". ` +
+        `Set TEST_DATABASE_URL to a database whose name ends in "_test".`,
+    );
+    return null;
+  }
+
   const adapter = new PrismaPg({ connectionString: url });
   const client = new PrismaClient({ adapter });
 

@@ -23,12 +23,17 @@ export type FileDownloadDecision =
  * user id or verified email appears in the manuscript's author list
  * (decision #59).
  */
+/**
+ * @param __testDb - TEST ONLY. Allows unit tests to inject the test-DB client.
+ *   Production callers never pass this argument; the default is the global `db`.
+ *   Grep for `__testDb` to verify no production call site passes it.
+ */
 export async function decideManuscriptFileDownload(
   user: SessionUser,
   fileId: string,
-  _db: typeof db = db,
+  __testDb: typeof db = db,
 ): Promise<FileDownloadDecision> {
-  const file = await _db.manuscriptFile.findUnique({
+  const file = await __testDb.manuscriptFile.findUnique({
     where: { id: fileId },
     include: {
       manuscript: {
@@ -43,7 +48,7 @@ export async function decideManuscriptFileDownload(
   if (!file) return { allowed: false };
 
   // Compute COI: submitter or email-matching author
-  const userRecord = await _db.user.findUnique({
+  const userRecord = await __testDb.user.findUnique({
     where: { id: user.id },
     select: { email: true, emailVerifiedAt: true },
   });
@@ -56,7 +61,7 @@ export async function decideManuscriptFileDownload(
         (a) => a.email !== null && a.email.toLowerCase() === verifiedEmail.toLowerCase(),
       ));
 
-  const assignment = await _db.reviewAssignment.findFirst({
+  const assignment = await __testDb.reviewAssignment.findFirst({
     where: { manuscriptId: file.manuscriptId, reviewerId: user.id },
     select: { roundId: true, status: true },
   });

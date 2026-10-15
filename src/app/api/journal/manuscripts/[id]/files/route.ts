@@ -57,6 +57,10 @@ export async function POST(
   const { id: manuscriptId } = await params;
 
   try {
+    // request.body is ReadableStream<Uint8Array<ArrayBufferLike>> (DOM type); Node's
+    // Readable.fromWeb expects ReadableStream from stream/web — structurally identical
+    // at runtime but TypeScript cannot bridge the two generic instantiations without an
+    // escape hatch. The cast is safe: both types represent the same Web ReadableStream.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const stream = Readable.fromWeb(request.body as any);
     const result = await processManuscriptUpload(prisma, {

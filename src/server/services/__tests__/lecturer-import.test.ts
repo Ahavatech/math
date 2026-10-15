@@ -1,4 +1,4 @@
-import { describe, expect, it, afterEach, afterAll } from "vitest";
+import { describe, expect, it, afterEach, afterAll, beforeEach } from "vitest";
 import { getTestDb } from "../../../../tests/unit/database/test-db";
 import { bulkCreateLecturers, bulkSendInvites } from "../lecturer-import";
 
@@ -71,6 +71,32 @@ describe.skipIf(db === null)("bulkCreateLecturers", () => {
 });
 
 describe.skipIf(db === null)("bulkSendInvites", () => {
+  // Tracked so afterEach can clean up even when the test body throws mid-way.
+  const createdUserIds: string[] = [];
+
+  beforeEach(async () => {
+    // Pre-emptive cleanup of hardcoded emails in case a prior run crashed before afterEach.
+    const stale = await db?.user.findMany({
+      where: { email: { in: ["send-invites-actor@example.com", "send-invites-a@example.com", "send-invites-b@example.com"] } },
+      select: { id: true },
+    });
+    if (stale?.length) {
+      const ids = stale.map((u) => u.id);
+      await db!.userToken.deleteMany({ where: { userId: { in: ids } } });
+      await db!.auditLog.deleteMany({ where: { actorId: { in: ids } } });
+      await db!.user.deleteMany({ where: { id: { in: ids } } });
+    }
+  });
+
+  afterEach(async () => {
+    if (createdUserIds.length) {
+      await db!.userToken.deleteMany({ where: { userId: { in: createdUserIds } } });
+      await db!.auditLog.deleteMany({ where: { actorId: { in: createdUserIds } } });
+      await db!.user.deleteMany({ where: { id: { in: createdUserIds } } });
+      createdUserIds.length = 0;
+    }
+  });
+
   afterAll(async () => {
     await db?.$disconnect();
   });
@@ -79,6 +105,7 @@ describe.skipIf(db === null)("bulkSendInvites", () => {
     const actor = await db!.user.create({ data: { email: "send-invites-actor@example.com", name: "Actor" } });
     const a = await db!.user.create({ data: { email: "send-invites-a@example.com", name: "A" } });
     const b = await db!.user.create({ data: { email: "send-invites-b@example.com", name: "B" } });
+    createdUserIds.push(actor.id, a.id, b.id);
 
     const results = await bulkSendInvites(db!, actor.id, [a.id, b.id, "nonexistent-user-id"]);
 
@@ -86,9 +113,5 @@ describe.skipIf(db === null)("bulkSendInvites", () => {
     expect(results[0].success).toBe(true);
     expect(results[1].success).toBe(true);
     expect(results[2].success).toBe(false);
-
-    await db!.userToken.deleteMany({ where: { userId: { in: [a.id, b.id] } } });
-    await db!.auditLog.deleteMany({ where: { actorId: actor.id } });
-    await db!.user.deleteMany({ where: { id: { in: [actor.id, a.id, b.id] } } });
   });
 });

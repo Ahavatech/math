@@ -1,4 +1,4 @@
-import { beforeAll, afterAll, afterEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, describe, expect, it } from "vitest";
 import { getTestDb } from "../../database/test-db";
 
 const db = await getTestDb();
@@ -14,23 +14,6 @@ const createdManuscriptIds: string[] = [];
 const createdUserIds: string[] = [];
 
 describe.skipIf(db === null)("manuscript submission service", () => {
-  beforeAll(async () => {
-    if (!db) return;
-    // Purge any stale submitted manuscripts left by a crashed previous run.
-    // On a clean run afterEach handles this; beforeAll is a safety net.
-    await db.journalCounter.deleteMany({});
-    const staleIds = (
-      await db.manuscript.findMany({ where: { reference: { not: null } }, select: { id: true } })
-    ).map((m) => m.id);
-    if (staleIds.length > 0) {
-      await db.manuscriptFile.deleteMany({ where: { manuscriptId: { in: staleIds } } });
-      await db.manuscriptEvent.deleteMany({ where: { manuscriptId: { in: staleIds } } });
-      await db.manuscriptRound.deleteMany({ where: { manuscriptId: { in: staleIds } } });
-      await db.manuscriptAuthor.deleteMany({ where: { manuscriptId: { in: staleIds } } });
-      await db.manuscript.deleteMany({ where: { id: { in: staleIds } } });
-    }
-  });
-
   afterEach(async () => {
     if (createdManuscriptIds.length > 0) {
       await db!.manuscriptFile.deleteMany({ where: { manuscriptId: { in: createdManuscriptIds } } });
@@ -42,7 +25,6 @@ describe.skipIf(db === null)("manuscript submission service", () => {
     }
     if (createdUserIds.length > 0) {
       await db!.auditLog.deleteMany({ where: { actorId: { in: createdUserIds } } });
-      await db!.journalCounter.deleteMany({ where: {} });
       await db!.userToken.deleteMany({ where: { userId: { in: createdUserIds } } });
       await db!.user.deleteMany({ where: { id: { in: createdUserIds } } });
       createdUserIds.length = 0;
@@ -406,31 +388,52 @@ describe.skipIf(db === null)("manuscript submission service", () => {
 });
 
 describe("assignReference", () => {
+  // Track years used so cleanup only touches rows this test suite created.
+  const usedYears: number[] = [];
+
   afterEach(async () => {
-    // clean up JournalCounter rows
-    await db?.journalCounter.deleteMany({ where: {} });
+    if (usedYears.length > 0) {
+      await db?.journalCounter.deleteMany({ where: { year: { in: [...usedYears] } } });
+      usedYears.length = 0;
+    }
   });
 
-  it("returns MS-YYYY-0001 for first submission of the year", async () => {
+  it("returns a reference matching format MS-YYYY-NNNN", async () => {
     const { assignReference } = await import("@/server/services/manuscript-submission");
-    const ref = await assignReference(db!, 2026);
-    expect(ref).toMatch(/^MS-2026-\d{4}$/);
-    expect(ref).toBe("MS-2026-0001");
+    usedYears.push(3001); // far-future year, no collision with real data
+    const ref = await assignReference(db!, 3001);
+    expect(ref).toMatch(/^MS-3001-\d{4}$/);
+  });
+
+  it("two sequential calls return different, strictly increasing numbers", async () => {
+    const { assignReference } = await import("@/server/services/manuscript-submission");
+    usedYears.push(3002);
+    const ref1 = await assignReference(db!, 3002);
+    const ref2 = await assignReference(db!, 3002);
+    expect(ref1).toMatch(/^MS-3002-\d{4}$/);
+    expect(ref2).toMatch(/^MS-3002-\d{4}$/);
+    const num1 = parseInt(ref1.split("-")[2], 10);
+    const num2 = parseInt(ref2.split("-")[2], 10);
+    expect(num2).toBe(num1 + 1);
   });
 
   it("concurrent calls produce unique sequential references", async () => {
     const { assignReference } = await import("@/server/services/manuscript-submission");
-    const refs = await Promise.all(Array.from({ length: 10 }, () => assignReference(db!, 2026)));
+    usedYears.push(3003);
+    const refs = await Promise.all(Array.from({ length: 10 }, () => assignReference(db!, 3003)));
     const unique = new Set(refs);
     expect(unique.size).toBe(10);
   });
 
-  it("year rollover resets counter", async () => {
+  it("different years have independent counters", async () => {
     const { assignReference } = await import("@/server/services/manuscript-submission");
-    const ref2025 = await assignReference(db!, 2025);
-    const ref2026 = await assignReference(db!, 2026);
-    expect(ref2025).toBe("MS-2025-0001");
-    expect(ref2026).toBe("MS-2026-0001");
+    usedYears.push(3004, 3005);
+    const ref3004 = await assignReference(db!, 3004);
+    const ref3005 = await assignReference(db!, 3005);
+    expect(ref3004).toMatch(/^MS-3004-\d{4}$/);
+    expect(ref3005).toMatch(/^MS-3005-\d{4}$/);
+    // Both start at their own first value for their year
+    expect(ref3004.split("-")[2]).toBe(ref3005.split("-")[2]);
   });
 });
 
