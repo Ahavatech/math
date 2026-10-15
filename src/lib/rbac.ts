@@ -66,8 +66,8 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
 
 export type SessionUser = {
   id: string;
-  name?: string;
-  email?: string;
+  name?: string | null;
+  email?: string | null;
   roles: Role[];
   isActive: boolean;
 };
