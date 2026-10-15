@@ -1,13 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 /**
  * Security tests for Stage 12b peer review.
  * Covers: IDOR, double-blind, token replay, HOD exclusion, COI blocks.
  */
 
-type AnyFn = (...args: unknown[]) => unknown;
-
-function makePrisma(overrides: Record<string, Record<string, AnyFn>> = {}) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function makePrisma(overrides: Record<string, any> = {}): any {
   const tx = {
     reviewAssignment: {
       findUnique: vi.fn().mockResolvedValue(null),
@@ -48,12 +47,14 @@ function makePrisma(overrides: Record<string, Record<string, AnyFn>> = {}) {
 
   for (const [model, methods] of Object.entries(overrides)) {
     (base as Record<string, unknown>)[model] = {
-      ...(base as Record<string, Record<string, AnyFn>>)[model],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ...(base as any)[model],
       ...methods,
     };
     if (model in tx) {
       (tx as Record<string, unknown>)[model] = {
-        ...(tx as Record<string, Record<string, AnyFn>>)[model],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ...(tx as any)[model],
         ...methods,
       };
     }
@@ -150,7 +151,7 @@ describe("Double-blind: author view of reviews", () => {
     const results = await getReviewsForAuthor(db, author, "ms-1");
 
     expect(results.length).toBe(1);
-    const r = results[0] as Record<string, unknown>;
+    const r = results[0] as unknown as Record<string, unknown>;
     // Must not expose reviewer identity
     expect(r).not.toHaveProperty("reviewerUserId");
     expect(r).not.toHaveProperty("reviewerId");
@@ -245,8 +246,7 @@ describe("HOD exclusion from editorial decisions", () => {
     const hod = makeUser({ id: "hod-1", roles: ["HOD"], email: "hod@oau.edu.ng" });
 
     await expect(
-      recordDecision(db, hod, {
-        manuscriptId: "ms-1",
+      recordDecision(db, hod, "ms-1", {
         decision: "ACCEPT",
         letterHtml: "<p>Accepted.</p>",
       })
