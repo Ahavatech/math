@@ -44,21 +44,23 @@ model User {
 
   lecturerProfile LecturerProfile?
 
-  updatedSiteSettings     SiteSetting[]       @relation("SiteSettingUpdatedBy")
-  uploadedMedia           MediaAsset[]        @relation("MediaUploadedBy")
-  contentRevisions        ContentRevision[]   @relation("ContentRevisionCreatedBy")
-  auditLogs               AuditLog[]          @relation("AuditLogActor")
-  createdAlumniLinks      AlumniLink[]        @relation("AlumniLinkCreatedBy")
-  reviewedAlumniEntries   AlumniEntry[]       @relation("AlumniEntryReviewedBy")
-  uploadedDownloads       Download[]          @relation("DownloadUploadedBy")
-  authoredNewsPosts       NewsPost[]          @relation("NewsPostAuthor")
-  submittedManuscripts    Manuscript[]        @relation("ManuscriptSubmittedBy")
-  handledManuscripts      Manuscript[]        @relation("ManuscriptHandlingEditor")
-  uploadedManuscriptFiles ManuscriptFile[]    @relation("ManuscriptFileUploadedBy")
-  manuscriptEvents        ManuscriptEvent[]   @relation("ManuscriptEventActor")
-  reviewAssignments       ReviewAssignment[]  @relation("ReviewAssignmentReviewer")
-  editorialDecisions      EditorialDecision[] @relation("EditorialDecisionEditor")
-  articleAuthorLinks      ArticleAuthor[]     @relation("ArticleAuthorUser")
+  updatedSiteSettings         SiteSetting[]       @relation("SiteSettingUpdatedBy")
+  uploadedMedia               MediaAsset[]        @relation("MediaUploadedBy")
+  contentRevisions            ContentRevision[]   @relation("ContentRevisionCreatedBy")
+  auditLogs                   AuditLog[]          @relation("AuditLogActor")
+  createdAlumniLinks          AlumniLink[]        @relation("AlumniLinkCreatedBy")
+  reviewedAlumniEntries       AlumniEntry[]       @relation("AlumniEntryReviewedBy")
+  uploadedDownloads           Download[]          @relation("DownloadUploadedBy")
+  authoredNewsPosts           NewsPost[]          @relation("NewsPostAuthor")
+  submittedManuscripts        Manuscript[]        @relation("ManuscriptSubmittedBy")
+  handledManuscripts          Manuscript[]        @relation("ManuscriptHandlingEditor")
+  uploadedManuscriptFiles     ManuscriptFile[]    @relation("ManuscriptFileUploadedBy")
+  manuscriptEvents            ManuscriptEvent[]   @relation("ManuscriptEventActor")
+  reviewAssignments           ReviewAssignment[]  @relation("ReviewAssignmentReviewer")
+  reviewAssignmentsInvited    ReviewAssignment[]  @relation("ReviewAssignmentInvitedBy")
+  editorialDecisions          EditorialDecision[] @relation("EditorialDecisionEditor")
+  articleAuthorLinks          ArticleAuthor[]     @relation("ArticleAuthorUser")
+  reviewerProfile             ReviewerProfile?    @relation("ReviewerProfileUser")
 
   @@index([isActive])
 }
@@ -683,6 +685,7 @@ enum ReviewAssignmentStatus {
   DECLINED
   SUBMITTED
   EXPIRED
+  REVOKED
 }
 
 enum ReviewRecommendation {
@@ -707,6 +710,7 @@ enum ManuscriptFileKind {
   RESPONSE_TO_REVIEWERS
   REVISED
   COPYEDITED
+  REVIEW_ATTACHMENT
 }
 
 model JournalIssue {
@@ -899,35 +903,43 @@ model ManuscriptFile {
 }
 
 model ReviewAssignment {
-  id           String                 @id @default(cuid())
-  manuscriptId String
-  roundId      String
-  reviewerId   String
-  status       ReviewAssignmentStatus @default(INVITED)
-  invitedAt    DateTime               @default(now())
-  respondedAt  DateTime?
-  dueAt        DateTime?
-  createdAt    DateTime               @default(now())
-  updatedAt    DateTime               @updatedAt
+  id            String                 @id @default(cuid())
+  manuscriptId  String
+  roundId       String
+  reviewerId    String
+  status        ReviewAssignmentStatus @default(INVITED)
+  invitedAt     DateTime               @default(now())
+  respondedAt   DateTime?
+  dueAt         DateTime?
+  invitedById   String?
+  tokenHash     String?                @unique
+  declineReason String?
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
 
   manuscript Manuscript      @relation(fields: [manuscriptId], references: [id], onDelete: Cascade)
   round      ManuscriptRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
   reviewer   User            @relation("ReviewAssignmentReviewer", fields: [reviewerId], references: [id], onDelete: Restrict)
+  invitedBy  User?           @relation("ReviewAssignmentInvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
   review     Review?
 
   @@unique([manuscriptId, roundId, reviewerId])
   @@index([reviewerId, status])
+  @@index([invitedById])
 }
 
 model Review {
-  id               String               @id @default(cuid())
-  assignmentId     String               @unique
-  recommendation   ReviewRecommendation
-  commentsToAuthor String?
-  commentsToEditor String?
-  submittedAt      DateTime?
-  createdAt        DateTime             @default(now())
-  updatedAt        DateTime             @updatedAt
+  id                   String               @id @default(cuid())
+  assignmentId         String               @unique
+  recommendation       ReviewRecommendation?
+  commentsToAuthor     String?
+  commentsToAuthorHtml String?
+  commentsToEditor     String?
+  commentsToEditorHtml String?
+  isDraft              Boolean              @default(true)
+  submittedAt          DateTime?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
 
   assignment ReviewAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
 }
@@ -939,6 +951,9 @@ model EditorialDecision {
   editorId     String
   decision     EditorialDecisionType
   letter       String?
+  letterHtml   String?
+  decidedAt    DateTime              @default(now())
+  emailSentAt  DateTime?
   createdAt    DateTime              @default(now())
 
   manuscript Manuscript      @relation(fields: [manuscriptId], references: [id], onDelete: Cascade)
@@ -960,6 +975,16 @@ enum ManuscriptEventType {
   APPROVED_FOR_REVIEW
   WITHDRAWN
   INTERNAL_NOTE
+  REVIEWER_INVITED
+  REVIEWER_ACCEPTED
+  REVIEWER_DECLINED
+  REVIEWER_REVOKED
+  REVIEWER_EXPIRED
+  REVIEWER_REMINDER_SENT
+  REVIEW_SUBMITTED
+  DECISION_RECORDED
+  REVISION_REQUESTED
+  ROUND_CREATED
 }
 
 model ManuscriptEvent {
@@ -980,4 +1005,16 @@ model ManuscriptEvent {
 model JournalCounter {
   year  Int @id
   value Int
+}
+
+model ReviewerProfile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  expertiseTags String[] @default([])
+  isActive      Boolean  @default(true)
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation("ReviewerProfileUser", fields: [userId], references: [id], onDelete: Cascade)
 }
