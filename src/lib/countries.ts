@@ -1,0 +1,20 @@
+/** Plain country list for the alumni directory filter and submission form select. Not exhaustive of every territory, deliberately ordered Nigeria-first since most submissions are expected from Nigeria. */
+export const COUNTRIES = [
+  "Nigeria",
+  "Ghana",
+  "Kenya",
+  "South Africa",
+  "Egypt",
+  "United Kingdom",
+  "United States",
+  "Canada",
+  "Germany",
+  "France",
+  "Netherlands",
+  "United Arab Emirates",
+  "Saudi Arabia",
+  "China",
+  "India",
+  "Australia",
+  "Other",
+] as const;

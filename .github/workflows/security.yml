@@ -1,3 +1,5 @@
+# Manual only. Needs an Anthropic API key in repo secrets. We run
+# /security-review locally instead.
 name: Security Review
 
 permissions:
@@ -5,7 +7,7 @@ permissions:
   contents: read
 
 on:
-  pull_request:
+  workflow_dispatch:
 
 jobs:
   security:

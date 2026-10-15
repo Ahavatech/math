@@ -30,6 +30,8 @@ A. Public site. B. Lecturer portfolios at /lecturer/[slug]. C. Journal at /journ
 5. Before finishing ANY prompt: append an entry to AUDIT.md using the template in that file, and tick completed items in docs/ROADMAP.md. A prompt is not finished until this is done.
 6. One stage equals one branch named stage/NN-short-name, with conventional commits. Never commit to main directly. Never push unless asked.
 7. If something in the prompt conflicts with SCOPE.md or DECISIONS.md, stop and ask.
+8. Start every stage from an up-to-date main: `git checkout main && git pull`, then create the stage branch. If main does not exist or the previous stage is not merged, stop and tell me.
+9. At the end of a stage, push nothing and merge nothing. Leave the branch clean and give me a PR title and description (summary, files changed, checks run, risks).
 
 ## Rules that must not be broken
 Content
