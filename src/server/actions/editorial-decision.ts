@@ -12,7 +12,7 @@ function sessionUser(user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>
   return { id: user.id, roles: user.roles, isActive: user.isActive ?? true };
 }
 
-export async function recordDecisionAction(formData: FormData): Promise<{ error?: string }> {
+export async function recordDecisionAction(formData: FormData): Promise<void> {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
@@ -23,7 +23,7 @@ export async function recordDecisionAction(formData: FormData): Promise<{ error?
     allowOverride: formData.get("allowOverride") === "true",
     overrideReason: formData.get("overrideReason") || undefined,
   });
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  if (!parsed.success) return;
 
   try {
     await recordDecision(db, sessionUser(user), parsed.data.manuscriptId, {
@@ -34,8 +34,7 @@ export async function recordDecisionAction(formData: FormData): Promise<{ error?
     });
     revalidatePath(`/admin/journal/manuscripts/${parsed.data.manuscriptId}`);
     revalidatePath("/admin/journal/manuscripts");
-    return {};
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : "Failed to record decision" };
+  } catch {
+    // silent
   }
 }

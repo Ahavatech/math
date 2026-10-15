@@ -1,8 +1,9 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
-import { getCurrentUser, hasPermission } from "@/lib/rbac";
+import { getCurrentUser, hasPermission, hasRole } from "@/lib/rbac";
 import { db as prisma } from "@/lib/db";
 import { getManuscriptDetail } from "@/server/services/manuscript-screening";
+import { getReviewsForEditor } from "@/server/services/review-visibility";
 import {
   assignHandlingEditorAction,
   deskRejectAction,
@@ -10,6 +11,8 @@ import {
   approveForReviewAction,
   addInternalNoteAction,
 } from "@/server/actions/manuscript-screening";
+import { inviteReviewerAction, revokeInvitationAction } from "@/server/actions/reviewer-invitation";
+import { recordDecisionAction } from "@/server/actions/editorial-decision";
 
 export function generateMetadata() {
   return { title: "Manuscript detail" };
@@ -73,6 +76,46 @@ export default async function ManuscriptDetailAdminPage({
   }
 
   const isEditorial = hasPermission(user, "journal.editorial");
+  const isHOD = hasRole(user, "HOD");
+
+  // Reviewer invitations (editorial only; not HOD)
+  let reviewAssignments: Array<{
+    id: string;
+    reviewerId: string;
+    status: string;
+    reviewer: { name: string | null; email: string };
+    dueAt: Date | null;
+    review: { isDraft: boolean; submittedAt: Date | null } | null;
+  }> = [];
+  let reviewerList: Array<{ id: string; name: string | null; email: string }> = [];
+  let editorReviews: Awaited<ReturnType<typeof getReviewsForEditor>> = [];
+
+  if (isEditorial && !isHOD && ms) {
+    [reviewAssignments, reviewerList, editorReviews] = await Promise.all([
+      prisma.reviewAssignment.findMany({
+        where: { manuscriptId: id },
+        include: {
+          reviewer: { select: { id: true, name: true, email: true } },
+          review: { select: { isDraft: true, submittedAt: true } },
+        },
+        orderBy: { createdAt: "asc" },
+      }),
+      prisma.userRole.findMany({
+        where: { role: "REVIEWER" },
+        select: { user: { select: { id: true, name: true, email: true } } },
+      }).then((rows) => rows.map((r) => r.user)),
+      getReviewsForEditor(prisma, sessionUser, id).catch(() => []),
+    ]);
+  }
+
+  // Current round for decision form
+  const currentRound = ms
+    ? await prisma.manuscriptRound.findFirst({
+        where: { manuscriptId: id },
+        orderBy: { number: "desc" },
+        select: { id: true, number: true },
+      })
+    : null;
 
   return (
     <div className="max-w-3xl">
@@ -253,6 +296,148 @@ export default async function ManuscriptDetailAdminPage({
               Add note
             </button>
           </form>
+
+          {/* Invite reviewer */}
+          {(ms.status === "UNDER_REVIEW" || ms.status === "REVISION_REQUESTED") && currentRound && (
+            <form action={inviteReviewerAction} className="space-y-2">
+              <input type="hidden" name="manuscriptId" value={ms.id} />
+              <input type="hidden" name="roundId" value={currentRound.id} />
+              <label className="block text-sm font-medium">Invite reviewer</label>
+              <div className="flex gap-2">
+                <select
+                  name="reviewerUserId"
+                  className="flex-1 rounded-md border px-3 py-1.5 text-sm"
+                  required
+                >
+                  <option value="">Select reviewer...</option>
+                  {reviewerList.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name ?? r.email} ({r.email})
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="submit"
+                  className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground"
+                >
+                  Invite
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Record editorial decision */}
+          {(ms.status === "UNDER_REVIEW" || ms.status === "REVISION_REQUESTED") && currentRound && (
+            <form action={recordDecisionAction} className="space-y-2">
+              <input type="hidden" name="manuscriptId" value={ms.id} />
+              <label className="block text-sm font-medium">Record decision</label>
+              <select
+                name="decision"
+                className="block w-full rounded-md border px-3 py-1.5 text-sm"
+                required
+              >
+                <option value="">Select decision...</option>
+                <option value="ACCEPT">Accept</option>
+                <option value="MINOR_REVISION">Minor revision</option>
+                <option value="MAJOR_REVISION">Major revision</option>
+                <option value="REJECT">Reject</option>
+              </select>
+              <textarea
+                name="letterHtml"
+                rows={6}
+                placeholder="Decision letter (HTML allowed)..."
+                className="w-full rounded-md border px-3 py-2 text-sm"
+                required
+              />
+              <button
+                type="submit"
+                className="rounded-md bg-primary px-3 py-1.5 text-sm text-primary-foreground"
+              >
+                Record decision
+              </button>
+            </form>
+          )}
+        </section>
+      )}
+
+      {/* Reviewer assignments panel (editorial, not HOD) */}
+      {isEditorial && !isHOD && reviewAssignments.length > 0 && (
+        <section className="mt-8">
+          <h2 className="font-semibold mb-3">Reviewer assignments</h2>
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="border-b text-left text-muted-foreground">
+                <th className="py-1 pr-3">Reviewer</th>
+                <th className="py-1 pr-3">Status</th>
+                <th className="py-1 pr-3">Due</th>
+                <th className="py-1">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reviewAssignments.map((a) => (
+                <tr key={a.id} className="border-b">
+                  <td className="py-1.5 pr-3">
+                    {a.reviewer.name ?? a.reviewer.email}
+                  </td>
+                  <td className="py-1.5 pr-3">{a.status}</td>
+                  <td className="py-1.5 pr-3">
+                    {a.dueAt ? new Date(a.dueAt).toLocaleDateString() : "-"}
+                  </td>
+                  <td className="py-1.5">
+                    {(a.status === "INVITED" || a.status === "ACCEPTED") && (
+                      <form action={revokeInvitationAction} className="inline">
+                        <input type="hidden" name="assignmentId" value={a.id} />
+                        <input type="hidden" name="manuscriptId" value={ms.id} />
+                        <button
+                          type="submit"
+                          className="text-destructive text-xs underline"
+                        >
+                          Revoke
+                        </button>
+                      </form>
+                    )}
+                    {a.status === "SUBMITTED" && (
+                      <span className="text-xs text-green-600">
+                        Submitted {a.review?.submittedAt ? new Date(a.review.submittedAt).toLocaleDateString() : ""}
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+
+      {/* Reviews panel (editorial, not HOD) */}
+      {isEditorial && !isHOD && editorReviews.length > 0 && (
+        <section className="mt-8">
+          <h2 className="font-semibold mb-3">Submitted reviews</h2>
+          <div className="space-y-6">
+            {editorReviews.map((r) => (
+              <div key={r.reviewId} className="rounded border p-4 text-sm">
+                <p className="font-medium mb-2">{r.label} &mdash; {r.recommendation ?? "No recommendation"}</p>
+                {r.commentsToAuthorHtml && (
+                  <div className="mb-2">
+                    <p className="text-xs text-muted-foreground mb-1">Comments to author</p>
+                    <div
+                      className="prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: r.commentsToAuthorHtml }}
+                    />
+                  </div>
+                )}
+                {r.commentsToEditorHtml && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Confidential to editor</p>
+                    <div
+                      className="prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: r.commentsToEditorHtml }}
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </section>
       )}
     </div>

@@ -17,7 +17,7 @@ function sessionUser(user: NonNullable<Awaited<ReturnType<typeof getCurrentUser>
   return { id: user.id, roles: user.roles, isActive: user.isActive ?? true };
 }
 
-export async function inviteReviewerAction(formData: FormData): Promise<{ error?: string }> {
+export async function inviteReviewerAction(formData: FormData): Promise<void> {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
@@ -26,7 +26,7 @@ export async function inviteReviewerAction(formData: FormData): Promise<{ error?
     roundId: formData.get("roundId"),
     reviewerUserId: formData.get("reviewerUserId"),
   });
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  if (!parsed.success) return;
 
   try {
     const { rawToken } = await inviteReviewer(db, sessionUser(user), parsed.data.manuscriptId, parsed.data.roundId, parsed.data.reviewerUserId);
@@ -36,13 +36,12 @@ export async function inviteReviewerAction(formData: FormData): Promise<{ error?
     void rawToken; // token handed off to caller-side email service if needed
 
     revalidatePath(`/admin/journal/manuscripts/${parsed.data.manuscriptId}`);
-    return {};
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : "Failed to send invitation" };
+  } catch {
+    // errors surfaced via revalidatePath re-render; UI shows current state
   }
 }
 
-export async function revokeInvitationAction(formData: FormData): Promise<{ error?: string }> {
+export async function revokeInvitationAction(formData: FormData): Promise<void> {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
@@ -52,9 +51,8 @@ export async function revokeInvitationAction(formData: FormData): Promise<{ erro
   try {
     await revokeInvitation(db, sessionUser(user), assignmentId);
     revalidatePath(`/admin/journal/manuscripts/${manuscriptId}`);
-    return {};
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : "Failed to revoke invitation" };
+  } catch {
+    // silent
   }
 }
 
