@@ -10,7 +10,8 @@ import { getJournalSettingsPublic } from "../src/server/services/journal-setting
 
 /**
  * Sends review reminders and overdue notices. Also expires stale invitations.
- * Run daily via cron or manually.
+ * Idempotent: each milestone ("DUE_SOON", "OVERDUE") is recorded in ReviewReminderLog;
+ * re-running never sends the same milestone twice to the same assignment.
  * Dry run by default; pass --apply to actually send emails and expire invitations.
  */
 async function main() {
@@ -19,7 +20,6 @@ async function main() {
 
   const settings = await getJournalSettingsPublic();
   const journalName = settings.name || "OAU Journal of Mathematics";
-  const reviewDueDays = settings.reviewDueDays ?? 21;
 
   // Expire stale INVITED assignments
   if (apply) {
@@ -33,12 +33,13 @@ async function main() {
     console.log(`[dry run] Would expire ${count} stale invitation(s).`);
   }
 
-  // Find ACCEPTED assignments that are due soon (within 3 days) but not yet reminded
+  // DUE_SOON: ACCEPTED assignments due within 3 days; milestone not yet recorded
   const soonCutoff = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
   const dueSoon = await db.reviewAssignment.findMany({
     where: {
       status: "ACCEPTED",
       dueAt: { not: null, lte: soonCutoff, gte: new Date() },
+      reminderLogs: { none: { milestone: "DUE_SOON" } },
     },
     include: {
       reviewer: { select: { email: true } },
@@ -46,11 +47,12 @@ async function main() {
     },
   });
 
-  // Find ACCEPTED assignments that are overdue
+  // OVERDUE: ACCEPTED assignments past due date; milestone not yet recorded
   const overdue = await db.reviewAssignment.findMany({
     where: {
       status: "ACCEPTED",
       dueAt: { not: null, lt: new Date() },
+      reminderLogs: { none: { milestone: "OVERDUE" } },
     },
     include: {
       reviewer: { select: { email: true } },
@@ -58,8 +60,8 @@ async function main() {
     },
   });
 
-  console.log(`${dueSoon.length} assignment(s) due within 3 days.`);
-  console.log(`${overdue.length} overdue assignment(s).`);
+  console.log(`${dueSoon.length} assignment(s) due within 3 days (DUE_SOON not yet sent).`);
+  console.log(`${overdue.length} overdue assignment(s) (OVERDUE not yet sent).`);
 
   if (!apply) {
     if (dueSoon.length + overdue.length > 0) {
@@ -78,7 +80,10 @@ async function main() {
       dueDate,
       journalName,
     });
-    console.log(`  Reminder sent to ${a.reviewer.email} for ${a.manuscript.reference}`);
+    await db.reviewReminderLog.create({
+      data: { assignmentId: a.id, milestone: "DUE_SOON" },
+    });
+    console.log(`  DUE_SOON reminder sent to ${a.reviewer.email} for ${a.manuscript.reference}`);
   }
 
   for (const a of overdue) {
@@ -88,7 +93,10 @@ async function main() {
       assignmentId: a.id,
       journalName,
     });
-    console.log(`  Overdue notice sent to ${a.reviewer.email} for ${a.manuscript.reference}`);
+    await db.reviewReminderLog.create({
+      data: { assignmentId: a.id, milestone: "OVERDUE" },
+    });
+    console.log(`  OVERDUE notice sent to ${a.reviewer.email} for ${a.manuscript.reference}`);
   }
 
   await db.$disconnect();

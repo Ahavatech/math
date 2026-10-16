@@ -8,8 +8,9 @@ import { env } from "../src/lib/env";
 /**
  * Lists (dry run by default; --apply to delete) files on disk under
  * PRIVATE_STORAGE_DIR that no ManuscriptFile row references, and rows
- * whose storageKey points at a file that no longer exists. Stage 14
- * is expected to schedule this and include the directory in backups.
+ * whose storageKey points at a file that no longer exists.
+ * Covers all ManuscriptFileKind values including REVIEW_ATTACHMENT (spec section 8).
+ * Stage 14 is expected to schedule this and include the directory in backups.
  */
 async function main() {
   const apply = process.argv.includes("--apply");

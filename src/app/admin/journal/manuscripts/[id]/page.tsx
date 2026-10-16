@@ -87,7 +87,12 @@ export default async function ManuscriptDetailAdminPage({
     dueAt: Date | null;
     review: { isDraft: boolean; submittedAt: Date | null } | null;
   }> = [];
-  let reviewerList: Array<{ id: string; name: string | null; email: string }> = [];
+  let reviewerList: Array<{
+    id: string;
+    name: string | null;
+    email: string;
+    profile: { expertiseTags: string[]; isActive: boolean } | null;
+  }> = [];
   let editorReviews: Awaited<ReturnType<typeof getReviewsForEditor>> = [];
 
   if (isEditorial && !isHOD && ms) {
@@ -102,8 +107,21 @@ export default async function ManuscriptDetailAdminPage({
       }),
       prisma.userRole.findMany({
         where: { role: "REVIEWER" },
-        select: { user: { select: { id: true, name: true, email: true } } },
-      }).then((rows) => rows.map((r) => r.user)),
+        select: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              reviewerProfile: { select: { expertiseTags: true, isActive: true } },
+            },
+          },
+        },
+      }).then((rows) =>
+        rows
+          .map((r) => ({ ...r.user, profile: r.user.reviewerProfile }))
+          .filter((u) => u.profile?.isActive !== false)
+      ),
       getReviewsForEditor(prisma, sessionUser, id).catch(() => []),
     ]);
   }
@@ -312,7 +330,10 @@ export default async function ManuscriptDetailAdminPage({
                   <option value="">Select reviewer...</option>
                   {reviewerList.map((r) => (
                     <option key={r.id} value={r.id}>
-                      {r.name ?? r.email} ({r.email})
+                      {r.name ?? r.email}
+                      {r.profile?.expertiseTags.length
+                        ? ` — ${r.profile.expertiseTags.join(", ")}`
+                        : ""}
                     </option>
                   ))}
                 </select>

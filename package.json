@@ -26,7 +26,8 @@
     "handbook:import": "tsx scripts/handbook-import.ts",
     "private-storage:orphans": "tsx scripts/private-storage-orphans.ts",
     "journal:dev-fixture": "tsx scripts/journal-dev-fixture.ts",
-    "journal:purge-drafts": "tsx scripts/journal-purge-drafts.ts"
+    "journal:purge-drafts": "tsx scripts/journal-purge-drafts.ts",
+    "journal:review-reminders": "tsx scripts/journal-review-reminders.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

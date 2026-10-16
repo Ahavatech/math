@@ -917,11 +917,12 @@ model ReviewAssignment {
   createdAt     DateTime               @default(now())
   updatedAt     DateTime               @updatedAt
 
-  manuscript Manuscript      @relation(fields: [manuscriptId], references: [id], onDelete: Cascade)
-  round      ManuscriptRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
-  reviewer   User            @relation("ReviewAssignmentReviewer", fields: [reviewerId], references: [id], onDelete: Restrict)
-  invitedBy  User?           @relation("ReviewAssignmentInvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
-  review     Review?
+  manuscript      Manuscript          @relation(fields: [manuscriptId], references: [id], onDelete: Cascade)
+  round           ManuscriptRound     @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  reviewer        User                @relation("ReviewAssignmentReviewer", fields: [reviewerId], references: [id], onDelete: Restrict)
+  invitedBy       User?               @relation("ReviewAssignmentInvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
+  review          Review?
+  reminderLogs    ReviewReminderLog[]
 
   @@unique([manuscriptId, roundId, reviewerId])
   @@index([reviewerId, status])
@@ -1017,4 +1018,18 @@ model ReviewerProfile {
   updatedAt     DateTime @updatedAt
 
   user User @relation("ReviewerProfileUser", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// Tracks which milestone reminders have been sent for a review assignment.
+/// Ensures the reminders script is idempotent: same milestone is never emailed twice.
+model ReviewReminderLog {
+  id           String   @id @default(cuid())
+  assignmentId String
+  milestone    String
+  sentAt       DateTime @default(now())
+
+  assignment ReviewAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  @@unique([assignmentId, milestone])
+  @@index([assignmentId])
 }
