@@ -4,6 +4,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { Readable } from "node:stream";
 import { rmdir } from "node:fs/promises";
 import path from "node:path";
+import crypto from "node:crypto";
 import { createLocalPrivateStorage } from "../src/lib/private-storage";
 import { env } from "../src/lib/env";
 
@@ -102,17 +103,58 @@ async function main() {
     },
   });
 
+  const assignment = await db.reviewAssignment.create({
+    data: {
+      manuscriptId: manuscript.id,
+      roundId: round.id,
+      reviewerId: reviewer.id,
+      status: "SUBMITTED",
+      // Invitation token hash (32 random bytes, sha256 hashed -- single-use)
+      tokenHash: crypto.createHash("sha256").update(crypto.randomBytes(32)).digest("hex"),
+      invitedById: editor.id,
+      dueAt: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  // A submitted review with recommendation and comments
+  await db.review.create({
+    data: {
+      assignmentId: assignment.id,
+      recommendation: "MINOR_REVISION",
+      commentsToAuthor: "Please revise section 2.",
+      commentsToAuthorHtml: "<p>Please revise section 2.</p>",
+      commentsToEditor: "Solid work, minor revision needed.",
+      commentsToEditorHtml: "<p>Solid work, minor revision needed.</p>",
+      isDraft: false,
+      submittedAt: new Date(),
+    },
+  });
+
+  // An unassigned reviewer assignment for access control testing
   await db.reviewAssignment.create({
-    data: { manuscriptId: manuscript.id, roundId: round.id, reviewerId: reviewer.id, status: "ACCEPTED" },
+    data: { manuscriptId: manuscript.id, roundId: round.id, reviewerId: unassignedReviewer.id, status: "INVITED", invitedById: editor.id },
+  });
+
+  // An editorial decision
+  await db.editorialDecision.create({
+    data: {
+      manuscriptId: manuscript.id,
+      roundId: round.id,
+      decision: "MINOR_REVISION",
+      letter: "Thank you for your submission. Please address the reviewers' comments.",
+      letterHtml: "<p>Thank you for your submission. Please address the reviewers' comments.</p>",
+      editorId: editor.id,
+    },
   });
 
   console.log("Created fixture manuscript. Check access with:");
   console.log(`  GET /api/journal/files/${file.id}`);
-  console.log(`  author (${author.email})        -> allowed`);
+  console.log(`  author (${author.email})              -> allowed`);
   console.log(`  accepted reviewer (${reviewer.email}) -> allowed, generic filename`);
   console.log(`  unassigned reviewer (${unassignedReviewer.email}) -> 404`);
-  console.log(`  editor (${editor.email})         -> allowed`);
-  console.log(`  HOD without a journal role        -> 404`);
+  console.log(`  editor (${editor.email})               -> allowed`);
+  console.log(`  HOD without a journal role             -> 404`);
+  console.log(`  ReviewAssignment (SUBMITTED): ${assignment.id}`);
   console.log("Run with --remove to delete everything this script created.");
 
   await db.$disconnect();

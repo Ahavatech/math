@@ -102,6 +102,9 @@ export const journalSettingsSchema = z.object({
     .default(""),
   submissionsOpen: z.boolean().default(false),
   citeAsPublisher: z.string().trim().default(""),
+  reviewsRequired: z.number().int().min(1).max(10).default(2),
+  reviewDueDays: z.number().int().min(1).max(365).default(21),
+  invitationExpiryDays: z.number().int().min(1).max(90).default(14),
 });
 export type JournalSettings = z.infer<typeof journalSettingsSchema>;
 

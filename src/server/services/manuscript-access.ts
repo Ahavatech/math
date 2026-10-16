@@ -1,6 +1,6 @@
 import "server-only";
 import type { ManuscriptFileKind, ReviewAssignmentStatus } from "@prisma/client";
-import { hasRole, hasPermission, type SessionUser } from "@/lib/rbac";
+import { hasRole, type SessionUser } from "@/lib/rbac";
 
 export interface ManuscriptFileAccessInput {
   id: string;
@@ -22,6 +22,7 @@ const REVIEWER_ALLOWED_KINDS: ManuscriptFileKind[] = [
   "SUPPLEMENTARY",
   "REVISED",
   "RESPONSE_TO_REVIEWERS",
+  "REVIEW_ATTACHMENT",
 ];
 const REVIEWER_ALLOWED_STATUSES: ReviewAssignmentStatus[] = ["ACCEPTED", "SUBMITTED"];
 
@@ -31,7 +32,8 @@ const EDITORIAL_READ_ROLES = ["SUPER_ADMIN", "JOURNAL_EDITOR_IN_CHIEF", "JOURNAL
 // HOD has journal.manuscripts.read but no editorial actions.
 const HOD_ROLE = "HOD" as const;
 // Roles that require an audit log entry on file access (decision #60).
-const AUDIT_REQUIRED_ROLES = ["SUPER_ADMIN", "HOD"] as const;
+// REVIEWER added per spec section 3: "Every reviewer file read writes an audit entry."
+const AUDIT_REQUIRED_ROLES = ["SUPER_ADMIN", "HOD", "REVIEWER"] as const;
 
 /**
  * Access policy for individual manuscript files.
@@ -98,7 +100,7 @@ export function canReadManuscriptFileWithAudit(
     const matchesRound = reviewerAssignment.roundId === file.roundId;
     const statusAllows = REVIEWER_ALLOWED_STATUSES.includes(reviewerAssignment.status);
     const kindAllows = REVIEWER_ALLOWED_KINDS.includes(file.kind);
-    if (matchesRound && statusAllows && kindAllows) return { allowed: true, auditRequired: false };
+    if (matchesRound && statusAllows && kindAllows) return { allowed: true, auditRequired: true };
   }
 
   return deny;

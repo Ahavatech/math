@@ -6,6 +6,7 @@ import { db as prisma } from "@/lib/db";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { getAuthorManuscriptDetail } from "@/server/services/author-dashboard";
+import { getReviewsForAuthor } from "@/server/services/review-visibility";
 
 export function generateMetadata() {
   return { title: "Submission detail" };
@@ -44,12 +45,19 @@ export default async function ManuscriptDetailPage({
 
   const { id } = await params;
 
-  let ms;
-  try {
-    ms = await getAuthorManuscriptDetail(prisma, user.id, id);
-  } catch {
-    notFound();
-  }
+  const ms = await getAuthorManuscriptDetail(prisma, user.id, id).catch(() => null);
+  if (!ms) notFound();
+
+  // Reviewer comments (only visible when status warrants it)
+  const sessionUser = { id: user.id, roles: user.roles, isActive: user.isActive ?? true };
+  const authorReviews = await getReviewsForAuthor(prisma, sessionUser, id).catch(() => []);
+
+  // Latest editorial decision for this manuscript
+  const latestDecision = await prisma.editorialDecision.findFirst({
+    where: { manuscriptId: id },
+    orderBy: { decidedAt: "desc" },
+    select: { decision: true, letterHtml: true, decidedAt: true },
+  });
 
   return (
     <Section>
@@ -105,12 +113,54 @@ export default async function ManuscriptDetailPage({
           </section>
         )}
 
-        {/* Rejection letter */}
+        {/* Rejection letter (desk reject / return) */}
         {ms.rejectionLetter && (
           <section className="mt-6">
             <h2 className="font-heading text-base font-semibold">Editor message</h2>
             <div className="bg-muted mt-2 rounded-lg border p-4">
               <p className="whitespace-pre-wrap text-sm">{ms.rejectionLetter}</p>
+            </div>
+          </section>
+        )}
+
+        {/* Decision letter (from peer review round) */}
+        {latestDecision?.letterHtml && !ms.rejectionLetter && (
+          <section className="mt-6">
+            <h2 className="font-heading text-base font-semibold">
+              Editorial decision: {latestDecision.decision.replace(/_/g, " ").toLowerCase()}
+            </h2>
+            <div
+              className="bg-muted prose prose-sm mt-2 max-w-none rounded-lg border p-4"
+              dangerouslySetInnerHTML={{ __html: latestDecision.letterHtml }}
+            />
+          </section>
+        )}
+
+        {/* Reviewer comments (author view: labels only, no reviewer identity) */}
+        {authorReviews.length > 0 && (
+          <section className="mt-6">
+            <h2 className="font-heading text-base font-semibold">Reviewer comments</h2>
+            <div className="mt-3 space-y-4">
+              {authorReviews.map((r) => (
+                <div key={r.label} className="rounded border p-4 text-sm">
+                  <p className="font-medium mb-2">
+                    {r.label}
+                    {r.recommendation && (
+                      <span className="text-muted-foreground ml-2 font-normal">
+                        ({r.recommendation.replace(/_/g, " ").toLowerCase()})
+                      </span>
+                    )}
+                  </p>
+                  {r.commentsToAuthorHtml ? (
+                    <div
+                      className="prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: r.commentsToAuthorHtml }}
+                    />
+                  ) : (
+                    <p className="text-muted-foreground italic">No comments provided.</p>
+                  )}
+                </div>
+              ))}
             </div>
           </section>
         )}
@@ -123,6 +173,23 @@ export default async function ManuscriptDetailPage({
               className="bg-primary text-primary-foreground hover:bg-primary/90 inline-block rounded-md px-4 py-2 text-sm font-medium"
             >
               Upload corrected files and resubmit
+            </Link>
+          </section>
+        )}
+
+        {/* Revision upload for REVISION_REQUESTED */}
+        {ms.status === "REVISION_REQUESTED" && (
+          <section className="mt-6 rounded-lg border border-orange-200 bg-orange-50 p-4">
+            <h2 className="font-semibold text-orange-800 mb-1">Revision requested</h2>
+            <p className="text-sm text-orange-700 mb-3">
+              Please review the editor decision letter and reviewer comments above, then upload your
+              revised manuscript.
+            </p>
+            <Link
+              href={`/journal/submit/step1?draft=${ms.id}&revision=1`}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-block rounded-md px-4 py-2 text-sm font-medium"
+            >
+              Upload revised manuscript
             </Link>
           </section>
         )}

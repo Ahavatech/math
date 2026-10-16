@@ -24,6 +24,9 @@ export async function getJournalSettingsPublic(): Promise<JournalSettings> {
       contactEmail: "",
       submissionsOpen: false,
       citeAsPublisher: "",
+      reviewsRequired: 2,
+      reviewDueDays: 21,
+      invitationExpiryDays: 14,
     };
   }
 }

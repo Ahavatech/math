@@ -328,7 +328,7 @@ describe.skipIf(db === null)("lecturers service", () => {
     await sendLecturerInvite(db!, actorId, user.id);
     const token = await db!.userToken.findFirst({ where: { userId: user.id, type: "INVITE" } });
     expect(deriveInviteState(null, token)).toBe("invited");
-  });
+  }, 20_000); // React Email render + argon2 hash can take >5 s under load
 
   describe("listLecturersDirectory", () => {
     it("only includes published, active-account profiles", async () => {

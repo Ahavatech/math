@@ -13,6 +13,14 @@ import { JournalNewSubmissionEditorsEmail } from "@/emails/journal-new-submissio
 import { JournalReturnedToAuthorEmail } from "@/emails/journal-returned-to-author";
 import { JournalDecisionAvailableEmail } from "@/emails/journal-decision-available";
 import { JournalMovedToReviewEmail } from "@/emails/journal-moved-to-review";
+import { ReviewerInvitationEmail } from "@/emails/reviewer-invitation";
+import { ReviewerReminderEmail } from "@/emails/reviewer-reminder";
+import { ReviewerOverdueEmail } from "@/emails/reviewer-overdue";
+import { ReviewerAcceptedEmail } from "@/emails/reviewer-accepted";
+import { ReviewerDeclinedEmail } from "@/emails/reviewer-declined";
+import { ReviewSubmittedEmail } from "@/emails/review-submitted";
+import { RevisionReceivedEmail } from "@/emails/revision-received";
+import { ReviewerThankYouEmail } from "@/emails/reviewer-thank-you";
 
 const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
 
@@ -140,5 +148,151 @@ export async function sendMovedToReviewEmail(params: { to: string; reference: st
     params.to,
     `Your submission is in peer review: ${params.reference}`,
     JournalMovedToReviewEmail({ reference: params.reference, signInUrl }),
+  );
+}
+
+export async function sendReviewerInvitationEmail(params: {
+  to: string;
+  reference: string;
+  rawToken: string;
+  dueDays: number;
+  journalName: string;
+}) {
+  const acceptUrl = new URL(`/journal/reviewer/invitation/${params.rawToken}?action=accept`, env.AUTH_URL).toString();
+  const declineUrl = new URL(`/journal/reviewer/invitation/${params.rawToken}?action=decline`, env.AUTH_URL).toString();
+  await send(
+    params.to,
+    `Reviewer invitation: ${params.reference}`,
+    ReviewerInvitationEmail({
+      reference: params.reference,
+      acceptUrl,
+      declineUrl,
+      dueDays: params.dueDays,
+      journalName: params.journalName,
+    }),
+  );
+}
+
+export async function sendReviewerReminderEmail(params: {
+  to: string;
+  reference: string;
+  assignmentId: string;
+  dueDate: string;
+  journalName: string;
+}) {
+  const reviewUrl = new URL(`/journal/reviewer/assignments/${params.assignmentId}`, env.AUTH_URL).toString();
+  await send(
+    params.to,
+    `Review reminder: ${params.reference}`,
+    ReviewerReminderEmail({
+      reference: params.reference,
+      reviewUrl,
+      dueDate: params.dueDate,
+      journalName: params.journalName,
+    }),
+  );
+}
+
+export async function sendReviewerOverdueEmail(params: {
+  to: string;
+  reference: string;
+  assignmentId: string;
+  journalName: string;
+}) {
+  const reviewUrl = new URL(`/journal/reviewer/assignments/${params.assignmentId}`, env.AUTH_URL).toString();
+  await send(
+    params.to,
+    `Overdue review: ${params.reference}`,
+    ReviewerOverdueEmail({
+      reference: params.reference,
+      reviewUrl,
+      journalName: params.journalName,
+    }),
+  );
+}
+
+export async function sendReviewerAcceptedEmail(params: {
+  emails: string[];
+  reference: string;
+  journalName: string;
+}) {
+  await Promise.all(
+    params.emails.map((to) =>
+      send(
+        to,
+        `Reviewer accepted: ${params.reference}`,
+        ReviewerAcceptedEmail({ reference: params.reference, journalName: params.journalName }),
+      ),
+    ),
+  );
+}
+
+export async function sendReviewerDeclinedEmail(params: {
+  emails: string[];
+  reference: string;
+  journalName: string;
+}) {
+  await Promise.all(
+    params.emails.map((to) =>
+      send(
+        to,
+        `Reviewer declined: ${params.reference}`,
+        ReviewerDeclinedEmail({ reference: params.reference, journalName: params.journalName }),
+      ),
+    ),
+  );
+}
+
+export async function sendReviewSubmittedEmail(params: {
+  emails: string[];
+  reference: string;
+  manuscriptId: string;
+  journalName: string;
+}) {
+  const manuscriptUrl = new URL(`/admin/journal/manuscripts/${params.manuscriptId}`, env.AUTH_URL).toString();
+  await Promise.all(
+    params.emails.map((to) =>
+      send(
+        to,
+        `Review submitted: ${params.reference}`,
+        ReviewSubmittedEmail({ reference: params.reference, manuscriptUrl, journalName: params.journalName }),
+      ),
+    ),
+  );
+}
+
+export async function sendRevisionReceivedEmail(params: {
+  emails: string[];
+  reference: string;
+  round: number;
+  manuscriptId: string;
+  journalName: string;
+}) {
+  const manuscriptUrl = new URL(`/admin/journal/manuscripts/${params.manuscriptId}`, env.AUTH_URL).toString();
+  await Promise.all(
+    params.emails.map((to) =>
+      send(
+        to,
+        `Revision received: ${params.reference}`,
+        RevisionReceivedEmail({
+          reference: params.reference,
+          round: params.round,
+          manuscriptUrl,
+          journalName: params.journalName,
+        }),
+      ),
+    ),
+  );
+}
+
+export async function sendReviewerThankYouEmail(params: {
+  to: string;
+  reference: string;
+  journalName: string;
+}) {
+  await send(
+    params.to,
+    `Thank you for your review: ${params.reference}`,
+    ReviewerThankYouEmail({ reference: params.reference, journalName: params.journalName }),
   );
 }

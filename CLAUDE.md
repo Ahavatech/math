@@ -104,3 +104,14 @@ oau-maths-site/
 - npm run lint, typecheck, test, format
 - npm run db:migrate, db:seed, db:studio
 - Before saying a stage is done: lint, typecheck, test and build must all pass.
+
+## Reporting rule (every stage, non-negotiable)
+Before writing any PR description, output a plain summary in this exact order:
+a) What was built or changed (bullet list of files and what each does).
+b) What was asked vs what was delivered: a two-column table, one row per requirement.
+c) Things that failed or surprised during implementation.
+d) Anything that could not be verified (UI, network, prod-only paths).
+e) Remaining risks or known gaps.
+f) Test, lint, typecheck, and build results with exact counts.
+g) Next Git steps (branch name, how to review, merge command).
+Then, and only then, write the PR title and description.
