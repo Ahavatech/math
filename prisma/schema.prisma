@@ -1027,6 +1027,7 @@ model ReviewReminderLog {
   assignmentId String
   milestone    String
   sentAt       DateTime @default(now())
+  createdAt    DateTime @default(now())
 
   assignment ReviewAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
 

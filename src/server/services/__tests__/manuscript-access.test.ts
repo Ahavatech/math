@@ -150,7 +150,7 @@ describe("canDownloadAs", () => {
     const u = user(["REVIEWER"], { id: "reviewer-1" });
     const assignment: ReviewerAssignmentInput = { roundId: "round-1", status: "ACCEPTED" };
     const result = canDownloadAs(u, file({ roundNumber: 3 }), assignment, false);
-    expect(result).toEqual({ allowed: true, displayFilename: "manuscript-round-3.pdf", auditRequired: false });
+    expect(result).toEqual({ allowed: true, displayFilename: "manuscript-round-3.pdf", auditRequired: true });
   });
 
   it("denied access returns allowed: false with no filename", () => {

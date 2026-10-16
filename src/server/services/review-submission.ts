@@ -47,7 +47,7 @@ export async function saveDraftReview(
   assignmentId: string,
   data: DraftReviewData,
 ): Promise<void> {
-  const assignment = await getAssignmentForReviewer(db, user, assignmentId);
+  await getAssignmentForReviewer(db, user, assignmentId);
 
   const commentsToAuthorHtml = data.commentsToAuthor
     ? sanitizeRichText(data.commentsToAuthor)
