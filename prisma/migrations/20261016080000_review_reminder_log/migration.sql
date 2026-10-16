@@ -4,7 +4,6 @@ CREATE TABLE "ReviewReminderLog" (
     "assignmentId" TEXT NOT NULL,
     "milestone" TEXT NOT NULL,
     "sentAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "ReviewReminderLog_pkey" PRIMARY KEY ("id")
 );
