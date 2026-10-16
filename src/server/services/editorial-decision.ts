@@ -125,11 +125,9 @@ export async function recordDecision(
       },
     });
 
-    let newStatus: string;
     let eventType: "DECISION_RECORDED" | "REVISION_REQUESTED" = "DECISION_RECORDED";
 
     if (input.decision === "MINOR_REVISION" || input.decision === "MAJOR_REVISION") {
-      newStatus = "REVISION_REQUESTED";
       eventType = "REVISION_REQUESTED";
 
       // Create next round
@@ -155,14 +153,12 @@ export async function recordDecision(
         },
       });
     } else if (input.decision === "ACCEPT") {
-      newStatus = "ACCEPTED";
       await tx.manuscript.update({
         where: { id: manuscriptId },
         data: { status: "ACCEPTED" },
       });
     } else {
       // REJECT or DESK_REJECT
-      newStatus = "REJECTED";
       await tx.manuscript.update({
         where: { id: manuscriptId },
         data: { status: "REJECTED" },

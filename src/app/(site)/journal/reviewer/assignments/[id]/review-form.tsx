@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { saveDraftReviewAction, submitReviewAction } from "@/server/actions/review-submission";
 
 interface ReviewFormProps {
@@ -21,6 +22,7 @@ const RECOMMENDATIONS = [
 ];
 
 export function ReviewForm({ assignmentId, initialData, isSubmitted }: ReviewFormProps) {
+  const router = useRouter();
   const [recommendation, setRecommendation] = useState(initialData?.recommendation ?? "");
   const [commentsToAuthor, setCommentsToAuthor] = useState(initialData?.commentsToAuthor ?? "");
   const [commentsToEditor, setCommentsToEditor] = useState(initialData?.commentsToEditor ?? "");
@@ -54,7 +56,7 @@ export function ReviewForm({ assignmentId, initialData, isSubmitted }: ReviewFor
       if (result.error) {
         setSubmitError(result.error);
       } else {
-        window.location.href = "/journal/reviewer";
+        router.push("/journal/reviewer");
       }
     });
   }

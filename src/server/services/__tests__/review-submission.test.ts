@@ -143,7 +143,7 @@ describe.skipIf(db === null)("review-submission service", () => {
   });
 
   it("REVOKED assignment: reviewer cannot download any file", async () => {
-    const { ms, round, msFile, reviewer } = await setupReviewScenario(db!, runId);
+    const { ms, msFile, reviewer } = await setupReviewScenario(db!, runId);
     const reviewerUser = makeReviewer(reviewer.id, `rv-rs-${runId}@test.com`);
 
     // Revoke the assignment
@@ -157,7 +157,7 @@ describe.skipIf(db === null)("review-submission service", () => {
   });
 
   it("reviewer cannot download files from a different manuscript", async () => {
-    const { reviewer, reviewerUser } = await setupReviewScenario(db!, runId);
+    const { reviewerUser } = await setupReviewScenario(db!, runId);
 
     // Create a separate manuscript the reviewer is NOT assigned to
     const otherRun = randomUUID().slice(0, 8);

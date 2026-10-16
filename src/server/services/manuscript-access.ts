@@ -1,6 +1,6 @@
 import "server-only";
 import type { ManuscriptFileKind, ReviewAssignmentStatus } from "@prisma/client";
-import { hasRole, hasPermission, type SessionUser } from "@/lib/rbac";
+import { hasRole, type SessionUser } from "@/lib/rbac";
 
 export interface ManuscriptFileAccessInput {
   id: string;
