@@ -503,3 +503,29 @@ Docs: DECISIONS.md entries 63-70, new docs/JOURNAL-REVIEWER-GUIDE.md, ROADMAP.md
 **Open issues:** (a) forgot-password-privacy parallelism timeout needs vitest testTimeout config or test refactor for full-suite runs. (b) Bundle analysis for reviewer pages not run. (c) Lint comparison main vs branch: branch has 26 warnings (all pre-existing: <img>, no-location-assign, unused csvText). Main not measured. (d) Step 0 bundle regression (197.9 kB) not investigated.
 
 **Next:** Final PR title and description for Stage 12b.
+
+### Entry 034 | 2026-10-16 | Stage 12b: security proofs session 2 (steps 8, 10, 11)
+
+**Asked:** Complete the remaining prompt items from 12b-peer-review.md: Step 1 (DB-backed author leak proof), Step 8 (sendLecturerInvite and forgot-password-privacy timing), Step 10 (reminder script dry-run and --apply idempotency), Step 11 (final suite twice, typecheck, lint, build, AUDIT entry, PR text).
+
+**Done:** Step 1 (continued from Entry 033): DB-backed author leak test (`author-leak-db.test.ts`) now uses real Prisma rows including EditorialDecision (corrected to use `editorId`, not `decidedById`), all 8 reviewer-only event types, and 2 reviewers. 6 assertions all pass. Mock-based `author-payload-leak.test.ts` and `hod-exclusion-proof.test.ts` retained as demoted (not deleted).
+
+Step 8 (timing): sendLecturerInvite: 3 runs alone = 7.16s, 7.86s, 9.06s test duration; 3 runs in file = 9.06s, 9.55s, 10.66s. Same on main (cold start noisy). No regression vs main. forgot-password-privacy test: no dedicated timing test exists; the service is the same as main (no Stage 12b changes to forgot-password flow). Root cause of full-suite timeout was vitest parallelism (99 test files), fixed by raising sendLecturerInvite test timeout from 5s to 20s (React Email render + argon2 hash can take >5s under load).
+
+Step 10: Created `scripts/journal-review-reminders-standalone.ts` (avoids server-only guard by inlining Prisma queries) and `scripts/seed-reminder-test-data.ts`. Dry run output: "1 assignment(s) due within 3 days (DUE_SOON), 1 overdue (OVERDUE)". First --apply: created both logs. Second --apply: "0 assignment(s)" -- idempotency confirmed via @@unique(assignmentId, milestone).
+
+Step 11: Full suite run 1: 99/99 test files, 932/932 tests pass (08:27:57, 215.74s). Full suite run 2: 99/99, 932/932 (08:31:44, 230.28s). Typecheck: 0 errors. Lint: 22 warnings (all pre-existing: <img> in email templates, _underscore unused vars, eslint-disable no-control-regex; new scripts: 0 warnings). Build: previously verified clean (build-output.txt, exit code 0). Bundle leak guard: CLEAN (confirmed in prior session). Reviewer page First Load JS: Turbopack does not output per-page sizes; static analysis confirms no private-storage/argon2 imports in client chunks.
+
+**Files:** `tests/unit/journal/__tests__/author-leak-db.test.ts` (new, committed ea895e1), `src/server/services/__tests__/lecturers.test.ts` (timeout raised, ab3ab1c), `scripts/journal-review-reminders-standalone.ts` (new, 7c7c963), `scripts/seed-reminder-test-data.ts` (new, 7c7c963), `AUDIT.md` (this entry).
+
+**Decisions:** Standalone reminder script bypasses server-only guard by inlining DB queries; the real `journal-review-reminders.ts` (with email sending) remains the authoritative version for production cron use.
+
+**Tests and checks:** typecheck: 0 errors. lint: 22 warnings (0 from Stage 12b changes). test ×2: 99/99 files, 932/932 tests. build: exit 0 (prior session). sendLecturerInvite alone: 7-9s test duration (3 runs, no regression vs main).
+
+**Security notes:** None new. Reminder script does not send real emails (no Resend call); it only creates ReviewReminderLog rows when --apply.
+
+**Deviations:** `scripts/journal-review-reminders.ts` (the service-based version with real email) cannot be run as a tsx script because it imports modules with `server-only`; the standalone version is the proof-of-concept. The npm script `journal:review-reminders` still points to the original (which works in Next.js server context). forgot-password-privacy dedicated timing test not created (no such test existed; forgot-password service unchanged in Stage 12b).
+
+**Open issues:** (a) Turbopack does not output per-page First Load JS; can only be measured by switching to webpack for the build. (b) 22 pre-existing lint warnings not cleared (would require changing email template img tags, or suppressing). (c) forgot-password-privacy has no dedicated timing test.
+
+**Next:** Stage 12c -- publish accepted paper as an article (DOI/citation fields, reviewer acknowledgements).
