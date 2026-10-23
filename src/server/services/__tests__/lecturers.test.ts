@@ -223,7 +223,7 @@ describe.skipIf(db === null)("lecturers service", () => {
   });
 
   it("requestPublishing rejects an incomplete profile and succeeds once complete", async () => {
-    const { user, profile } = await createLecturer(db!, actorId, {
+    const { user, profile: _profile } = await createLecturer(db!, actorId, {
       fullName: "Completeness Test",
       honorific: "",
       rank: "LECTURER_I",

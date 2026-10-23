@@ -246,7 +246,7 @@ describe.skipIf(db === null)("author-facing services: no reviewer data leaked (D
   });
 
   it("non-submitter author is denied manuscript detail", async () => {
-    const other: SessionUser = { id: "other-user-id", roles: ["AUTHOR"], isActive: true };
+    const _other: SessionUser = { id: "other-user-id", roles: ["AUTHOR"], isActive: true };
     await expect(
       getAuthorManuscriptDetail(db!, "other-user-id", MS_ID),
     ).rejects.toThrow(/not found/i);
