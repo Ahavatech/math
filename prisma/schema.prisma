@@ -659,6 +659,7 @@ model AlumniProgramme {
   level          AlumniLevel
   entryYear      Int?
   graduationYear Int
+  createdAt      DateTime    @default(now())
 
   alumnus AlumniEntry @relation(fields: [alumnusId], references: [id], onDelete: Cascade)
 

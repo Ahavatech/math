@@ -7,6 +7,9 @@ if (db === null) {
   console.warn("[stats.test.ts] skipped: no reachable TEST_DATABASE_URL");
 }
 
+// Unique suffix per test run prevents collisions with leftover rows from crashed runs.
+const RUN = Date.now().toString(36);
+
 let createdUserIds: string[] = [];
 let createdLecturerIds: string[] = [];
 
@@ -27,18 +30,18 @@ describe.skipIf(db === null)("homepage stats", () => {
   it("computes staff automatically as published, non-emeritus lecturer profiles", async () => {
     const { getHomepageStats } = await import("../stats");
 
-    const user1 = await db!.user.create({ data: { email: "stats-l1@example.com", name: "L1" } });
-    const user2 = await db!.user.create({ data: { email: "stats-l2@example.com", name: "L2" } });
-    const user3 = await db!.user.create({ data: { email: "stats-l3@example.com", name: "L3" } });
+    const user1 = await db!.user.create({ data: { email: `stats-l1-${RUN}@example.com`, name: "L1" } });
+    const user2 = await db!.user.create({ data: { email: `stats-l2-${RUN}@example.com`, name: "L2" } });
+    const user3 = await db!.user.create({ data: { email: `stats-l3-${RUN}@example.com`, name: "L3" } });
     createdUserIds.push(user1.id, user2.id, user3.id);
 
     const l1 = await db!.lecturerProfile.create({
-      data: { userId: user1.id, slug: "l1", fullName: "L1", rank: "LECTURER_I", status: "PUBLISHED" },
+      data: { userId: user1.id, slug: `stats-l1-${RUN}`, fullName: "L1", rank: "LECTURER_I", status: "PUBLISHED" },
     });
     const l2 = await db!.lecturerProfile.create({
       data: {
         userId: user2.id,
-        slug: "l2",
+        slug: `stats-l2-${RUN}`,
         fullName: "L2",
         rank: "PROFESSOR",
         status: "PUBLISHED",
@@ -46,7 +49,7 @@ describe.skipIf(db === null)("homepage stats", () => {
       },
     });
     const l3 = await db!.lecturerProfile.create({
-      data: { userId: user3.id, slug: "l3", fullName: "L3", rank: "LECTURER_I", status: "DRAFT" },
+      data: { userId: user3.id, slug: `stats-l3-${RUN}`, fullName: "L3", rank: "LECTURER_I", status: "DRAFT" },
     });
     createdLecturerIds.push(l1.id, l2.id, l3.id);
 
@@ -58,17 +61,17 @@ describe.skipIf(db === null)("homepage stats", () => {
   it("excludes a published lecturer whose account has been deactivated", async () => {
     const { getHomepageStats } = await import("../stats");
 
-    const activeUser = await db!.user.create({ data: { email: "stats-active@example.com", name: "Active" } });
+    const activeUser = await db!.user.create({ data: { email: `stats-active-${RUN}@example.com`, name: "Active" } });
     const deactivatedUser = await db!.user.create({
-      data: { email: "stats-deactivated@example.com", name: "Deactivated", isActive: false },
+      data: { email: `stats-deact-${RUN}@example.com`, name: "Deactivated", isActive: false },
     });
     createdUserIds.push(activeUser.id, deactivatedUser.id);
 
     const active = await db!.lecturerProfile.create({
-      data: { userId: activeUser.id, slug: "stats-active", fullName: "Active", rank: "LECTURER_I", status: "PUBLISHED" },
+      data: { userId: activeUser.id, slug: `stats-active-${RUN}`, fullName: "Active", rank: "LECTURER_I", status: "PUBLISHED" },
     });
     const deactivated = await db!.lecturerProfile.create({
-      data: { userId: deactivatedUser.id, slug: "stats-deactivated", fullName: "Deactivated", rank: "LECTURER_I", status: "PUBLISHED" },
+      data: { userId: deactivatedUser.id, slug: `stats-deact-${RUN}`, fullName: "Deactivated", rank: "LECTURER_I", status: "PUBLISHED" },
     });
     createdLecturerIds.push(active.id, deactivated.id);
 

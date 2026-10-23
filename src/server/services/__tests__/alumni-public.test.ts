@@ -64,7 +64,7 @@ describe.skipIf(db === null)("alumni-public service", () => {
   });
 
   it("filters by diacritic-insensitive name search", async () => {
-    await createEntry({ status: "APPROVED", fullName: "Ọlá Adéṣọlá", graduationYear: 2018, dedupeKey: `search-test|2018` });
+    await createEntry({ status: "APPROVED", fullName: "Ọlá Adéṣọlá", dedupeKey: `search-test|2018` });
 
     const { entries } = await listApprovedAlumni(db!, { page: 1, perPage: 50, q: "Ola Adesola" });
     expect(entries.some((e) => e.fullName === "Ọlá Adéṣọlá")).toBe(true);

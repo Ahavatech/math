@@ -29,6 +29,7 @@ export async function listApprovedAlumni(
     year?: number;
     level?: "BSC" | "MSC" | "PHD";
     country?: string;
+    industry?: string;
     q?: string;
   },
 ) {
@@ -50,6 +51,7 @@ export async function listApprovedAlumni(
       consentPublicDisplay: true,
       ...(programmeFilter ? { programmes: programmeFilter } : {}),
       ...(options.country ? { country: options.country } : {}),
+      ...(options.industry ? { roleOrField: options.industry } : {}),
     };
 
     const all = await db.alumniEntry.findMany({
@@ -110,18 +112,21 @@ const SUGGESTION_SELECT = {
 } as const;
 
 /**
- * Returns up to 12 approved, consented alumni per graduation-year group that
- * overlaps with the given entry's programmes. Matching rules (per spec):
- * 1. Same programme level AND same graduation year, ordered by fullName asc.
- * 2. If fewer than 3 found, fill from any level for the same graduation year.
+ * Returns up to 12 approved, consented alumni per graduation-year group for
+ * each programme the given entry has. For each programme's graduation year Y,
+ * three groups are returned: Y-1 (set before), Y (own set), Y+1 (set after).
+ * Groups with zero entries are omitted.
+ *
+ * Matching rules per spec:
+ * 1. Primary: same programme level AND same graduation year, fullName asc.
+ * 2. If primary has fewer than 3, fill from any programme level for that year.
  * 3. Cap each group at 12, deterministic by fullName asc.
- * Groups are keyed by graduation year; for multi-programme entries, one group
- * per graduation year.
+ * Groups are keyed as "<level>-<graduationYear>".
  */
 export async function getPeopleYouMightKnow(
   db: PrismaClient,
   entryId: string,
-): Promise<Record<string, typeof SUGGESTION_SELECT extends object ? unknown[] : never>> {
+): Promise<Record<string, unknown[]>> {
   const entry = await db.alumniEntry.findUnique({
     where: { id: entryId },
     select: { programmes: { select: { level: true, graduationYear: true } } },
@@ -131,46 +136,53 @@ export async function getPeopleYouMightKnow(
   const result: Record<string, unknown[]> = {};
 
   for (const prog of entry.programmes) {
-    const key = `${prog.level}-${prog.graduationYear}`;
+    // Show set-before (Y-1), own set (Y), set-after (Y+1)
+    for (const yearOffset of [-1, 0, 1]) {
+      const year = prog.graduationYear + yearOffset;
+      const key = `${prog.level}-${year}`;
 
-    // Primary: same level + same graduation year
-    const primary = await db.alumniEntry.findMany({
-      where: {
-        status: "APPROVED",
-        consentPublicDisplay: true,
-        id: { not: entryId },
-        programmes: { some: { level: prog.level, graduationYear: prog.graduationYear } },
-      },
-      select: SUGGESTION_SELECT,
-      orderBy: { fullName: "asc" },
-      take: 12,
-    });
+      // Primary: same level + this year
+      const primary = await db.alumniEntry.findMany({
+        where: {
+          status: "APPROVED",
+          consentPublicDisplay: true,
+          id: { not: entryId },
+          programmes: { some: { level: prog.level, graduationYear: year } },
+        },
+        select: SUGGESTION_SELECT,
+        orderBy: { fullName: "asc" },
+        take: 12,
+      });
 
-    if (primary.length >= 3) {
-      result[key] = primary;
-      continue;
+      if (primary.length >= 3) {
+        result[key] = primary;
+        continue;
+      }
+
+      // Fill from any level for the same year
+      const existing = new Set(primary.map((e) => e.id));
+      const fill = await db.alumniEntry.findMany({
+        where: {
+          status: "APPROVED",
+          consentPublicDisplay: true,
+          id: { not: entryId },
+          programmes: { some: { graduationYear: year } },
+        },
+        select: SUGGESTION_SELECT,
+        orderBy: { fullName: "asc" },
+      });
+
+      const combined = [
+        ...primary,
+        ...fill.filter((e) => !existing.has(e.id)),
+      ].slice(0, 12);
+
+      // Omit empty groups
+      if (combined.length > 0) {
+        result[key] = combined;
+      }
     }
-
-    // Fill: any level, same graduation year
-    const existing = new Set(primary.map((e) => e.id));
-    const fill = await db.alumniEntry.findMany({
-      where: {
-        status: "APPROVED",
-        consentPublicDisplay: true,
-        id: { not: entryId },
-        programmes: { some: { graduationYear: prog.graduationYear } },
-      },
-      select: SUGGESTION_SELECT,
-      orderBy: { fullName: "asc" },
-    });
-
-    const combined = [
-      ...primary,
-      ...fill.filter((e) => !existing.has(e.id)),
-    ].slice(0, 12);
-
-    result[key] = combined;
   }
 
-  return result as Record<string, unknown[]>;
+  return result;
 }
