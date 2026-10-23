@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { saveDraftReview, submitReview } from "@/server/services/review-submission";
+import { setReviewerAcknowledgementOptIn } from "@/server/services/reviewer-dashboard";
 import { saveDraftReviewSchema, submitReviewSchema } from "@/lib/validators/review";
 import type { ReviewRecommendation } from "@prisma/client";
 
@@ -60,5 +61,17 @@ export async function submitReviewAction(formData: FormData): Promise<{ error?: 
     return {};
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Failed to submit review" };
+  }
+}
+
+export async function setAcknowledgementOptInAction(optIn: boolean): Promise<{ error?: string }> {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  try {
+    await setReviewerAcknowledgementOptIn(db, { id: user.id, roles: user.roles, isActive: user.isActive ?? true }, optIn);
+    revalidatePath("/journal/reviewer");
+    return {};
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Failed to update preference" };
   }
 }

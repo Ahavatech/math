@@ -5,7 +5,8 @@ import { hasRole } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
-import { getReviewerAssignments } from "@/server/services/reviewer-dashboard";
+import { getReviewerAssignments, getReviewerAcknowledgementOptIn } from "@/server/services/reviewer-dashboard";
+import { AcknowledgementToggle } from "./acknowledgement-toggle";
 
 export function generateMetadata() {
   return { title: "Reviewer Dashboard" };
@@ -30,12 +31,16 @@ export default async function ReviewerDashboardPage() {
     redirect("/journal/dashboard");
   }
 
-  const assignments = await getReviewerAssignments(db, user);
+  const [assignments, optIn] = await Promise.all([
+    getReviewerAssignments(db, user),
+    getReviewerAcknowledgementOptIn(db, user),
+  ]);
 
   return (
     <Section>
       <Container>
         <h1 className="text-2xl font-bold mb-6">Reviewer dashboard</h1>
+        <AcknowledgementToggle initialOptIn={optIn} />
         {assignments.length === 0 ? (
           <p className="text-muted-foreground">You have no active review assignments.</p>
         ) : (
