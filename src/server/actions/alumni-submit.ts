@@ -8,6 +8,7 @@ import { alumniSubmissionSchema } from "@/lib/validators/alumni";
 import { validateAlumniLinkToken, consumeAlumniLinkOnSubmit } from "@/server/services/alumni-links";
 import { registerPendingAlumniPhoto } from "@/server/services/alumni-photos";
 import { submitAlumniEntry } from "@/server/services/alumni-entries";
+import { createConfirmToken } from "@/lib/alumni-confirm-token";
 import {
   checkHoneypot,
   verifyMinFillTime,
@@ -16,15 +17,13 @@ import {
   alumniLinkRateLimiter,
 } from "@/server/services/alumni-spam";
 
-type ActionResult = { error?: string; success?: boolean };
+type ActionResult = { error?: string; success?: boolean; confirmToken?: string; entryId?: string };
 
 /**
- * Handles the public, no-session alumni submission form. Returns a
- * single generic success message regardless of whether a duplicate
- * was detected, and never reveals which specific check failed beyond
- * a generic "could not submit" message - this is the one server
- * action in the app that runs against unauthenticated, anonymous
- * internet traffic, so every failure path is deliberately vague.
+ * Handles the public alumni submission form. Returns a single generic
+ * success message regardless of whether a duplicate was detected.
+ * On success, returns a short-lived HMAC confirmation token so the
+ * confirmation page can show "people you might know".
  */
 export async function submitAlumniEntryAction(
   token: string,
@@ -57,18 +56,31 @@ export async function submitAlumniEntryAction(
     return { error: "Could not submit. Please try again." };
   }
 
+  // Parse multi-programme data from form fields
+  // programmes[0][level], programmes[0][graduationYear], programmes[0][entryYear], etc.
+  const programmesRaw: { level: string; graduationYear: number; entryYear?: number }[] = [];
+  let i = 0;
+  while (formData.get(`programmes[${i}][level]`)) {
+    const level = String(formData.get(`programmes[${i}][level]`));
+    const graduationYear = Number(formData.get(`programmes[${i}][graduationYear]`));
+    const entryYearRaw = formData.get(`programmes[${i}][entryYear]`);
+    const entryYear = entryYearRaw ? Number(entryYearRaw) : undefined;
+    programmesRaw.push({ level, graduationYear, entryYear });
+    i++;
+  }
+
   const parsed = alumniSubmissionSchema.safeParse({
     fullName: formData.get("fullName"),
     email: formData.get("email"),
-    level: formData.get("level"),
-    graduationYear: Number(formData.get("graduationYear")),
+    programmes: programmesRaw,
     organisation: formData.get("organisation") ?? "",
-    roleTitle: formData.get("roleTitle") ?? "",
+    roleOrField: formData.get("roleOrField") ?? "",
     city: formData.get("city") ?? "",
     country: formData.get("country") ?? "",
+    note: formData.get("note") ?? "",
     industry: formData.get("industry") ?? "",
     linkedinUrl: formData.get("linkedinUrl") ?? "",
-    consent: formData.get("consent") === "on" || formData.get("consent") === "true",
+    consentPublicDisplay: formData.get("consentPublicDisplay") === "on" || formData.get("consentPublicDisplay") === "true",
     honeypot: formData.get("website") ?? "",
     formToken,
     formRenderedAt,
@@ -78,8 +90,7 @@ export async function submitAlumniEntryAction(
     return { error: parsed.error.issues[0]?.message ?? "Please check the form and try again." };
   }
 
-  const isDuplicate = await checkRecentDuplicateSubmission(db, parsed.data.email, parsed.data.graduationYear);
-  void isDuplicate; // not revealed to the submitter; the admin's dedupeKey flag is the review-side signal
+  void (await checkRecentDuplicateSubmission(db, parsed.data.email)); // side-effect handled inside submitAlumniEntry
 
   const publicId = formData.get("photoPublicId");
   let photoMediaId: string | null = null;
@@ -93,23 +104,26 @@ export async function submitAlumniEntryAction(
     return { error: "This link is no longer valid. Please contact the department." };
   }
 
-  await submitAlumniEntry(db, {
+  const entry = await submitAlumniEntry(db, {
     linkId: validation.link.id,
     data: {
       fullName: parsed.data.fullName,
       email: parsed.data.email,
-      level: parsed.data.level,
-      graduationYear: parsed.data.graduationYear,
+      programmes: parsed.data.programmes,
       organisation: parsed.data.organisation,
-      roleTitle: parsed.data.roleTitle,
+      roleOrField: parsed.data.roleOrField,
       city: parsed.data.city,
       country: parsed.data.country,
+      note: parsed.data.note,
       industry: parsed.data.industry,
       linkedinUrl: parsed.data.linkedinUrl,
     },
     photoMediaId,
+    consentPublicDisplay: parsed.data.consentPublicDisplay,
   });
 
+  const confirmToken = await createConfirmToken(entry.id, env.AUTH_SECRET);
+
   revalidatePath("/admin/alumni");
-  return { success: true };
+  return { success: true, confirmToken, entryId: entry.id };
 }

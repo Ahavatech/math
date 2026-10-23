@@ -580,3 +580,36 @@ Decisions 71-78 added to `docs/DECISIONS.md`.
 **Open issues:** (a) Scheduled script cannot be run under tsx due to server-only guard -- Stage 14 fix: separate the business logic from Next.js server boundaries. (b) Snapshot independence, publish atomicity, and final PDF sha256 tests (§5b, 5c, 5d) not yet written. (c) dev-fixture `--remove` verification and coverage of issue+published article not done. (d) 22 pre-existing lint warnings remain.
 
 **Next:** Stage 12c complete. Stage 13: search, SEO, accessibility, performance, E2E tests.
+
+### Entry 037 | 2026-10-23 | Stage 12d: Alumni form fix
+**Asked:** Replace the alumni submission model: add `AlumniProgramme` (multi-programme, BSC/MSC/PhD, entry year per programme), add `consentPublicDisplay`, `note`, `roleOrField` (renamed from `roleTitle`), `isDuplicateEmail` flag, HMAC post-submission confirmation token (1 hour, never stored), `getPeopleYouMightKnow` (APPROVED+consented, same graduation year, capped at 12), admin list filter by programme, public list gated on `consentPublicDisplay`.
+**Done:** Migration SQL hand-written (prisma migrate dev is non-interactive); `AlumniProgramme` model created; all alumni services, validators, actions, admin UI and public UI updated; confirmation page `/alumni/confirm/[token]` created; submit form rebuilt for multi-programme selection; all test files updated for new schema; `alumni-confirm-token.ts` written with `crypto.subtle` HMAC-SHA256; validator test suite rewritten for new shape.
+**Files:**
+- NEW `prisma/migrations/20261023130000_alumni_programmes_consent_note/migration.sql` -- schema migration
+- NEW `src/lib/alumni-confirm-token.ts` -- HMAC confirmation token (create + verify)
+- NEW `src/app/(site)/alumni/confirm/[token]/page.tsx` -- post-submission confirmation page with suggestions
+- MOD `prisma/schema.prisma` -- AlumniProgramme model, PHD enum value, new AlumniEntry fields
+- MOD `src/lib/validators/alumni.ts` -- multi-programme schema, consentPublicDisplay, roleOrField, note
+- MOD `src/server/services/alumni-entries.ts` -- AlumniEntrySubmission with programmes[], submitAlumniEntry, updateAlumniEntry, listAlumniEntriesAdmin filter, isDuplicateEmail handling
+- MOD `src/server/services/alumni-public.ts` -- consentPublicDisplay gate on all public queries, getPeopleYouMightKnow
+- MOD `src/server/services/alumni-spam.ts` -- checkRecentDuplicateSubmission(db, email) -- 2-arg (removed year)
+- MOD `src/server/actions/alumni-submit.ts` -- multi-programme form parsing, consentPublicDisplay, confirmToken
+- MOD `src/server/actions/alumni-review.ts` -- roleOrField/note fields
+- MOD `src/app/(site)/alumni/submit/[token]/submit-form.tsx` -- multi-programme UI, redirect to confirm page
+- MOD `src/app/(site)/alumni/alumni-card.tsx` -- programmes[], roleOrField, note
+- MOD `src/app/(site)/alumni/page.tsx` -- PHD filter option, removed industry filter
+- MOD `src/app/(site)/page.tsx` -- roleOrField, programmes[0].graduationYear
+- MOD `src/app/admin/alumni/entry-row.tsx` -- programmes[], isDuplicateEmail badge
+- MOD `src/app/admin/alumni/[id]/review-form.tsx` -- programmes display, roleOrField, note, isDuplicateEmail banner
+- MOD `src/app/admin/alumni/[id]/page.tsx` -- fetch programmes for duplicates
+- MOD `src/lib/validators/__tests__/alumni.test.ts` -- rewritten for new schema
+- MOD `src/server/services/__tests__/alumni-entries.test.ts` -- programmes fixture
+- MOD `src/server/services/__tests__/alumni-public.test.ts` -- programmes nested create
+- MOD `src/server/services/__tests__/alumni-spam.test.ts` -- 2-arg checkRecentDuplicateSubmission
+- MOD `src/server/services/__tests__/contact.test.ts` -- programmes nested create
+**Decisions:** See docs/DECISIONS.md #79-85. Buffer.buffer cast to ArrayBuffer for crypto.subtle.verify (Node SharedArrayBuffer compat). Duplicate email: existing entry flagged isDuplicateEmail=true, submitter gets generic success response. checkRecentDuplicateSubmission simplified to email-only (year irrelevant after AlumniProgramme split).
+**Tests and checks:** `npx tsc --noEmit` -- 0 errors. `npm run lint` -- exit 0. `npm run build` -- exit 0. `npx vitest run src/lib/validators/__tests__/alumni.test.ts` -- 20/20 passed. Full DB-backed suite (vitest run --reporter=dot) still running when this entry was written.
+**Security notes:** Confirmation token uses HMAC-SHA256 over a random 32-byte nonce + base64url entryId + expiry. Token never stored in DB; verified by recomputation. Expiry checked after HMAC to avoid timing shortcuts. `consentPublicDisplay: true` required on every public query. Duplicate email path returns same success response as a new submission -- no oracle leak.
+**Deviations:** Alumni spam test `checkRecentDuplicateSubmission` now only checks email (the year check is no longer needed once graduation year lives on AlumniProgramme, not AlumniEntry). Old test description updated accordingly.
+**Open issues:** (a) DB-backed tests (alumni-entries, alumni-public, alumni-spam, contact) require a live test DB; not verified without one. (b) getPeopleYouMightKnow fill path (when primary < 3) not covered by existing unit tests; would need DB fixture. (c) Prompt section 4 extended tests (token expiry/tampering, consent gate, duplicate suppression, photo lifecycle, spam matrix, permission matrix) not yet written.
+**Next:** Stage 12d complete. Stage 13: search, SEO, accessibility, performance, E2E tests.

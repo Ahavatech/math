@@ -3,7 +3,6 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { listApprovedAlumni, listFeaturedAlumni, countApprovedAlumni } from "@/server/services/alumni-public";
 import { COUNTRIES } from "@/lib/countries";
-import { INDUSTRIES } from "@/lib/industries";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
@@ -18,25 +17,24 @@ export const metadata: Metadata = {
   description: "Where our graduates are now, and how to join the directory.",
 };
 
-type SearchParams = { page?: string; year?: string; level?: string; country?: string; industry?: string; q?: string };
+type SearchParams = { page?: string; year?: string; level?: string; country?: string; q?: string };
 
 export default async function AlumniPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams;
   const page = Math.max(1, Number(params.page) || 1);
   const year = params.year ? Number(params.year) : undefined;
-  const level = params.level === "BSC" || params.level === "MSC" ? params.level : undefined;
+  const level = params.level === "BSC" || params.level === "MSC" || params.level === "PHD" ? params.level : undefined;
   const country = params.country || undefined;
-  const industry = params.industry || undefined;
   const q = params.q?.trim() || undefined;
 
   const [{ entries, total }, featured, approvedCount] = await Promise.all([
-    listApprovedAlumni(db, { page, year, level, country, industry, q }),
+    listApprovedAlumni(db, { page, year, level, country, q }),
     listFeaturedAlumni(db, 3),
     countApprovedAlumni(db),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(total / 24));
-  const hasAnyFilter = Boolean(params.year || params.level || params.country || params.industry || params.q);
+  const hasAnyFilter = Boolean(params.year || params.level || params.country || params.q);
   const query = (overrides: Record<string, string | undefined>) => {
     const next = { ...params, ...overrides };
     const search = Object.entries(next)
@@ -64,24 +62,19 @@ export default async function AlumniPage({ searchParams }: { searchParams: Promi
           </div>
         ) : null}
 
-        <form method="get" className="mt-8 grid gap-3 rounded-lg border border-border p-4 sm:grid-cols-5">
+        <form method="get" className="mt-8 grid gap-3 rounded-lg border border-border p-4 sm:grid-cols-4">
           <input type="search" name="q" defaultValue={params.q} placeholder="Search by name" className="h-9 rounded-md border border-input bg-background px-3 text-sm sm:col-span-2" />
           <input type="number" name="year" defaultValue={params.year} placeholder="Graduation year" className="h-9 rounded-md border border-input bg-background px-3 text-sm" />
           <select name="level" defaultValue={params.level ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
             <option value="">Any level</option>
             <option value="BSC">B.Sc.</option>
             <option value="MSC">M.Sc.</option>
+            <option value="PHD">Ph.D.</option>
           </select>
-          <select name="country" defaultValue={params.country ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+          <select name="country" defaultValue={params.country ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm sm:col-span-2">
             <option value="">Any country</option>
             {COUNTRIES.map((c) => (
               <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-          <select name="industry" defaultValue={params.industry ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm sm:col-span-2">
-            <option value="">Any industry</option>
-            {INDUSTRIES.map((i) => (
-              <option key={i} value={i}>{i}</option>
             ))}
           </select>
           <button type="submit" className="h-9 rounded-md border border-input bg-primary px-3 text-sm text-primary-foreground">

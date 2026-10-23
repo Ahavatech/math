@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState, useTransition } from "react";
-import type { AlumniEntry } from "@prisma/client";
+import type { AlumniEntry, AlumniProgramme } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,16 @@ import {
   markDuplicateAction,
 } from "@/server/actions/alumni-review";
 
-type EntryWithPhoto = AlumniEntry & { photoUrl: string | null };
+type EntryWithPhoto = AlumniEntry & {
+  photoUrl: string | null;
+  programmes: AlumniProgramme[];
+};
+
+function levelLabel(level: string) {
+  if (level === "BSC") return "B.Sc.";
+  if (level === "MSC") return "M.Sc.";
+  return "Ph.D.";
+}
 
 export function ReviewForm({
   entry,
@@ -25,7 +34,7 @@ export function ReviewForm({
   canErase,
 }: {
   entry: EntryWithPhoto;
-  duplicates: AlumniEntry[];
+  duplicates: (AlumniEntry & { programmes: AlumniProgramme[] })[];
   canErase: boolean;
 }) {
   const [updateState, updateAction, updatePending] = useActionState(updateAlumniEntryAction, undefined);
@@ -51,8 +60,21 @@ export function ReviewForm({
       {entry.photoUrl ? (
         <div className="space-y-1">
           <Label>Photo</Label>
-          {/* eslint-disable-next-line @next/next/no-img-element -- internal protected route, next/image's remote-host allowlist does not apply to this same-origin path */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={entry.photoUrl} alt={`Photo of ${entry.fullName}`} className="h-40 w-40 rounded-md border border-border object-cover" />
+        </div>
+      ) : null}
+
+      {entry.programmes.length > 0 ? (
+        <div className="space-y-1">
+          <Label>Programmes</Label>
+          <ul className="space-y-1 text-sm">
+            {entry.programmes.map((p) => (
+              <li key={p.id} className="text-muted-foreground">
+                {levelLabel(p.level)} &mdash; {p.entryYear ? `${p.entryYear} to ` : ""}{p.graduationYear}
+              </li>
+            ))}
+          </ul>
         </div>
       ) : null}
 
@@ -64,27 +86,16 @@ export function ReviewForm({
             <Input id="fullName" name="fullName" defaultValue={entry.fullName} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="email">Email (private, never shown publicly)</Label>
+            <Label htmlFor="email">Email (private)</Label>
             <Input id="email" name="email" type="email" defaultValue={entry.email} />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="level">Level</Label>
-            <select id="level" name="level" defaultValue={entry.level} className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm">
-              <option value="BSC">B.Sc.</option>
-              <option value="MSC">M.Sc.</option>
-            </select>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="graduationYear">Graduation year</Label>
-            <Input id="graduationYear" name="graduationYear" type="number" defaultValue={entry.graduationYear} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="organisation">Organisation</Label>
             <Input id="organisation" name="organisation" defaultValue={entry.organisation ?? ""} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="roleTitle">Role or title</Label>
-            <Input id="roleTitle" name="roleTitle" defaultValue={entry.roleTitle ?? ""} />
+            <Label htmlFor="roleOrField">Role or field</Label>
+            <Input id="roleOrField" name="roleOrField" defaultValue={entry.roleOrField ?? ""} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="city">City</Label>
@@ -98,6 +109,10 @@ export function ReviewForm({
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
+          </div>
+          <div className="space-y-1.5 col-span-2">
+            <Label htmlFor="note">Note (one line, optional)</Label>
+            <Input id="note" name="note" maxLength={200} defaultValue={entry.note ?? ""} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="industry">Industry</Label>
@@ -121,6 +136,11 @@ export function ReviewForm({
 
       <div className="space-y-3 border-t border-border pt-6">
         <p className="text-sm font-medium">Status: {entry.status}</p>
+        {entry.isDuplicateEmail ? (
+          <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700 border border-amber-200">
+            Duplicate email detected -- another entry with this email address has been submitted.
+          </p>
+        ) : null}
 
         {entry.status === "PENDING" && duplicates.length > 0 ? (
           <div className="space-y-2 rounded-md border border-border p-3">
@@ -131,7 +151,9 @@ export function ReviewForm({
               className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
             >
               {duplicates.map((d) => (
-                <option key={d.id} value={d.id}>{d.fullName} ({d.graduationYear}, {d.status})</option>
+                <option key={d.id} value={d.id}>
+                  {d.fullName} ({d.programmes[0]?.graduationYear ?? "?"}, {d.status})
+                </option>
               ))}
             </select>
             <select
@@ -167,7 +189,7 @@ export function ReviewForm({
 
         {entry.status === "PENDING" ? (
           <div className="space-y-2">
-            <Label htmlFor="rejectReason">Reason for rejection (stored, never emailed, never public)</Label>
+            <Label htmlFor="rejectReason">Reason for rejection (stored, never public)</Label>
             <textarea
               id="rejectReason"
               value={rejectReason}

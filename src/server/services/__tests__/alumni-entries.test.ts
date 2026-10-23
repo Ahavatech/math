@@ -53,24 +53,23 @@ describe.skipIf(db === null)("alumni-entries service", () => {
     }
   });
 
-  function fields(overrides: Record<string, unknown> = {}) {
+  function fields(overrides: Record<string, unknown> = {}): import("../alumni-entries").AlumniEntrySubmission {
     return {
       fullName: "Test Alumnus",
       email: "test-alumnus@example.com",
-      level: "BSC" as const,
-      graduationYear: 2012,
+      programmes: [{ level: "BSC", graduationYear: 2012 }],
       organisation: "Acme",
-      roleTitle: "Engineer",
+      roleOrField: "Engineer",
       city: "Ife",
       country: "Nigeria",
       industry: "Information technology",
       linkedinUrl: "",
-      ...overrides,
+      ...(overrides as Partial<import("../alumni-entries").AlumniEntrySubmission>),
     };
   }
 
   async function submit(overrides: Record<string, unknown> = {}) {
-    const entry = await submitAlumniEntry(db!, { linkId: null, data: fields(overrides), photoMediaId: null });
+    const entry = await submitAlumniEntry(db!, { linkId: null, data: fields(overrides), photoMediaId: null, consentPublicDisplay: true });
     createdIds.push(entry.id);
     return entry;
   }

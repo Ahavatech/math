@@ -1,17 +1,33 @@
 import Link from "next/link";
-import type { AlumniEntry, MediaAsset } from "@prisma/client";
+import type { MediaAsset } from "@prisma/client";
 import { CloudImage } from "@/components/ui/cloud-image";
 import { Card, CardContent } from "@/components/ui/card";
 import { alumniPublicReference } from "@/lib/alumni-reference";
 
-type PublicAlumniEntry = Pick<
-  AlumniEntry,
-  "id" | "fullName" | "level" | "graduationYear" | "organisation" | "roleTitle" | "city" | "country" | "linkedinUrl"
-> & { photo: Pick<MediaAsset, "id" | "url" | "alt"> | null };
+type Programme = { level: "BSC" | "MSC" | "PHD"; graduationYear: number };
+
+export type PublicAlumniEntry = {
+  id: string;
+  fullName: string;
+  organisation: string | null;
+  roleOrField: string | null;
+  city: string | null;
+  country: string | null;
+  note: string | null;
+  programmes: Programme[];
+  photo: Pick<MediaAsset, "id" | "url" | "alt"> | null;
+};
+
+function levelLabel(level: "BSC" | "MSC" | "PHD"): string {
+  if (level === "BSC") return "B.Sc.";
+  if (level === "MSC") return "M.Sc.";
+  return "Ph.D.";
+}
 
 export function AlumniCard({ entry }: { entry: PublicAlumniEntry }) {
   const location = [entry.city, entry.country].filter(Boolean).join(", ");
   const ref = alumniPublicReference(entry.id);
+  const primaryProg = entry.programmes[0];
 
   return (
     <Card className="h-full py-4">
@@ -28,22 +44,20 @@ export function AlumniCard({ entry }: { entry: PublicAlumniEntry }) {
           </div>
         ) : null}
         <h3 className="font-heading font-semibold">{entry.fullName}</h3>
-        <p className="text-xs text-muted-foreground">
-          {entry.level === "BSC" ? "B.Sc." : "M.Sc."}, Class of {entry.graduationYear}
-        </p>
-        {entry.roleTitle || entry.organisation ? (
+        {primaryProg ? (
+          <p className="text-xs text-muted-foreground">
+            {levelLabel(primaryProg.level)}, Class of {primaryProg.graduationYear}
+          </p>
+        ) : null}
+        {entry.roleOrField || entry.organisation ? (
           <p className="text-sm text-muted-foreground">
-            {entry.roleTitle ? `${entry.roleTitle}` : ""}
-            {entry.roleTitle && entry.organisation ? " at " : ""}
+            {entry.roleOrField ? `${entry.roleOrField}` : ""}
+            {entry.roleOrField && entry.organisation ? " at " : ""}
             {entry.organisation ?? ""}
           </p>
         ) : null}
+        {entry.note ? <p className="text-xs text-muted-foreground italic">{entry.note}</p> : null}
         {location ? <p className="text-xs text-muted-foreground">{location}</p> : null}
-        {entry.linkedinUrl ? (
-          <a href={entry.linkedinUrl} target="_blank" rel="noopener noreferrer" className="block text-sm text-primary underline">
-            LinkedIn
-          </a>
-        ) : null}
         <Link href={`/contact?type=ALUMNI&ref=${ref}`} className="block text-xs text-muted-foreground underline">
           Request correction or removal
         </Link>

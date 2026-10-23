@@ -19,15 +19,16 @@ describe.skipIf(db === null)("alumni-public service", () => {
       data: {
         fullName: "Public Test Person",
         email: "public-test@example.com",
-        level: "BSC",
-        graduationYear: 2015,
         country: "Nigeria",
         consentAt: new Date(),
         consentVersion: "v1",
         dedupeKey: `public test person ${Math.random()}|2015`,
         status: "PENDING",
+        consentPublicDisplay: true,
+        programmes: { create: [{ level: "BSC", graduationYear: 2015 }] },
         ...overrides,
-      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
     });
     createdIds.push(entry.id);
     return entry;

@@ -3,7 +3,7 @@ import type { AlumniEntry, AlumniStatus, Prisma, PrismaClient } from "@prisma/cl
 import { computeDedupeKey } from "@/lib/alumni-dedupe";
 import { ALUMNI_CONSENT_VERSION } from "@/lib/alumni-consent";
 import { alumniPublicReference } from "@/lib/alumni-reference";
-import { alumniEditableFieldsSchema } from "@/lib/validators/alumni";
+import { alumniEditableFieldsSchema, type AlumniProgrammeInput } from "@/lib/validators/alumni";
 import { deleteAlumniPhoto } from "./alumni-photos";
 import { logAction, type AuditRequestContext } from "./audit";
 
@@ -12,12 +12,12 @@ type Db = PrismaClient | Prisma.TransactionClient;
 export type AlumniEntrySubmission = {
   fullName: string;
   email: string;
-  level: "BSC" | "MSC";
-  graduationYear: number;
+  programmes: AlumniProgrammeInput[];
   organisation?: string;
-  roleTitle?: string;
+  roleOrField?: string;
   city?: string;
   country?: string;
+  note?: string;
   industry?: string;
   linkedinUrl?: string;
 };
@@ -31,20 +31,37 @@ export class IllegalTransitionError extends Error {
 
 export async function submitAlumniEntry(
   db: Db,
-  params: { linkId: string | null; data: AlumniEntrySubmission; photoMediaId: string | null },
+  params: { linkId: string | null; data: AlumniEntrySubmission; photoMediaId: string | null; consentPublicDisplay: boolean },
 ): Promise<AlumniEntry> {
-  const dedupeKey = computeDedupeKey(params.data.fullName, params.data.graduationYear);
+  const normalizedEmail = params.data.email.trim().toLowerCase();
 
-  return db.alumniEntry.create({
+  // Check for duplicate email — any status, any programme
+  const existing = await db.alumniEntry.findFirst({
+    where: { email: normalizedEmail },
+    select: { id: true },
+  });
+
+  if (existing) {
+    // Flag on the first matching entry for admin visibility
+    await db.alumniEntry.update({
+      where: { id: existing.id },
+      data: { isDuplicateEmail: true },
+    });
+    // Return the existing entry without creating a new one
+    return db.alumniEntry.findUniqueOrThrow({ where: { id: existing.id } });
+  }
+
+  const dedupeKey = computeDedupeKey(params.data.fullName, params.data.programmes[0]?.graduationYear ?? 0);
+
+  const entry = await db.alumniEntry.create({
     data: {
       fullName: params.data.fullName,
-      email: params.data.email,
-      level: params.data.level,
-      graduationYear: params.data.graduationYear,
+      email: normalizedEmail,
       organisation: params.data.organisation || null,
-      roleTitle: params.data.roleTitle || null,
+      roleOrField: params.data.roleOrField || null,
       city: params.data.city || null,
       country: params.data.country || null,
+      note: params.data.note || null,
       industry: params.data.industry || null,
       linkedinUrl: params.data.linkedinUrl || null,
       photoId: params.photoMediaId,
@@ -52,9 +69,21 @@ export async function submitAlumniEntry(
       dedupeKey,
       consentAt: new Date(),
       consentVersion: ALUMNI_CONSENT_VERSION,
+      consentPublicDisplay: params.consentPublicDisplay,
       status: "PENDING",
     },
   });
+
+  await db.alumniProgramme.createMany({
+    data: params.data.programmes.map((p) => ({
+      alumnusId: entry.id,
+      level: p.level,
+      entryYear: p.entryYear ?? null,
+      graduationYear: p.graduationYear,
+    })),
+  });
+
+  return entry;
 }
 
 /** Flagging aid only, never an automatic merge: PENDING or APPROVED entries sharing a dedupeKey. */
@@ -73,11 +102,7 @@ export async function findPossibleDuplicates(
 }
 
 /**
- * Resolves an opaque public reference (see src/lib/alumni-reference.ts)
- * back to its entry, for the admin side of a contact-form removal
- * request. The hash is non-reversible by design, so this recomputes it
- * for every row rather than looking it up directly - acceptable at
- * this table's size, and it never runs on a public-facing path.
+ * Resolves an opaque public reference back to its entry.
  */
 export async function findAlumniEntryByReference(db: PrismaClient, ref: string): Promise<AlumniEntry | null> {
   const entries = await db.alumniEntry.findMany({ select: { id: true } });
@@ -87,16 +112,16 @@ export async function findAlumniEntryByReference(db: PrismaClient, ref: string):
 }
 
 /**
- * Full admin detail view for one entry, with a `photoUrl` field that is
- * either the internal protected-route path (while the photo is still
- * `authenticated`, i.e. the entry hasn't been approved yet) or the
- * real public Cloudinary URL once it is `upload` (approved). The raw
- * Cloudinary URL is never exposed for a pending photo.
+ * Full admin detail view for one entry, with programmes included.
  */
 export async function getAlumniEntryAdmin(db: PrismaClient, id: string) {
   const entry = await db.alumniEntry.findUniqueOrThrow({
     where: { id },
-    include: { photo: true, link: { select: { id: true, label: true } } },
+    include: {
+      photo: true,
+      link: { select: { id: true, label: true } },
+      programmes: { orderBy: { graduationYear: "asc" } },
+    },
   });
 
   const photoUrl = entry.photo
@@ -105,18 +130,35 @@ export async function getAlumniEntryAdmin(db: PrismaClient, id: string) {
       : `/api/alumni-photo/${entry.id}`
     : null;
 
-  // Never expose the raw `photo` relation (its `url` is a live Cloudinary
-  // URL, even for a pending/authenticated asset) - only the computed,
-  // always-safe `photoUrl` above.
   const { photo: _photo, ...rest } = entry;
   return { ...rest, photoUrl };
 }
 
-export async function listAlumniEntriesAdmin(db: PrismaClient, status: AlumniStatus) {
+export async function listAlumniEntriesAdmin(
+  db: PrismaClient,
+  status: AlumniStatus,
+  filters?: { level?: "BSC" | "MSC" | "PHD"; graduationYear?: number },
+) {
+  const programmeFilter = filters?.level || filters?.graduationYear
+    ? {
+        some: {
+          ...(filters.level ? { level: filters.level } : {}),
+          ...(filters.graduationYear ? { graduationYear: filters.graduationYear } : {}),
+        },
+      }
+    : undefined;
+
   return db.alumniEntry.findMany({
-    where: { status },
+    where: {
+      status,
+      ...(programmeFilter ? { programmes: programmeFilter } : {}),
+    },
     orderBy: { createdAt: status === "PENDING" ? "asc" : "desc" },
-    include: { photo: true, link: { select: { id: true, label: true } } },
+    include: {
+      photo: true,
+      link: { select: { id: true, label: true } },
+      programmes: { orderBy: { graduationYear: "asc" } },
+    },
   });
 }
 
@@ -279,7 +321,6 @@ export async function markDuplicate(
     await rejectAlumniEntry(db, id, "Marked as duplicate", actorId, context);
     return;
   }
-  // replace: the existing entry is withdrawn, the new one is approved.
   await withdrawAlumniEntry(db, existingId, actorId, context);
   await approveAlumniEntry(db, id, actorId, {}, context);
 }
@@ -309,13 +350,8 @@ export async function bulkApprove(
 }
 
 /**
- * An admin edit is held to exactly the same validation as the public
- * submission form - same length caps, plain-text-only check, and the
- * https/linkedin.com-only rule for `linkedinUrl` - since this value
- * later renders directly into an `<a href>` on the public alumni card.
- * Without this, an `alumni.review` account (not necessarily HOD/SUPER_ADMIN)
- * could save a `javascript:` URL or control characters that the public
- * submission form would have rejected outright.
+ * Admin edit is held to the same validation as the public submission form.
+ * Programmes are replaced wholesale; pass the full list.
  */
 export async function updateAlumniEntry(
   db: Db,
@@ -324,16 +360,24 @@ export async function updateAlumniEntry(
   actorId: string,
   context?: AuditRequestContext,
 ): Promise<AlumniEntry> {
-  const existing = await db.alumniEntry.findUniqueOrThrow({ where: { id } });
+  const existing = await db.alumniEntry.findUniqueOrThrow({
+    where: { id },
+    include: { programmes: true },
+  });
+
   const parsed = alumniEditableFieldsSchema.parse({
     fullName: fields.fullName ?? existing.fullName,
     email: fields.email ?? existing.email,
-    level: fields.level ?? existing.level,
-    graduationYear: fields.graduationYear ?? existing.graduationYear,
+    programmes: fields.programmes ?? existing.programmes.map((p) => ({
+      level: p.level,
+      entryYear: p.entryYear ?? undefined,
+      graduationYear: p.graduationYear,
+    })),
     organisation: fields.organisation ?? existing.organisation ?? "",
-    roleTitle: fields.roleTitle ?? existing.roleTitle ?? "",
+    roleOrField: fields.roleOrField ?? existing.roleOrField ?? "",
     city: fields.city ?? existing.city ?? "",
     country: fields.country ?? existing.country ?? "",
+    note: fields.note ?? existing.note ?? "",
     industry: fields.industry ?? existing.industry ?? "",
     linkedinUrl: fields.linkedinUrl ?? existing.linkedinUrl ?? "",
   });
@@ -343,17 +387,28 @@ export async function updateAlumniEntry(
     data: {
       fullName: parsed.fullName,
       email: parsed.email,
-      level: parsed.level,
-      graduationYear: parsed.graduationYear,
       organisation: parsed.organisation || null,
-      roleTitle: parsed.roleTitle || null,
+      roleOrField: parsed.roleOrField || null,
       city: parsed.city || null,
       country: parsed.country || null,
+      note: parsed.note || null,
       industry: parsed.industry || null,
       linkedinUrl: parsed.linkedinUrl || null,
-      dedupeKey: computeDedupeKey(parsed.fullName, parsed.graduationYear),
+      dedupeKey: computeDedupeKey(parsed.fullName, parsed.programmes[0]?.graduationYear ?? 0),
     },
   });
+
+  if (fields.programmes) {
+    await db.alumniProgramme.deleteMany({ where: { alumnusId: id } });
+    await db.alumniProgramme.createMany({
+      data: parsed.programmes.map((p) => ({
+        alumnusId: id,
+        level: p.level,
+        entryYear: p.entryYear ?? null,
+        graduationYear: p.graduationYear,
+      })),
+    });
+  }
 
   await logAction(
     db,

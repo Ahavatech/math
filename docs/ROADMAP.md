@@ -17,7 +17,7 @@ Tick items as they are completed and note the AUDIT.md entry number.
 - [x] 12a Journal submission and editor screening: author accounts, submission wizard, editor screening (assign, return, desk-reject, approve for review)
 - [x] 12b Journal peer review: reviewer invitation/accept/decline, review reports, editorial decisions per round, publishing accepted papers
 - [x] 12c Publish accepted paper as article: article-publication service, ArticleStatus enum, snapshot, DOI, retraction/correction notices, reviewer acknowledgement opt-in, scheduled publish script, admin and public pages.
-- [ ] 12d Alumni form fix: multi-programme (BSC/MSC/PhD), entry year per programme, consentPublicDisplay, note field, HMAC confirmation token, getPeopleYouMightKnow, admin list filters, public grouped list.
+- [x] 12d Alumni form fix: multi-programme (BSC/MSC/PhD), entry year per programme, consentPublicDisplay, note field, HMAC confirmation token, getPeopleYouMightKnow, admin list filters, public grouped list.
 
 ### Pending from Stage 12b/12c (must be resolved before or during Stage 14)
 

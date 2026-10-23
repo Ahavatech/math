@@ -203,10 +203,12 @@ export default async function Home() {
                   <CardContent className="px-4">
                     <h3 className="font-heading font-semibold">{entry.fullName}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {entry.roleTitle ? `${entry.roleTitle}, ` : ""}
+                      {entry.roleOrField ? `${entry.roleOrField}, ` : ""}
                       {entry.organisation ?? ""}
                     </p>
-                    <p className="mt-1 text-xs text-muted-foreground">Class of {entry.graduationYear}</p>
+                    {entry.programmes[0] ? (
+                      <p className="mt-1 text-xs text-muted-foreground">Class of {entry.programmes[0].graduationYear}</p>
+                    ) : null}
                   </CardContent>
                 </Card>
               ))}
