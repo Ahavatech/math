@@ -1,8 +1,9 @@
 import { redirect, notFound } from "next/navigation";
-import { getCurrentUser, hasPermission } from "@/lib/rbac";
+import { getCurrentUser, hasPermission, hasRole } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { getArticleAdmin } from "@/server/services/journal-articles";
 import { ArticleForm } from "../article-form";
+import { PublishingActions } from "../publishing-actions";
 
 export default async function JournalArticleEditPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
@@ -19,6 +20,7 @@ export default async function JournalArticleEditPage({ params }: { params: Promi
   }
 
   const issues = await db.journalIssue.findMany({ select: { id: true, volume: true, number: true }, orderBy: [{ year: "desc" }] });
+  const canPublish = hasRole(user, "JOURNAL_EDITOR_IN_CHIEF") || hasRole(user, "SUPER_ADMIN");
 
   return (
     <div className="space-y-4">
@@ -49,6 +51,9 @@ export default async function JournalArticleEditPage({ params }: { params: Promi
           hasPdf: !!article.pdfDownloadId,
         }}
       />
+      {canPublish ? (
+        <PublishingActions articleId={article.id} status={article.status} />
+      ) : null}
     </div>
   );
 }

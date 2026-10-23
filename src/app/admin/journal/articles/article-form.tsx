@@ -32,7 +32,7 @@ type ArticleData = {
   license: string;
   receivedAt: string | null;
   acceptedAt: string | null;
-  status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+  status: "DRAFT" | "SCHEDULED" | "PUBLISHED" | "CORRECTED" | "RETRACTED";
   hasPdf?: boolean;
 };
 
@@ -174,8 +174,10 @@ export function ArticleForm({ article, issues }: { article?: ArticleData; issues
         <Label htmlFor="status">Status</Label>
         <select id="status" name="status" defaultValue={article?.status ?? "DRAFT"} className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm">
           <option value="DRAFT">Draft</option>
+          <option value="SCHEDULED">Scheduled</option>
           <option value="PUBLISHED">Published</option>
-          <option value="ARCHIVED">Archived</option>
+          <option value="CORRECTED">Corrected</option>
+          <option value="RETRACTED">Retracted</option>
         </select>
       </div>
 

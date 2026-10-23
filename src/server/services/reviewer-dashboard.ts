@@ -46,6 +46,31 @@ export async function getReviewerAssignments(
   }));
 }
 
+export async function getReviewerAcknowledgementOptIn(
+  db: PrismaClient,
+  user: SessionUser,
+): Promise<boolean> {
+  if (!hasRole(user, "REVIEWER")) return false;
+  const profile = await db.reviewerProfile.findUnique({
+    where: { userId: user.id },
+    select: { acknowledgementOptIn: true },
+  });
+  return profile?.acknowledgementOptIn ?? false;
+}
+
+export async function setReviewerAcknowledgementOptIn(
+  db: PrismaClient,
+  user: SessionUser,
+  optIn: boolean,
+): Promise<void> {
+  if (!hasRole(user, "REVIEWER")) throw new Error("Unauthorized: requires REVIEWER role");
+  await db.reviewerProfile.upsert({
+    where: { userId: user.id },
+    create: { userId: user.id, acknowledgementOptIn: optIn },
+    update: { acknowledgementOptIn: optIn },
+  });
+}
+
 export async function getReviewAssignmentDetail(
   db: PrismaClient,
   user: SessionUser,

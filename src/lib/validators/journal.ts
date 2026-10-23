@@ -133,7 +133,7 @@ export const articleInputSchema = z.object({
   license: z.string().trim().default(""),
   receivedAt: z.string().nullable().optional(),
   acceptedAt: z.string().nullable().optional(),
-  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]).default("DRAFT"),
+  status: z.enum(["DRAFT", "SCHEDULED", "PUBLISHED", "CORRECTED", "RETRACTED"]).default("DRAFT"),
 });
 export type ArticleInput = z.infer<typeof articleInputSchema>;
 

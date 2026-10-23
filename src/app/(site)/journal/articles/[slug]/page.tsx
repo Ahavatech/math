@@ -123,6 +123,24 @@ export default async function JournalArticleDetailPage({ params }: { params: Pro
             { label: article.title },
           ]}
         />
+        {article.status === "RETRACTED" ? (
+          <div className="mt-4 rounded-md border border-destructive/50 bg-destructive/5 p-4">
+            <p className="font-semibold text-destructive">This article has been retracted.</p>
+            {article.retractionReason ? (
+              <p className="mt-1 text-sm text-destructive/80">{article.retractionReason}</p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {article.status === "CORRECTED" && Array.isArray(article.notices) && (article.notices as string[]).length > 0 ? (
+          <div className="mt-4 rounded-md border border-amber-500/50 bg-amber-50 dark:bg-amber-950/20 p-4 space-y-1">
+            <p className="font-semibold text-amber-800 dark:text-amber-200">Correction notice</p>
+            {(article.notices as string[]).map((n, i) => (
+              <p key={i} className="text-sm text-amber-700 dark:text-amber-300">{n}</p>
+            ))}
+          </div>
+        ) : null}
+
         <h1 className="mt-4 font-heading text-3xl font-semibold">{article.title}</h1>
 
         <p className="mt-2 text-sm text-muted-foreground">

@@ -13,6 +13,13 @@ import {
   getPublishingChecklist,
 } from "@/server/services/journal-articles";
 import { registerArticlePdf } from "@/server/services/journal-article-pdf";
+import {
+  prepareArticleFromManuscript,
+  publishArticle,
+  scheduleArticle,
+  correctArticle,
+  retractArticle,
+} from "@/server/services/article-publication";
 
 type ActionResult = { error?: string; success?: boolean; id?: string; duplicateWarning?: string };
 
@@ -49,7 +56,7 @@ function parseInput(formData: FormData) {
     license: String(formData.get("license") ?? ""),
     receivedAt: (formData.get("receivedAt") as string) || null,
     acceptedAt: (formData.get("acceptedAt") as string) || null,
-    status: String(formData.get("status") ?? "DRAFT") as "DRAFT" | "PUBLISHED" | "ARCHIVED",
+    status: String(formData.get("status") ?? "DRAFT") as "DRAFT" | "SCHEDULED" | "PUBLISHED" | "CORRECTED" | "RETRACTED",
   };
 }
 
@@ -100,7 +107,7 @@ export async function updateArticleAction(
   }
 }
 
-export async function setArticleStatusAction(id: string, status: "DRAFT" | "PUBLISHED" | "ARCHIVED"): Promise<ActionResult> {
+export async function setArticleStatusAction(id: string, status: "DRAFT" | "SCHEDULED" | "PUBLISHED" | "CORRECTED" | "RETRACTED"): Promise<ActionResult> {
   const user = await getCurrentUser();
   const actor = requirePermission(user, "journal.edit");
   try {
@@ -129,4 +136,59 @@ export async function registerArticlePdfAction(articleId: string, publicId: stri
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not upload" };
   }
+}
+
+// ---------------------------------------------------------------------------
+// Publication lifecycle actions (use article-publication service)
+// ---------------------------------------------------------------------------
+
+export async function prepareArticleAction(manuscriptId: string): Promise<ActionResult> {
+  const user = await getCurrentUser();
+  const actor = requirePermission(user, "journal.editorial");
+  const result = await prepareArticleFromManuscript(db, actor, manuscriptId);
+  if (!result.ok) return { error: result.reason };
+  revalidatePath("/admin/journal/manuscripts");
+  revalidatePath("/admin/journal/articles");
+  return { success: true, id: result.articleId };
+}
+
+export async function publishArticleAction(articleId: string, note?: string): Promise<ActionResult> {
+  const user = await getCurrentUser();
+  const actor = requirePermission(user, "journal.editorial");
+  const result = await publishArticle(db, actor, articleId, { note });
+  if (!result.ok) return { error: result.reason };
+  revalidatePath("/admin/journal/articles");
+  revalidateJournalPaths();
+  return { success: true };
+}
+
+export async function scheduleArticleAction(articleId: string, scheduledFor: string): Promise<ActionResult> {
+  const user = await getCurrentUser();
+  const actor = requirePermission(user, "journal.editorial");
+  const date = new Date(scheduledFor);
+  if (isNaN(date.getTime())) return { error: "Invalid date" };
+  const result = await scheduleArticle(db, actor, articleId, date);
+  if (!result.ok) return { error: result.reason };
+  revalidatePath("/admin/journal/articles");
+  return { success: true };
+}
+
+export async function correctArticleAction(articleId: string, notice: string): Promise<ActionResult> {
+  const user = await getCurrentUser();
+  const actor = requirePermission(user, "journal.editorial");
+  const result = await correctArticle(db, actor, articleId, notice);
+  if (!result.ok) return { error: result.reason };
+  revalidatePath("/admin/journal/articles");
+  revalidateJournalPaths();
+  return { success: true };
+}
+
+export async function retractArticleAction(articleId: string, reason: string): Promise<ActionResult> {
+  const user = await getCurrentUser();
+  const actor = requirePermission(user, "journal.editorial");
+  const result = await retractArticle(db, actor, articleId, reason);
+  if (!result.ok) return { error: result.reason };
+  revalidatePath("/admin/journal/articles");
+  revalidateJournalPaths();
+  return { success: true };
 }

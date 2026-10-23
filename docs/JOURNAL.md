@@ -115,3 +115,48 @@ Stage 12a adds the author-facing submission workflow and the editor screening to
 - The actual upload route for manuscript files (this stage builds only the *download* side).
 - `submissionsOpen` (already in `journal.settings`) gating the "Submit a manuscript" button on `/journal`, which this stage keeps hidden regardless of that setting since the route does not exist yet.
 - Email notifications at each workflow step (Resend, per docs/SCOPE.md's module C).
+
+## What Stage 12c adds (publication)
+
+### Publication flow
+
+1. **Prepare**: EiC/SUPER_ADMIN clicks "Prepare for publication" on an ACCEPTED manuscript. `prepareArticleFromManuscript` snapshots title/abstract/keywords/authors into a new `Article` row (status `DRAFT`). The manuscript's own fields remain editable; the article is an independent record from this point forward. Author email sent (non-fatal).
+
+2. **Edit**: editor fills in the article's metadata: doi, licence, page range, issue assignment. Uploads the final typeset PDF via the Cloudinary article-PDF pipeline. The publishing checklist (title, abstract, author(s), PDF present, licence set) must be satisfied before publishing.
+
+3. **Schedule** (optional): set a `scheduledFor` date. Status becomes `SCHEDULED`. `npm run journal:publish-scheduled` (dry run default, `--apply`) promotes due SCHEDULED articles. Idempotent.
+
+4. **Publish**: status `DRAFT` or `SCHEDULED` → `PUBLISHED`. Atomic transaction: article status, `publishedAt`, `finalPdfSha256`, manuscript status → `PUBLISHED`, `ManuscriptEvent PUBLISHED`, `AuditLog`. Author notification emails (non-fatal). After first publish the article slug is fixed.
+
+5. **Correct**: `PUBLISHED` or `CORRECTED` → `CORRECTED`. Adds a dated notice to `notices` (JSON string array). The article page shows a correction banner. May be applied multiple times.
+
+6. **Retract**: `PUBLISHED` or `CORRECTED` → `RETRACTED`. Reason required, stored in `retractionReason`. The article page stays public with a retraction banner (Decision 76). Slug is never removed; PDF download stays available.
+
+### Public visibility table
+
+| Status | Listed in `/journal/articles` | Detail page | PDF |
+|---|---|---|---|
+| DRAFT / SCHEDULED | No | No (404) | No (404) |
+| PUBLISHED | Yes | Yes | Yes |
+| CORRECTED | Yes | Yes (correction banner) | Yes |
+| RETRACTED | Yes | Yes (retraction banner) | Yes |
+
+### Reviewer acknowledgement
+
+Reviewers who set `ReviewerProfile.acknowledgementOptIn = true` appear on `/journal/reviewers/[year]` if they submitted at least one non-draft review in that year. Names only; no manuscript information is shown.
+
+### New email templates (Stage 12c)
+
+- `journal-article-being-prepared.tsx`: sent to submitting author when their paper enters production. Title only; no abstract or reviewer information.
+- `journal-article-published.tsx`: sent to all listed article authors when the article is published. Title and link only.
+
+### Scheduled publish script
+
+`scripts/journal-publish-scheduled.ts` (npm run `journal:publish-scheduled`): finds SCHEDULED articles whose `scheduledFor <= now` and publishes them. Dry run by default; pass `--apply`. Idempotent. Add to Stage 14 cron schedule (run every 15 minutes).
+
+### Security notes for publication
+
+- COI check in service layer: the actor's user id is compared against `manuscript.submittedById`. An editor who submitted the paper cannot prepare, schedule, or publish it.
+- HOD and ADMIN cannot perform any publication action (permission check at service entry, server action entry, and page render).
+- All status transitions are gated by the service layer (not the form dropdown): the form dropdown in article-form.tsx still exists for admin metadata edits but the service ignores an illegal transition and returns `{ ok: false, reason }`.
+- Publication emails are sent after the transaction commits and inside a try/catch; email failure never rolls back a publication.

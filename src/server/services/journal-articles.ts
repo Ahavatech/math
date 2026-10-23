@@ -1,5 +1,6 @@
 import "server-only";
 import type { PrismaClient } from "@prisma/client";
+import { ArticleStatus } from "@prisma/client";
 import { articleInputSchema, normalizeKeywords } from "@/lib/validators/journal";
 import { normalizeSearchText } from "@/lib/search-text";
 import { generateUniqueSlug } from "@/lib/slugify";
@@ -166,7 +167,7 @@ export async function updateArticle(
 export async function setArticleStatus(
   db: PrismaClient,
   id: string,
-  status: "DRAFT" | "PUBLISHED" | "ARCHIVED",
+  status: "DRAFT" | "SCHEDULED" | "PUBLISHED" | "CORRECTED" | "RETRACTED",
   actorId: string,
   context?: AuditRequestContext,
 ) {
@@ -209,14 +210,15 @@ export async function getPublishingChecklist(
   ];
 }
 
+const PUBLIC_STATUSES: ArticleStatus[] = [ArticleStatus.PUBLISHED, ArticleStatus.CORRECTED, ArticleStatus.RETRACTED];
+
 /**
- * An article is public only when its own status is PUBLISHED AND
- * (it has no issue, i.e. online-first) or its issue is also PUBLISHED.
- * Unpublishing an issue therefore hides every article in it, computed
- * at read time - never a separate stored flag that could drift.
+ * An article is public when its status is PUBLISHED, CORRECTED, or RETRACTED
+ * AND (it has no issue, i.e. online-first) or its issue is also PUBLISHED.
+ * Retracted articles keep their page with a notice (Decision 76).
  */
 export function isArticlePublic(article: { status: string; issue: { status: string } | null }): boolean {
-  if (article.status !== "PUBLISHED") return false;
+  if (!PUBLIC_STATUSES.includes(article.status as ArticleStatus)) return false;
   if (!article.issue) return true;
   return article.issue.status === "PUBLISHED";
 }
@@ -227,20 +229,25 @@ const PUBLIC_ARTICLE_SELECT = {
   title: true,
   abstract: true,
   keywords: true,
+  subjectArea: true,
   pageStart: true,
   pageEnd: true,
+  articleNumber: true,
   type: true,
   doi: true,
   license: true,
   receivedAt: true,
   acceptedAt: true,
   publishedAt: true,
+  status: true,
+  retractionReason: true,
+  notices: true,
   issueId: true,
   pdfDownloadId: true,
   issue: { select: { id: true, volume: true, number: true, year: true, status: true } },
   authors: {
     orderBy: { order: "asc" as const },
-    select: { id: true, name: true, affiliation: true, orcid: true, order: true },
+    select: { id: true, name: true, affiliation: true, orcid: true, isCorresponding: true, order: true },
   },
 } as const;
 
@@ -251,7 +258,7 @@ export async function listArticlesPublic(db: PrismaClient, params: { page?: numb
     const normalizedQuery = params.query ? normalizeSearchText(params.query) : null;
 
     const where = {
-      status: "PUBLISHED" as const,
+      status: { in: PUBLIC_STATUSES },
       OR: [{ issueId: null }, { issue: { status: "PUBLISHED" as const } }],
       ...(params.year ? { issue: { year: params.year, status: "PUBLISHED" as const } } : {}),
       ...(params.type ? { type: params.type as never } : {}),
@@ -278,7 +285,7 @@ export async function listArticlesPublic(db: PrismaClient, params: { page?: numb
 export async function getArticleBySlugPublic(db: PrismaClient, slug: string) {
   try {
     const article = await db.article.findFirst({
-      where: { slug, status: "PUBLISHED" },
+      where: { slug, status: { in: PUBLIC_STATUSES } },
       select: PUBLIC_ARTICLE_SELECT,
     });
     if (!article) return null;
@@ -310,7 +317,7 @@ export async function findArticleBySlugOrPrevious(db: PrismaClient, slug: string
 /** Returns the Cloudinary file URL and a clean citation filename for a public, published article's PDF. */
 export async function getArticlePdfForRoute(db: PrismaClient, slug: string) {
   const article = await db.article.findFirst({
-    where: { slug, status: "PUBLISHED" },
+    where: { slug, status: { in: PUBLIC_STATUSES } },
     select: {
       title: true,
       publishedAt: true,
@@ -329,7 +336,7 @@ export async function getArticlePdfForRoute(db: PrismaClient, slug: string) {
 export async function listArticlesByIssuePublic(db: PrismaClient, issueId: string) {
   try {
     return await db.article.findMany({
-      where: { issueId, status: "PUBLISHED" },
+      where: { issueId, status: { in: PUBLIC_STATUSES } },
       orderBy: { pageStart: "asc" },
       select: PUBLIC_ARTICLE_SELECT,
     });

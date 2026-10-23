@@ -13,6 +13,7 @@ import {
 } from "@/server/actions/manuscript-screening";
 import { inviteReviewerAction, revokeInvitationAction } from "@/server/actions/reviewer-invitation";
 import { recordDecisionAction } from "@/server/actions/editorial-decision";
+import { PrepareForPublicationForm } from "../prepare-form";
 
 export function generateMetadata() {
   return { title: "Manuscript detail" };
@@ -134,6 +135,15 @@ export default async function ManuscriptDetailAdminPage({
         select: { id: true, number: true },
       })
     : null;
+
+  // Check if an article already exists for this manuscript (for prepare-for-publication)
+  const existingArticle = ms?.status === "ACCEPTED"
+    ? await prisma.article.findFirst({ where: { manuscriptId: id }, select: { id: true } })
+    : null;
+  const canPrepare =
+    ms?.status === "ACCEPTED" &&
+    !existingArticle &&
+    (hasRole(user, "JOURNAL_EDITOR_IN_CHIEF") || hasRole(user, "SUPER_ADMIN"));
 
   return (
     <div className="max-w-3xl">
@@ -345,6 +355,11 @@ export default async function ManuscriptDetailAdminPage({
                 </button>
               </div>
             </form>
+          )}
+
+          {/* Prepare for publication (ACCEPTED manuscripts, EiC/SUPER_ADMIN, no article yet) */}
+          {canPrepare && (
+            <PrepareForPublicationForm manuscriptId={ms.id} />
           )}
 
           {/* Record editorial decision */}
