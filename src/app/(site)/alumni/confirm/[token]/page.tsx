@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
@@ -44,6 +45,10 @@ function SuggestionCard({ person }: { person: Suggestion }) {
     </li>
   );
 }
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 /** Uniform "no content" page shown for both expired and invalid tokens. */
 function ThankYouOnly() {
