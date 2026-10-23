@@ -740,28 +740,42 @@ enum ArticleType {
   OTHER
 }
 
+enum ArticleStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  CORRECTED
+  RETRACTED
+}
+
 model Article {
-  id            String        @id @default(cuid())
-  slug          String        @unique
-  previousSlugs String[]      @default([])
-  title         String
-  abstract      String
-  keywords      String[]
-  searchText    String        @default("")
-  issueId       String?
-  pageStart     Int?
-  pageEnd       Int?
-  type          ArticleType   @default(RESEARCH_ARTICLE)
-  pdfDownloadId String?
-  doi           String?
-  license       String?
-  receivedAt    DateTime?     @db.Date
-  acceptedAt    DateTime?     @db.Date
-  publishedAt   DateTime?
-  status        ContentStatus @default(DRAFT)
-  manuscriptId  String?       @unique
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id               String        @id @default(cuid())
+  slug             String        @unique
+  previousSlugs    String[]      @default([])
+  title            String
+  abstract         String
+  keywords         String[]
+  searchText       String        @default("")
+  subjectArea      String?
+  issueId          String?
+  articleNumber    Int?
+  pageStart        Int?
+  pageEnd          Int?
+  type             ArticleType   @default(RESEARCH_ARTICLE)
+  pdfDownloadId    String?
+  finalPdfSha256   String?
+  doi              String?
+  license          String?
+  receivedAt       DateTime?     @db.Date
+  acceptedAt       DateTime?     @db.Date
+  publishedAt      DateTime?
+  scheduledFor     DateTime?
+  status           ArticleStatus @default(DRAFT)
+  retractionReason String?
+  notices          Json          @default("[]")
+  manuscriptId     String?       @unique
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   issue      JournalIssue? @relation(fields: [issueId], references: [id], onDelete: Restrict)
   pdf        Download?     @relation("ArticlePdf", fields: [pdfDownloadId], references: [id], onDelete: SetNull)
@@ -773,16 +787,17 @@ model Article {
 }
 
 model ArticleAuthor {
-  id          String   @id @default(cuid())
-  articleId   String
-  name        String
-  affiliation String?
-  orcid       String?
-  email       String?
-  order       Int      @default(0)
-  userId      String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(cuid())
+  articleId       String
+  name            String
+  affiliation     String?
+  orcid           String?
+  email           String?
+  isCorresponding Boolean  @default(false)
+  order           Int      @default(0)
+  userId          String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
   user    User?   @relation("ArticleAuthorUser", fields: [userId], references: [id], onDelete: SetNull)
@@ -1009,13 +1024,14 @@ model JournalCounter {
 }
 
 model ReviewerProfile {
-  id            String   @id @default(cuid())
-  userId        String   @unique
-  expertiseTags String[] @default([])
-  isActive      Boolean  @default(true)
-  notes         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  expertiseTags        String[] @default([])
+  isActive             Boolean  @default(true)
+  acknowledgementOptIn Boolean  @default(false)
+  notes                String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
   user User @relation("ReviewerProfileUser", fields: [userId], references: [id], onDelete: Cascade)
 }

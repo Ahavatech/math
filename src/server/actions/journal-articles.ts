@@ -49,7 +49,7 @@ function parseInput(formData: FormData) {
     license: String(formData.get("license") ?? ""),
     receivedAt: (formData.get("receivedAt") as string) || null,
     acceptedAt: (formData.get("acceptedAt") as string) || null,
-    status: String(formData.get("status") ?? "DRAFT") as "DRAFT" | "PUBLISHED" | "ARCHIVED",
+    status: String(formData.get("status") ?? "DRAFT") as "DRAFT" | "SCHEDULED" | "PUBLISHED" | "CORRECTED" | "RETRACTED",
   };
 }
 
@@ -100,7 +100,7 @@ export async function updateArticleAction(
   }
 }
 
-export async function setArticleStatusAction(id: string, status: "DRAFT" | "PUBLISHED" | "ARCHIVED"): Promise<ActionResult> {
+export async function setArticleStatusAction(id: string, status: "DRAFT" | "SCHEDULED" | "PUBLISHED" | "CORRECTED" | "RETRACTED"): Promise<ActionResult> {
   const user = await getCurrentUser();
   const actor = requirePermission(user, "journal.edit");
   try {

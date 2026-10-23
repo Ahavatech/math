@@ -18,7 +18,7 @@ function makeHOD(id: string): SessionUser {
   return { id, name: "HOD", email: "hod@test.com", roles: ["HOD"], isActive: true };
 }
 
-async function setupDecisionScenario(db: typeof prodDb, runId: string, reviewCount = 2) {
+async function setupDecisionScenario(db: NonNullable<Awaited<ReturnType<typeof getTestDb>>>, runId: string, reviewCount = 2) {
   const eic = await db.user.create({
     data: { id: `eic-d-${runId}`, email: `eic-d-${runId}@test.com`, name: "EiC" },
   });
