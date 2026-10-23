@@ -17,7 +17,7 @@ export function ArticleBeingPreparedEmail({ authorName, title }: Props) {
           <Section>
             <Text>Dear {authorName},</Text>
             <Text>
-              We are pleased to inform you that your paper titled <strong>"{title}"</strong> has been
+              We are pleased to inform you that your paper titled <strong>{'"'}{title}{'"'}</strong> has been
               accepted and the editorial team has begun preparing it for publication in the OAU
               Journal of Mathematics.
             </Text>

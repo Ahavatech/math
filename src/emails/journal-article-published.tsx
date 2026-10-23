@@ -18,7 +18,7 @@ export function ArticlePublishedEmail({ title, slug }: Props) {
           </Heading>
           <Section>
             <Text>
-              We are delighted to inform you that your paper titled <strong>"{title}"</strong> is
+              We are delighted to inform you that your paper titled <strong>{'"'}{title}{'"'}</strong> is
               now published in the OAU Journal of Mathematics and is available online.
             </Text>
             <Text>
