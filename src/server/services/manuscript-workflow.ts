@@ -12,7 +12,8 @@ export type WorkflowAction =
   | "RESUBMIT"
   | "DESK_REJECT"
   | "APPROVE_FOR_REVIEW"
-  | "WITHDRAW";
+  | "WITHDRAW"
+  | "PUBLISH";
 
 export type TransitionResult =
   | { ok: true; newStatus: ManuscriptStatus }
@@ -176,6 +177,27 @@ export async function transition(
         });
       });
       return { ok: true, newStatus: "UNDER_REVIEW" };
+    }
+
+    case "PUBLISH": {
+      if (ms.status !== "ACCEPTED") return deny("Only ACCEPTED manuscripts can be published");
+      // COI check: editor cannot publish their own submission
+      if (ms.submittedById === actor.id) return deny("Conflict of interest: editor cannot publish their own submission");
+      // Only EiC or SUPER_ADMIN may publish; JOURNAL_EDITOR and HOD/ADMIN cannot
+      if (!isEiC && !isSuperAdmin) return deny("Only EiC or SUPER_ADMIN can publish a manuscript");
+
+      await (db as PrismaClient).$transaction(async (tx) => {
+        await tx.manuscript.update({ where: { id: manuscriptId }, data: { status: "PUBLISHED" } });
+        await tx.manuscriptEvent.create({
+          data: { manuscriptId, type: "PUBLISHED", actorId: actor.id, visibleToAuthor: true, note: opts?.note ?? null },
+        });
+        await logAction(tx as unknown as PrismaClient, {
+          actorId: actor.id, action: "journal.manuscript.publish",
+          entityType: "Manuscript", entityId: manuscriptId,
+          summary: "Manuscript published as journal article",
+        });
+      });
+      return { ok: true, newStatus: "PUBLISHED" };
     }
 
     case "WITHDRAW": {

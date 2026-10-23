@@ -1001,6 +1001,7 @@ enum ManuscriptEventType {
   DECISION_RECORDED
   REVISION_REQUESTED
   ROUND_CREATED
+  PUBLISHED
 }
 
 model ManuscriptEvent {

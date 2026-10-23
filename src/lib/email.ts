@@ -21,6 +21,8 @@ import { ReviewerDeclinedEmail } from "@/emails/reviewer-declined";
 import { ReviewSubmittedEmail } from "@/emails/review-submitted";
 import { RevisionReceivedEmail } from "@/emails/revision-received";
 import { ReviewerThankYouEmail } from "@/emails/reviewer-thank-you";
+import { ArticleBeingPreparedEmail } from "@/emails/journal-article-being-prepared";
+import { ArticlePublishedEmail } from "@/emails/journal-article-published";
 
 const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
 
@@ -294,5 +296,21 @@ export async function sendReviewerThankYouEmail(params: {
     params.to,
     `Thank you for your review: ${params.reference}`,
     ReviewerThankYouEmail({ reference: params.reference, journalName: params.journalName }),
+  );
+}
+
+export async function sendArticleBeingPreparedEmail(params: { to: string; authorName: string; title: string }) {
+  await send(
+    params.to,
+    `Your paper "${params.title}" is being prepared for publication`,
+    ArticleBeingPreparedEmail({ authorName: params.authorName, title: params.title }),
+  );
+}
+
+export async function sendArticlePublishedEmail(params: { to: string; title: string; slug: string }) {
+  await send(
+    params.to,
+    `Your paper "${params.title}" is now published`,
+    ArticlePublishedEmail({ title: params.title, slug: params.slug }),
   );
 }
