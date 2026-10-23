@@ -56,3 +56,39 @@ Implemented on branch `stage/12a-journal-submission`.
 - Private storage offsite backup
 - Disk usage alert
 - Retention wording legal review (Nigeria Data Protection Act)
+
+## Stage 12c (article publication) -- 2026-10-23
+
+Implemented on branch `stage/12c-publish-article`.
+
+### What was built
+
+- Prisma migration: `ArticleStatus` enum (DRAFT/SCHEDULED/PUBLISHED/CORRECTED/RETRACTED), publication fields on `Article` (publishedAt, scheduledFor, finalPdfSha256, notices, retractionReason), `ReviewerProfile.acknowledgementOptIn`, `ManuscriptEventType.PUBLISHED`
+- `src/server/services/article-publication.ts`: full publication lifecycle (prepare, validate, schedule, publish, unpublish, correct, retract, listAcknowledgedReviewers)
+- `src/server/services/manuscript-workflow.ts`: PUBLISH action added
+- Email templates: article-being-prepared, article-published
+- 26 DB-backed tests in `src/server/services/__tests__/article-publication.test.ts`
+- Server actions: prepareArticleAction, publishArticleAction, scheduleArticleAction, correctArticleAction, retractArticleAction
+- Admin: PublishingActions component on `/admin/journal/articles/[id]`, PrepareForPublicationForm on `/admin/journal/manuscripts/[id]`
+- Public: retraction/correction banners on `/journal/articles/[slug]`, new `/journal/reviewers/[year]` page
+- Script: `scripts/journal-publish-scheduled.ts` (`npm run journal:publish-scheduled`)
+- Docs: JOURNAL.md updated, JOURNAL-EDITOR-GUIDE.md created
+
+### Publication permission matrix
+
+| Role | Prepare | Publish/Schedule | Correct | Retract |
+|---|---|---|---|---|
+| SUPER_ADMIN | Yes (no COI) | Yes (no COI) | Yes | Yes |
+| EiC | Yes (no COI) | Yes (no COI) | Yes | Yes |
+| JOURNAL_EDITOR | No | No | No | No |
+| HOD | No | No | No | No |
+| ADMIN | No | No | No | No |
+
+COI: user who submitted the manuscript cannot prepare or publish it.
+
+### Open items (Stage 14+)
+
+- Schedule `journal:publish-scheduled` via cron (run every 15 minutes)
+- Real HTTP verification of published article page, PDF download, retraction notice
+- UI pass for article/issue management pages
+- Open peer review (not in scope)
