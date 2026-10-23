@@ -27,7 +27,7 @@ import { ArticlePublishedEmail } from "@/emails/journal-article-published";
 const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
 
 async function send(to: string, subject: string, react: React.ReactElement) {
-  if (!resend) {
+  if (!resend || env.NODE_ENV === "test") {
     if (env.NODE_ENV === "production") {
       throw new Error("RESEND_API_KEY is required to send email in production");
     }
