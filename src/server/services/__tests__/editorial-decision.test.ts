@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { db as prodDb } from "@/lib/db";
+import { getTestDb } from "../../../../tests/unit/database/test-db";
 import { recordDecision } from "@/server/services/editorial-decision";
 import { inviteReviewer, acceptInvitation } from "@/server/services/reviewer-invitation";
 import { submitReview } from "@/server/services/review-submission";
 import type { SessionUser } from "@/lib/rbac";
 import { randomUUID } from "node:crypto";
 
-const db = process.env.TEST_DATABASE_URL ? prodDb : null;
+const db = await getTestDb();
 
 function makeEiC(id: string, email: string): SessionUser {
   return { id, name: "EiC", email, roles: ["JOURNAL_EDITOR_IN_CHIEF"], isActive: true };
@@ -164,5 +164,47 @@ describe.skipIf(db === null)("editorial-decision service", () => {
         letterHtml: "<p>Accept</p>",
       }),
     ).rejects.toThrow(/Unauthorized/i);
+  });
+
+  it("revision decision creates round N+1 and author resubmission lands in that round", async () => {
+    const { returnToAuthor } = await import("@/server/services/manuscript-screening");
+    const { transition } = await import("@/server/services/manuscript-workflow");
+
+    const { ms, eic } = await setupDecisionScenario(db!, runId, 2);
+    const actor = makeEiC(eic.id, `eic-d-${runId}@test.com`);
+
+    // Create the author as a proper user for the resubmit transition
+    const authorRow = await db!.manuscript.findUnique({ where: { id: ms.id }, select: { submittedById: true } });
+    const authorUser = await db!.user.findUnique({ where: { id: authorRow!.submittedById! }, select: { id: true } });
+    const authorSession = { id: authorUser!.id, roles: ["AUTHOR" as const], isActive: true };
+
+    // Step 1: record MINOR_REVISION decision → should create round 2
+    await recordDecision(db!, actor, ms.id, {
+      decision: "MINOR_REVISION",
+      letterHtml: "<p>Please revise</p>",
+    });
+
+    const roundsAfterDecision = await db!.manuscriptRound.findMany({ where: { manuscriptId: ms.id }, orderBy: { number: "asc" } });
+    expect(roundsAfterDecision.length).toBe(2);
+    expect(roundsAfterDecision[1].number).toBe(2);
+
+    const msAfterDecision = await db!.manuscript.findUnique({ where: { id: ms.id }, select: { status: true, currentRound: true } });
+    expect(msAfterDecision!.status).toBe("REVISION_REQUESTED");
+    expect(msAfterDecision!.currentRound).toBe(2);
+
+    // Step 2: editor returns manuscript to author (REVISION_REQUESTED → RETURNED_TO_AUTHOR)
+    await returnToAuthor(db!, actor, ms.id, "Please address the reviewer comments.");
+
+    const msAfterReturn = await db!.manuscript.findUnique({ where: { id: ms.id }, select: { status: true } });
+    expect(msAfterReturn!.status).toBe("RETURNED_TO_AUTHOR");
+
+    // Step 3: author resubmits (RETURNED_TO_AUTHOR → SCREENING) — lands in currentRound 2
+    const resubmitResult = await transition(db!, authorSession, ms.id, "RESUBMIT");
+    expect(resubmitResult.ok).toBe(true);
+    if (resubmitResult.ok) expect(resubmitResult.newStatus).toBe("SCREENING");
+
+    const msAfterResubmit = await db!.manuscript.findUnique({ where: { id: ms.id }, select: { status: true, currentRound: true } });
+    expect(msAfterResubmit!.status).toBe("SCREENING");
+    expect(msAfterResubmit!.currentRound).toBe(2);
   });
 });
