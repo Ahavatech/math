@@ -140,9 +140,10 @@ describe.skipIf(db === null)("article public leak tests (DB-backed)", () => {
 
     // --- Published issue ---
     const issueNumber = Math.abs(parseInt(runId.slice(0, 4), 16)) % 9000 + 1000;
+    const issueVolume = Math.abs(parseInt(runId.slice(4, 8), 16)) % 9000 + 1000;
     const issue = await db!.journalIssue.create({
       data: {
-        volume: 99,
+        volume: issueVolume,
         number: issueNumber,
         year: 2026,
         title: `Test Issue ${runId}`,

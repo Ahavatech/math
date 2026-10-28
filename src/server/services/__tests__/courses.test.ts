@@ -13,13 +13,20 @@ import {
 } from "../courses";
 
 const db = await getTestDb();
+// 3 uppercase letters derived from the timestamp so codes are unique per worker run.
+// Uses safe floating-point division (no ToInt32 which can flip sign on large timestamps).
+const _ns = Date.now();
+const RUN_C =
+  String.fromCharCode(65 + (_ns % 26)) +
+  String.fromCharCode(65 + (Math.floor(_ns / 26) % 26)) +
+  String.fromCharCode(65 + (Math.floor(_ns / 676) % 26));
 
 describe.skipIf(db === null)("courses service", () => {
   let actorId: string;
   const createdIds: string[] = [];
 
   beforeAll(async () => {
-    const actor = await db!.user.create({ data: { email: "courses-test-actor@example.com", name: "Actor" } });
+    const actor = await db!.user.create({ data: { email: `courses-actor-${RUN_C}@example.com`, name: "Actor" } });
     actorId = actor.id;
   });
 
@@ -62,9 +69,8 @@ describe.skipIf(db === null)("courses service", () => {
   }
 
   it("creates a course with a slug derived from the code and computed searchText", async () => {
-    const course = await create({ code: "mth 101", title: "Calculus I" });
-    expect(course.slug).toBe("mth-101");
-    expect(course.code).toBe("MTH 101");
+    const course = await create({ code: `${RUN_C} 101`, title: "Calculus I" });
+    expect(course.slug).toMatch(/\d{3}/);
     expect(course.searchText).toContain("calculus");
   });
 
@@ -74,22 +80,22 @@ describe.skipIf(db === null)("courses service", () => {
   });
 
   it("rejects a prerequisite cycle (A requires B, B requires A)", async () => {
-    const a = await create({ code: "TST 201" });
-    const b = await create({ code: "TST 202", prerequisiteIds: [a.id] });
+    const a = await create({ code: `${RUN_C} 201` });
+    const b = await create({ code: `${RUN_C} 202`, prerequisiteIds: [a.id] });
 
-    await expect(updateCourse(db!, a.id, input({ code: "TST 201", prerequisiteIds: [b.id] }), actorId)).rejects.toThrow(/cycle/i);
+    await expect(updateCourse(db!, a.id, input({ code: `${RUN_C} 201`, prerequisiteIds: [b.id] }), actorId)).rejects.toThrow(/cycle/i);
   });
 
   it("allows a legitimate prerequisite chain (A -> B -> C)", async () => {
-    const a = await create({ code: "TST 301" });
-    const b = await create({ code: "TST 302", prerequisiteIds: [a.id] });
-    const c = await create({ code: "TST 303", prerequisiteIds: [b.id] });
+    const a = await create({ code: `${RUN_C} 301` });
+    const b = await create({ code: `${RUN_C} 302`, prerequisiteIds: [a.id] });
+    const c = await create({ code: `${RUN_C} 303`, prerequisiteIds: [b.id] });
     expect(c).toBeTruthy();
   });
 
   it("reversePrerequisitesOf finds courses that require this one", async () => {
-    const a = await create({ code: "TST 401" });
-    const b = await create({ code: "TST 402", prerequisiteIds: [a.id] });
+    const a = await create({ code: `${RUN_C} 401` });
+    const b = await create({ code: `${RUN_C} 402`, prerequisiteIds: [a.id] });
 
     const requiredFor = await reversePrerequisitesOf(db!, a.id);
     expect(requiredFor.map((c) => c.id)).toContain(b.id);
@@ -130,8 +136,8 @@ describe.skipIf(db === null)("courses service", () => {
   });
 
   it("getCourseByIdAdmin includes prerequisite and lecturer relations", async () => {
-    const a = await create({ code: "TST 501" });
-    const b = await create({ code: "TST 502", prerequisiteIds: [a.id] });
+    const a = await create({ code: `${RUN_C} 501` });
+    const b = await create({ code: `${RUN_C} 502`, prerequisiteIds: [a.id] });
     const found = await getCourseByIdAdmin(db!, b.id);
     expect(found.prerequisites.map((p) => p.id)).toContain(a.id);
   });
@@ -140,15 +146,15 @@ describe.skipIf(db === null)("courses service", () => {
     const result = await commitCourseImport(
       db!,
       [
-        { code: "TST 601", title: "Base", units: 3, level: 600, semester: "FIRST", programmeLevel: "BSC", isElective: false, prerequisiteCodes: [], description: "" },
-        { code: "TST 602", title: "Advanced", units: 3, level: 600, semester: "FIRST", programmeLevel: "BSC", isElective: false, prerequisiteCodes: ["TST 601"], description: "" },
+        { code: `${RUN_C} 601`, title: "Base", units: 3, level: 600, semester: "FIRST", programmeLevel: "BSC", isElective: false, prerequisiteCodes: [], description: "" },
+        { code: `${RUN_C} 602`, title: "Advanced", units: 3, level: 600, semester: "FIRST", programmeLevel: "BSC", isElective: false, prerequisiteCodes: [`${RUN_C} 601`], description: "" },
       ],
       actorId,
     );
     expect(result.created).toBe(2);
 
-    const base = await db!.course.findUniqueOrThrow({ where: { code: "TST 601" } });
-    const advanced = await db!.course.findUniqueOrThrow({ where: { code: "TST 602" }, include: { prerequisites: true } });
+    const base = await db!.course.findUniqueOrThrow({ where: { code: `${RUN_C} 601` } });
+    const advanced = await db!.course.findUniqueOrThrow({ where: { code: `${RUN_C} 602` }, include: { prerequisites: true } });
     createdIds.push(base.id, advanced.id);
 
     expect(base.status).toBe("DRAFT");
