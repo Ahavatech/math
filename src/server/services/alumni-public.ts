@@ -51,7 +51,7 @@ export async function listApprovedAlumni(
       consentPublicDisplay: true,
       ...(programmeFilter ? { programmes: programmeFilter } : {}),
       ...(options.country ? { country: options.country } : {}),
-      ...(options.industry ? { roleOrField: options.industry } : {}),
+      ...(options.industry ? { industry: options.industry } : {}),
     };
 
     const all = await db.alumniEntry.findMany({
