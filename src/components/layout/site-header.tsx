@@ -63,15 +63,14 @@ export function SiteHeader({ nav }: { nav: NavLink[] }) {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            disabled
-            title="Search is coming soon"
-            aria-label="Search (coming soon)"
+          <a
+            href="/search"
+            className="inline-flex items-center justify-center size-8 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
+            aria-label="Search"
+            title="Search"
           >
-            <Search className="size-4" />
-          </Button>
+            <Search className="size-4" aria-hidden="true" />
+          </a>
           <Button
             variant="ghost"
             size="icon-sm"
