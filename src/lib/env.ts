@@ -32,6 +32,13 @@ const envSchema = z
           "PRIVATE_STORAGE_DIR is required in production (an absolute path outside the web root and the public/ folder)",
       });
     }
+    if (data.NODE_ENV === "production" && !data.NEXT_PUBLIC_SITE_URL) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["NEXT_PUBLIC_SITE_URL"],
+        message: "NEXT_PUBLIC_SITE_URL is required in production (e.g. https://maths.oauife.edu.ng)",
+      });
+    }
   });
 
 function loadEnv() {

@@ -1,3 +1,5 @@
+import { safeJsonLdString, buildOrganizationJsonLd } from "@/lib/json-ld";
+import { SITE_URL } from "@/lib/seo";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
@@ -216,6 +218,10 @@ export default async function Home() {
           </Container>
         </Section>
       ) : null}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLdString(buildOrganizationJsonLd(SITE_URL)) }}
+      />
     </>
   );
 }
