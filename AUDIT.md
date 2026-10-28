@@ -656,3 +656,33 @@ Decisions 71-78 added to `docs/DECISIONS.md`.
 **Open issues:** (a) Real HTTP (Step 6 of the corrective prompt) -- production build + curl evidence -- not done in this session. (b) Photo lifecycle tests (upload, Cloudinary rename on approve, delete on erase) deferred. (c) Permission matrix tests (alumni.review, HOD read-only, ADMIN) deferred. (d) Dev-fixture create/--remove zero-rows test deferred. (e) Duplicate email oracle timing proof (constant time regardless of email presence) not measured -- implementation is structural (same code path returns same response).
 
 **Next:** Step 6 (real HTTP evidence) and remaining deferred tests, then Stage 13.
+
+### Entry 041 | 2026-10-28 | Stage 12d corrective (session 2): HTTP headers proof + race-condition fixes
+
+**Asked:** Continuation of Stage 12d corrective pass (Entry 040). Specifically: (1) Step 6 -- real HTTP evidence that /alumni/confirm/[token] returns Referrer-Policy: no-referrer, X-Robots-Tag: noindex, Cache-Control: no-store; (2) fix any remaining test failures before writing the final suite counts.
+
+**Done:**
+- /alumni/confirm/[token] HTTP headers: `next.config.ts` headers() config added a second entry for `/alumni/confirm/:token*` that sets `Referrer-Policy: no-referrer` and `X-Robots-Tag: noindex, nofollow`. The confirm page already had `void headers()` to opt out of static generation. `export const metadata: Metadata = { robots: { index: false, follow: false } }` added so the HTML `<meta name="robots">` tag also says noindex. Verified via `curl -sI http://localhost:3000/alumni/confirm/test` on a production build: all three headers present with correct values.
+- Race condition fix (courses.test.ts): codes TST 201/202/301..601/602 and mth 101 were hardcoded. Two parallel workers inserting the same code simultaneously caused `Unique constraint failed on Course_code_key`. Fixed by computing a 3-letter run-unique prefix (`RUN_C`) from `Date.now()` using safe modular arithmetic (no bitwise `>>`). All 11 course codes updated.
+- Race condition fix (article-public-leak.test.ts): `JournalIssue.volume` was hardcoded to 99 while `number` was randomised from runId. Fixed by deriving `issueVolume` from a different hex slice of runId, making both unique per worker run.
+- Both race-condition files were verified to have the same hardcoded values on `main` (pre-existing, not introduced by Stage 12d). Source confirmed via `git show main:path`.
+- docs/ROADMAP.md: Stage 12d corrective-pass entry updated with final suite count (1021/1021); three new pending items added before Stage 13 (photo lifecycle, alumni set filter, dev-fixture).
+
+**Files:**
+- MOD `next.config.ts` -- path-specific headers() for /alumni/confirm/:token* (Referrer-Policy, X-Robots-Tag)
+- MOD `src/app/(site)/alumni/confirm/[token]/page.tsx` -- metadata robots noindex export
+- MOD `src/server/services/__tests__/courses.test.ts` -- RUN_C prefix for all course codes (race fix)
+- MOD `src/server/services/__tests__/article-public-leak.test.ts` -- issueVolume from runId (race fix)
+- MOD `docs/ROADMAP.md` -- Stage 12d entry updated, pending items added
+
+**Decisions:** Two-pronged approach for confirm-page privacy: `metadata` export sets HTML <meta name="robots"> (consumed by JS-aware crawlers); `next.config.ts` headers() sets HTTP-level X-Robots-Tag (consumed by crawlers that fetch without JS). Both are needed because neither alone covers all crawlers. Referrer-Policy: no-referrer at HTTP level (rather than only via <meta>) ensures the token is not leaked via the Referer header when the page loads external assets.
+
+**Tests and checks:** `npx tsc --noEmit` -- 0 errors. `npm run lint` -- 0 warnings, exit 0. `npx vitest run` -- 1021/1021 passed (105 files), run 1. `npx vitest run` -- 1021/1021 passed (105 files), run 2. `npm run build` -- exit 0 (verified in prior session; Entry 040).
+
+**Security notes:** confirm page now has defence-in-depth: HTTP-level X-Robots-Tag prevents crawlers that skip the HTML <meta>; Referrer-Policy: no-referrer at HTTP level prevents token leakage in the Referer header when the page loads third-party resources (Cloudinary images, fonts). Both expired and invalid tokens still return identical UI (no oracle). Race-condition fixes are test-only changes; no production code paths were modified.
+
+**Deviations:** Real-HTTP step (curl evidence) performed on the production build in this environment (localhost:3000). The race-condition files (`courses.test.ts`, `article-public-leak.test.ts`) were pre-existing on main; the fix was applied to this branch to prevent intermittent CI failures.
+
+**Open issues:** (a) Photo lifecycle tests (Cloudinary rename on approve, 404 on pending URL) deferred -- no live Cloudinary credentials in this environment. (b) Permission matrix tests (alumni.review, HOD read-only, ADMIN) deferred. (c) Dev-fixture create/--remove integration test deferred. (d) Alumni public list "set" filter (cohort range) deferred -- needs HOD decision on UX. (e) Turbopack build still fails in this environment due to Google Fonts DNS; webpack build passes cleanly.
+
+**Next:** PR for Stage 12d. Stage 13: search, SEO, accessibility, performance, E2E tests.
