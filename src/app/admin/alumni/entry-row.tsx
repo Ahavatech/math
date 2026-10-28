@@ -2,17 +2,22 @@
 
 import { useTransition } from "react";
 import Link from "next/link";
-import type { AlumniEntry } from "@prisma/client";
+import type { AlumniEntry, AlumniProgramme } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { withdrawAlumniEntryAction, restoreAlumniEntryAction, setAlumniFeaturedAction } from "@/server/actions/alumni-review";
+
+type EntryRow = AlumniEntry & {
+  programmes: Pick<AlumniProgramme, "level" | "graduationYear">[];
+  link?: { label: string } | null;
+};
 
 export function EntryRow({
   entry,
   isDuplicateFlagged,
   tab,
 }: {
-  entry: AlumniEntry & { link?: { label: string } | null };
+  entry: EntryRow;
   isDuplicateFlagged: boolean;
   tab: string;
 }) {
@@ -28,6 +33,8 @@ export function EntryRow({
     });
   }
 
+  const primaryProg = entry.programmes[0];
+
   return (
     <li className="flex items-center justify-between gap-4 rounded-md border border-border p-3">
       <div>
@@ -35,12 +42,17 @@ export function EntryRow({
           {entry.fullName}
         </Link>
         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <Badge variant="secondary">{entry.level}</Badge>
-          <span>{entry.graduationYear}</span>
+          {primaryProg ? (
+            <>
+              <Badge variant="secondary">{primaryProg.level}</Badge>
+              <span>{primaryProg.graduationYear}</span>
+            </>
+          ) : null}
           {entry.organisation ? <span>{entry.organisation}</span> : null}
           {entry.link?.label ? <span>via {entry.link.label}</span> : null}
           {entry.isFeatured ? <Badge>Featured</Badge> : null}
           {isDuplicateFlagged ? <Badge variant="outline">Possible duplicate</Badge> : null}
+          {entry.isDuplicateEmail ? <Badge variant="outline" className="border-amber-400 text-amber-700">Duplicate email</Badge> : null}
           <span>{entry.createdAt.toLocaleDateString()}</span>
         </div>
       </div>

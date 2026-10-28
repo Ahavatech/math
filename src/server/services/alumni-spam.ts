@@ -19,15 +19,14 @@ export const alumniPhotoSigningLinkRateLimiter = new InMemoryRateLimiter({ limit
 /** Token lookups (validating a link) get their own, higher-frequency per-IP limit, separate from submission. */
 export const alumniTokenLookupRateLimiter = new InMemoryRateLimiter({ limit: 20, windowMs: 60 * 1000 });
 
-/** True if an AlumniEntry with the same email and graduation year was created in the last 24 hours, any status. */
+/** True if an AlumniEntry with the same normalised email was created in the last 24 hours, any status. */
 export async function checkRecentDuplicateSubmission(
   db: Db,
   email: string,
-  graduationYear: number,
 ): Promise<boolean> {
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const existing = await db.alumniEntry.findFirst({
-    where: { email, graduationYear, createdAt: { gte: since } },
+    where: { email: email.trim().toLowerCase(), createdAt: { gte: since } },
     select: { id: true },
   });
   return existing !== null;

@@ -24,7 +24,7 @@ export default async function AlumniPage({ searchParams }: { searchParams: Promi
   const params = await searchParams;
   const page = Math.max(1, Number(params.page) || 1);
   const year = params.year ? Number(params.year) : undefined;
-  const level = params.level === "BSC" || params.level === "MSC" ? params.level : undefined;
+  const level = params.level === "BSC" || params.level === "MSC" || params.level === "PHD" ? params.level : undefined;
   const country = params.country || undefined;
   const industry = params.industry || undefined;
   const q = params.q?.trim() || undefined;
@@ -64,15 +64,16 @@ export default async function AlumniPage({ searchParams }: { searchParams: Promi
           </div>
         ) : null}
 
-        <form method="get" className="mt-8 grid gap-3 rounded-lg border border-border p-4 sm:grid-cols-5">
+        <form method="get" className="mt-8 grid gap-3 rounded-lg border border-border p-4 sm:grid-cols-4">
           <input type="search" name="q" defaultValue={params.q} placeholder="Search by name" className="h-9 rounded-md border border-input bg-background px-3 text-sm sm:col-span-2" />
           <input type="number" name="year" defaultValue={params.year} placeholder="Graduation year" className="h-9 rounded-md border border-input bg-background px-3 text-sm" />
           <select name="level" defaultValue={params.level ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
-            <option value="">Any level</option>
+            <option value="">Any programme</option>
             <option value="BSC">B.Sc.</option>
             <option value="MSC">M.Sc.</option>
+            <option value="PHD">Ph.D.</option>
           </select>
-          <select name="country" defaultValue={params.country ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+          <select name="country" defaultValue={params.country ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm sm:col-span-2">
             <option value="">Any country</option>
             {COUNTRIES.map((c) => (
               <option key={c} value={c}>{c}</option>
@@ -80,8 +81,8 @@ export default async function AlumniPage({ searchParams }: { searchParams: Promi
           </select>
           <select name="industry" defaultValue={params.industry ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm sm:col-span-2">
             <option value="">Any industry</option>
-            {INDUSTRIES.map((i) => (
-              <option key={i} value={i}>{i}</option>
+            {INDUSTRIES.map((ind) => (
+              <option key={ind} value={ind}>{ind}</option>
             ))}
           </select>
           <button type="submit" className="h-9 rounded-md border border-input bg-primary px-3 text-sm text-primary-foreground">

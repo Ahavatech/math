@@ -30,6 +30,15 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: securityHeaders,
       },
+      {
+        // Confirm page is a one-time-use link; send the strictest referrer and
+        // an X-Robots-Tag so crawlers that bypass the meta tag also see noindex.
+        source: "/alumni/confirm/:token*",
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
     ];
   },
 };

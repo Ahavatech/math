@@ -19,15 +19,16 @@ describe.skipIf(db === null)("alumni-public service", () => {
       data: {
         fullName: "Public Test Person",
         email: "public-test@example.com",
-        level: "BSC",
-        graduationYear: 2015,
         country: "Nigeria",
         consentAt: new Date(),
         consentVersion: "v1",
         dedupeKey: `public test person ${Math.random()}|2015`,
         status: "PENDING",
+        consentPublicDisplay: true,
+        programmes: { create: [{ level: "BSC", graduationYear: 2015 }] },
         ...overrides,
-      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any,
     });
     createdIds.push(entry.id);
     return entry;
@@ -63,7 +64,7 @@ describe.skipIf(db === null)("alumni-public service", () => {
   });
 
   it("filters by diacritic-insensitive name search", async () => {
-    await createEntry({ status: "APPROVED", fullName: "Ọlá Adéṣọlá", graduationYear: 2018, dedupeKey: `search-test|2018` });
+    await createEntry({ status: "APPROVED", fullName: "Ọlá Adéṣọlá", dedupeKey: `search-test|2018` });
 
     const { entries } = await listApprovedAlumni(db!, { page: 1, perPage: 50, q: "Ola Adesola" });
     expect(entries.some((e) => e.fullName === "Ọlá Adéṣọlá")).toBe(true);

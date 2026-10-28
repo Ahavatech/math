@@ -586,6 +586,7 @@ model EventGalleryImage {
 enum AlumniLevel {
   BSC
   MSC
+  PHD
 }
 
 enum AlumniStatus {
@@ -616,38 +617,55 @@ model AlumniLink {
 }
 
 model AlumniEntry {
-  id              String       @id @default(cuid())
-  fullName        String
-  email           String
-  level           AlumniLevel
-  graduationYear  Int
-  organisation    String?
-  roleTitle       String?
-  city            String?
-  country         String?
-  industry        String?
-  photoId         String?
-  linkedinUrl     String?
-  consentAt       DateTime
-  consentVersion  String
-  status          AlumniStatus @default(PENDING)
-  rejectionReason String?
-  reviewedById    String?
-  reviewedAt      DateTime?
-  linkId          String?
-  dedupeKey       String
-  isFeatured      Boolean      @default(false)
-  withdrawnAt     DateTime?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  id                   String       @id @default(cuid())
+  fullName             String
+  email                String
+  organisation         String?
+  roleOrField          String?
+  city                 String?
+  country              String?
+  note                 String?
+  industry             String?
+  linkedinUrl          String?
+  photoId              String?
+  consentAt            DateTime
+  consentVersion       String
+  consentPublicDisplay Boolean      @default(false)
+  status               AlumniStatus @default(PENDING)
+  isDuplicateEmail     Boolean      @default(false)
+  rejectionReason      String?
+  reviewedById         String?
+  reviewedAt           DateTime?
+  linkId               String?
+  dedupeKey            String
+  isFeatured           Boolean      @default(false)
+  withdrawnAt          DateTime?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
 
-  photo      MediaAsset? @relation("AlumniPhoto", fields: [photoId], references: [id], onDelete: SetNull)
-  reviewedBy User?       @relation("AlumniEntryReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
-  link       AlumniLink? @relation(fields: [linkId], references: [id], onDelete: SetNull)
+  photo      MediaAsset?      @relation("AlumniPhoto", fields: [photoId], references: [id], onDelete: SetNull)
+  reviewedBy User?            @relation("AlumniEntryReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  link       AlumniLink?      @relation(fields: [linkId], references: [id], onDelete: SetNull)
+  programmes AlumniProgramme[]
 
   @@index([status])
   @@index([dedupeKey])
+  @@index([email])
+}
+
+model AlumniProgramme {
+  id             String      @id @default(cuid())
+  alumnusId      String
+  level          AlumniLevel
+  entryYear      Int?
+  graduationYear Int
+  createdAt      DateTime    @default(now())
+
+  alumnus AlumniEntry @relation(fields: [alumnusId], references: [id], onDelete: Cascade)
+
+  @@unique([alumnusId, level])
   @@index([graduationYear])
+  @@index([level, graduationYear])
 }
 
 model AlumniReferenceRecord {

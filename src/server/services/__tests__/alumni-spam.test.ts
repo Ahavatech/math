@@ -82,27 +82,23 @@ describe.skipIf(db === null)("checkRecentDuplicateSubmission", () => {
     await db?.$disconnect();
   });
 
-  it("detects a submission with the same email and graduation year within 24 hours", async () => {
-    const before = await checkRecentDuplicateSubmission(db!, email, 2010);
+  it("detects a submission with the same email within 24 hours", async () => {
+    const before = await checkRecentDuplicateSubmission(db!, email);
     expect(before).toBe(false);
 
     const entry = await db!.alumniEntry.create({
       data: {
         fullName: "Spam Dup Test",
         email,
-        level: "BSC",
-        graduationYear: 2010,
         consentAt: new Date(),
         consentVersion: "v1",
         dedupeKey: "spam dup test|2010",
+        programmes: { create: [{ level: "BSC", graduationYear: 2010 }] },
       },
     });
     entryId = entry.id;
 
-    const after = await checkRecentDuplicateSubmission(db!, email, 2010);
+    const after = await checkRecentDuplicateSubmission(db!, email);
     expect(after).toBe(true);
-
-    const differentYear = await checkRecentDuplicateSubmission(db!, email, 2011);
-    expect(differentYear).toBe(false);
   });
 });

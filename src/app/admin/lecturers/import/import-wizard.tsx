@@ -13,7 +13,7 @@ import {
 type CreatedRow = { row: number; success: boolean; userId?: string; error?: string };
 
 export function ImportWizard() {
-  const [csvText, setCsvText] = useState<string | null>(null);
+  const [_csvText, setCsvText] = useState<string | null>(null);
   const [dryRun, setDryRun] = useState<DryRunResult | null>(null);
   const [created, setCreated] = useState<CreatedRow[] | null>(null);
   const [inviteResults, setInviteResults] = useState<{ userId: string; success: boolean; error?: string }[] | null>(null);

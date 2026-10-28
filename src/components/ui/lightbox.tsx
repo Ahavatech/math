@@ -46,6 +46,7 @@ export function Lightbox({ image, onClose }: { image: LightboxImage; onClose: ()
       className="m-auto max-h-none max-w-none border-none bg-transparent p-0 backdrop:bg-black/90"
     >
       <div className="flex max-h-screen w-screen flex-col items-center justify-center gap-2 p-4">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={image.url}
           alt={image.alt}

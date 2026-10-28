@@ -102,12 +102,11 @@ describe.skipIf(db === null)("contact service", () => {
       data: {
         fullName: "Ref Test Person",
         email: "ref-test@example.com",
-        level: "BSC",
-        graduationYear: 2010,
         consentAt: new Date(),
         consentVersion: "v1",
         dedupeKey: `ref test person ${Math.random()}|2010`,
         status: "APPROVED",
+        programmes: { create: [{ level: "BSC", graduationYear: 2010 }] },
       },
     });
     const ref = alumniPublicReference(alumniEntry.id);

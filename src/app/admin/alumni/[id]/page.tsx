@@ -18,7 +18,17 @@ export default async function AlumniReviewPage({ params }: { params: Promise<{ i
     notFound();
   }
 
-  const duplicates = await findPossibleDuplicates(db, entry.dedupeKey, entry.id);
+  const rawDuplicates = await findPossibleDuplicates(db, entry.dedupeKey, entry.id);
+  // Fetch programmes for each duplicate so the ReviewForm can display them
+  const duplicates = await Promise.all(
+    rawDuplicates.map(async (d) => {
+      const programmes = await db.alumniProgramme.findMany({
+        where: { alumnusId: d.id },
+        orderBy: { graduationYear: "asc" },
+      });
+      return { ...d, programmes };
+    }),
+  );
   const canErase = hasRole(user, ["HOD", "SUPER_ADMIN"]);
 
   return (

@@ -156,6 +156,7 @@ export function GalleryManager({ eventId, images }: { eventId: string; images: G
         <div className="space-y-2 rounded-md border border-border p-3">
           <Label htmlFor="gallery-file">Add an image</Label>
           <Input id="gallery-file" ref={inputRef} type="file" accept="image/*" onChange={handleFileChange} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           {previewUrl ? <img src={previewUrl} alt="" className="h-24 w-32 rounded-md border border-border object-cover" /> : null}
           <div className="space-y-1.5">
             <Label htmlFor="gallery-alt">Alt text (required)</Label>

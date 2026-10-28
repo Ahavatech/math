@@ -158,6 +158,7 @@ export function MediaPicker({
               ) : null}
               {previewUrl ? (
                 <div className="flex items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={previewUrl} alt="" className="h-20 w-28 rounded-md border border-border object-cover" />
                   <Button type="button" size="sm" variant="outline" onClick={() => setCropping(true)}>
                     Crop

@@ -35,7 +35,8 @@ describe.skipIf(db === null)("alumni-entries service", () => {
   const createdIds: string[] = [];
 
   beforeAll(async () => {
-    const actor = await db!.user.create({ data: { email: "alumni-entries-test-actor@example.com", name: "Actor" } });
+    const runTag = Date.now().toString(36);
+    const actor = await db!.user.create({ data: { email: `ae-actor-${runTag}@example.com`, name: "Actor" } });
     actorId = actor.id;
   });
 
@@ -53,24 +54,28 @@ describe.skipIf(db === null)("alumni-entries service", () => {
     }
   });
 
-  function fields(overrides: Record<string, unknown> = {}) {
+  // Unique email per call prevents email-dedup from collapsing distinct test entries.
+  const RUN_AE = Date.now().toString(36);
+  let emailSeq = 0;
+  function nextEmail() { return `ae-${RUN_AE}-${++emailSeq}@example.com`; }
+
+  function fields(overrides: Record<string, unknown> = {}): import("../alumni-entries").AlumniEntrySubmission {
     return {
       fullName: "Test Alumnus",
-      email: "test-alumnus@example.com",
-      level: "BSC" as const,
-      graduationYear: 2012,
+      email: nextEmail(),
+      programmes: [{ level: "BSC", graduationYear: 2012 }],
       organisation: "Acme",
-      roleTitle: "Engineer",
+      roleOrField: "Engineer",
       city: "Ife",
       country: "Nigeria",
       industry: "Information technology",
       linkedinUrl: "",
-      ...overrides,
+      ...(overrides as Partial<import("../alumni-entries").AlumniEntrySubmission>),
     };
   }
 
   async function submit(overrides: Record<string, unknown> = {}) {
-    const entry = await submitAlumniEntry(db!, { linkId: null, data: fields(overrides), photoMediaId: null });
+    const entry = await submitAlumniEntry(db!, { linkId: null, data: fields(overrides), photoMediaId: null, consentPublicDisplay: true });
     createdIds.push(entry.id);
     return entry;
   }

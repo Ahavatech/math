@@ -13,7 +13,6 @@ export interface CitationInput {
 
 /** Strips CR/LF (and other control characters) so a field can never inject a new record/line. */
 function stripControlChars(value: string): string {
-  // eslint-disable-next-line no-control-regex
   return value.replace(/[\u0000-\u0009\u000B-\u001F]/g, "").replace(/[\r\n]/g, " ").trim();
 }
 
