@@ -12,12 +12,14 @@ import {
 
 const db = await getTestDb();
 
+const RUN = Date.now().toString(36);
+
 describe.skipIf(db === null)("news service", () => {
   let actorId: string;
   const createdIds: string[] = [];
 
   beforeAll(async () => {
-    const actor = await db!.user.create({ data: { email: "news-test-actor@example.com", name: "Actor" } });
+    const actor = await db!.user.create({ data: { email: `news-test-actor-${RUN}@example.com`, name: "Actor" } });
     actorId = actor.id;
   });
 
@@ -166,7 +168,7 @@ describe.skipIf(db === null)("news service", () => {
     createdIds.push(published.id);
 
     const list = await listNewsPostsPublic(db!, { page: 1, perPage: 20 });
-    expect(JSON.stringify(list)).not.toContain("news-test-actor@example.com");
+    expect(JSON.stringify(list)).not.toContain(`news-test-actor-${RUN}@example.com`);
     expect(JSON.stringify(list)).not.toContain("passwordHash");
   });
 

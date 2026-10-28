@@ -35,13 +35,15 @@ describe("isArticlePublic (pure)", () => {
   });
 });
 
+const RUN = Date.now().toString(36);
+
 describe.skipIf(db === null)("journal-articles service", () => {
   let actorId: string;
   const createdArticleIds: string[] = [];
   const createdIssueIds: string[] = [];
 
   beforeAll(async () => {
-    const actor = await db!.user.create({ data: { email: "journal-articles-test-actor@example.com", name: "Actor" } });
+    const actor = await db!.user.create({ data: { email: `journal-articles-actor-${RUN}@example.com`, name: "Actor" } });
     actorId = actor.id;
   });
 
@@ -117,7 +119,8 @@ describe.skipIf(db === null)("journal-articles service", () => {
   });
 
   it("findPossibleDuplicateArticle finds an existing article with the same normalised title in the same issue (warning, not a block)", async () => {
-    const issue = await db!.journalIssue.create({ data: { volume: 1, number: 1, year: 2026 } });
+    const vol1 = (Math.abs(parseInt(RUN, 36)) % 9000) + 1000;
+    const issue = await db!.journalIssue.create({ data: { volume: vol1, number: 1, year: 2026 } });
     createdIssueIds.push(issue.id);
 
     const created = await createArticle(db!, input({ issueId: issue.id }), actorId);
@@ -133,8 +136,9 @@ describe.skipIf(db === null)("journal-articles service", () => {
   });
 
   it("findPossibleDuplicateArticle does not flag the same title in a different issue", async () => {
-    const issueA = await db!.journalIssue.create({ data: { volume: 2, number: 1, year: 2026 } });
-    const issueB = await db!.journalIssue.create({ data: { volume: 2, number: 2, year: 2026 } });
+    const vol2 = (Math.abs(parseInt(RUN, 36)) % 9000) + 1000 + 1;
+    const issueA = await db!.journalIssue.create({ data: { volume: vol2, number: 1, year: 2026 } });
+    const issueB = await db!.journalIssue.create({ data: { volume: vol2, number: 2, year: 2026 } });
     createdIssueIds.push(issueA.id, issueB.id);
 
     const created = await createArticle(db!, input({ issueId: issueA.id }), actorId);
@@ -167,7 +171,8 @@ describe.skipIf(db === null)("journal-articles service", () => {
   });
 
   it("visibility: unpublishing an issue hides its otherwise-published articles from the public list and detail page", async () => {
-    const issue = await db!.journalIssue.create({ data: { volume: 3, number: 1, year: 2026, status: "PUBLISHED", publishedAt: new Date() } });
+    const vol3 = (Math.abs(parseInt(RUN, 36)) % 9000) + 1000 + 2;
+    const issue = await db!.journalIssue.create({ data: { volume: vol3, number: 1, year: 2026, status: "PUBLISHED", publishedAt: new Date() } });
     createdIssueIds.push(issue.id);
 
     const created = await createArticle(db!, input({ issueId: issue.id, status: "PUBLISHED" }), actorId);
@@ -186,7 +191,8 @@ describe.skipIf(db === null)("journal-articles service", () => {
   });
 
   it("visibility: a DRAFT article never appears publicly even with a PUBLISHED issue", async () => {
-    const issue = await db!.journalIssue.create({ data: { volume: 4, number: 1, year: 2026, status: "PUBLISHED", publishedAt: new Date() } });
+    const vol4 = (Math.abs(parseInt(RUN, 36)) % 9000) + 1000 + 3;
+    const issue = await db!.journalIssue.create({ data: { volume: vol4, number: 1, year: 2026, status: "PUBLISHED", publishedAt: new Date() } });
     createdIssueIds.push(issue.id);
 
     const created = await createArticle(db!, input({ issueId: issue.id, status: "DRAFT" }), actorId);

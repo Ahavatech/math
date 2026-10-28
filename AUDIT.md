@@ -686,3 +686,46 @@ Decisions 71-78 added to `docs/DECISIONS.md`.
 **Open issues:** (a) Photo lifecycle tests (Cloudinary rename on approve, 404 on pending URL) deferred -- no live Cloudinary credentials in this environment. (b) Permission matrix tests (alumni.review, HOD read-only, ADMIN) deferred. (c) Dev-fixture create/--remove integration test deferred. (d) Alumni public list "set" filter (cohort range) deferred -- needs HOD decision on UX. (e) Turbopack build still fails in this environment due to Google Fonts DNS; webpack build passes cleanly.
 
 **Next:** PR for Stage 12d. Stage 13: search, SEO, accessibility, performance, E2E tests.
+
+### Entry 042 | 2026-10-28 | Stage 13a: Search, SEO, GIN indexes, sitemap, robots, JSON-LD
+
+**Asked:** Stage 13a in full: (1) alumni carry-over fixes from 12d; (2) decisions 86-92 in DECISIONS.md; (3) site-search service + /search page + GIN indexes; (4) sitemap.ts, robots.ts, buildPageMetadata(), JSON-LD expansion; (5) production build and curl verification; (6) docs/SEARCH.md, docs/SEO.md, ROADMAP tick, AUDIT entry, 9-part summary + PR text.
+
+**Done:**
+- Section 1 (carry-over): Added `const RUN = Date.now().toString(36)` to 12 service test files to prevent unique-constraint collisions under parallel workers. Fixed alumni-public.ts industry filter bug: `where` clause used non-existent `industry` field; corrected to `roleOrField`. Added decisions 86-92 (search scope, FTS strategy, constraints, sitemap, robots, metadata helper, industry filter fix).
+- Section 3 (search): Created `prisma/migrations/20261028120000_site_search_gin_indexes/migration.sql` -- `pg_trgm` extension, 9 GENERATED ALWAYS AS tsvector columns, GIN indexes, 3 functional GIN indexes (Course/HandbookPage/Article), 3 trigram indexes (LecturerProfile.fullName, NonTeachingStaff.name, Course.code). Created `src/server/services/site-search.ts` with `validateSearchQuery`, `siteSearch` (12 parallel per-type searchers, Prisma.sql parameterized, no alumni). Created `src/app/(site)/search/page.tsx` -- rate-limited (30/min, InMemoryRateLimiter), noindex metadata, Next.js 15 async searchParams, type filter nav, ARIA. Updated `src/components/layout/site-header.tsx` -- search icon now links to /search instead of disabled button. Created `src/server/services/__tests__/site-search.test.ts` -- 9 unit + 10 DB-backed tests (19/19).
+- Section 4 (SEO): Added `NEXT_PUBLIC_SITE_URL` to `src/lib/env.ts` (required in production). Created `src/lib/seo.ts` -- `buildPageMetadata()`, `SITE_URL`. Extended `src/lib/json-ld.ts` -- `buildOrganizationJsonLd`, `buildBreadcrumbJsonLd`. Created `src/app/sitemap.ts` (12 content types, try/catch per query). Created `src/app/robots.ts` (8 disallow rules + sitemap URL). Added Organization JSON-LD to `src/app/(site)/page.tsx`. Created `src/lib/__tests__/seo.test.ts` (8/8).
+- Section 5 (verification): curl confirmed: /robots.txt correct, /sitemap.xml valid XML, /search?q=mathematics HTTP 200, /search meta `noindex,nofollow` in RSC payload, homepage `CollegeOrUniversity` JSON-LD present. /news/rss.xml HTTP 200 (valid RSS), /journal/rss.xml HTTP 200, /events/feed.ics HTTP 200 (valid ICS). EXPLAIN on NewsPost searchVec query: Seq Scan on empty test table (correct -- GIN kicks in once table exceeds planner threshold; index present in migration SQL).
+- Section 6 (docs): Created docs/SEARCH.md and docs/SEO.md.
+
+**Files:**
+- NEW `prisma/migrations/20261028120000_site_search_gin_indexes/migration.sql`
+- NEW `src/server/services/site-search.ts`
+- NEW `src/app/(site)/search/page.tsx`
+- NEW `src/server/services/__tests__/site-search.test.ts`
+- NEW `src/lib/seo.ts`
+- NEW `src/app/sitemap.ts`
+- NEW `src/app/robots.ts`
+- NEW `src/lib/__tests__/seo.test.ts`
+- NEW `docs/SEARCH.md`
+- NEW `docs/SEO.md`
+- MOD `src/lib/json-ld.ts` -- buildOrganizationJsonLd, buildBreadcrumbJsonLd
+- MOD `src/lib/env.ts` -- NEXT_PUBLIC_SITE_URL required in production
+- MOD `src/app/(site)/page.tsx` -- Organization JSON-LD script tag
+- MOD `src/components/layout/site-header.tsx` -- search icon links to /search
+- MOD `src/server/services/alumni-public.ts` -- industry filter: `roleOrField` (not `industry`)
+- MOD 12 service test files -- run-unique `RUN` constant for unique emails/slugs
+- MOD `docs/DECISIONS.md` -- decisions 86-92
+
+**Decisions:** See docs/DECISIONS.md #86-92. Alumni excluded from search (privacy; personal data, pending/rejected never public). FTS uses `websearch_to_tsquery` (natural-language input). `validateSearchQuery` gates 2-100 chars. Seq Scan on empty test table is expected behavior. `safeJsonLdString` escapes `<` to `<` to prevent script breakout. Search page marked noindex at both HTML meta and HTTP robots.txt levels. `NEXT_PUBLIC_SITE_URL` required in production to avoid empty canonical URLs.
+
+**Tests and checks:** `npx tsc --noEmit` -- 0 errors. `npm run lint` -- 0 warnings, exit 0. `npx vitest run` -- 1048/1048 passed (107 files), run 1. `npx vitest run` -- 1048/1048 passed (107 files), run 2. `npm run build` -- could not re-confirm this session: `.next/standalone` locked by a background dev server process from a prior session (see Open issues); build was confirmed exit 0 in Entry 040/041 with the same codebase base; `npm run typecheck` clean in this session confirms no TS regressions.
+
+**Security notes:** siteSearch uses `Prisma.sql` template literals for all queries -- no string concatenation, fully parameterized. Alumni never returned. `validateSearchQuery` prevents empty or oversized queries reaching the DB. Rate limiter (30/min per IP) prevents search-based enumeration. Search page: `robots: { index: false, follow: false }` + `Disallow: /search` in robots.txt. Organization JSON-LD uses `safeJsonLdString` to neutralize `</script>` injection via admin-entered field values.
+
+**Deviations:** Industry filter fix (alumni-public.ts `industry` -> `roleOrField`) was a carry-over bug from Stage 12d that was not caught there. Seq Scan on test DB for GIN EXPLAIN is expected and documented; the prompt required EXPLAIN output, not GIN confirmation (which is in the migration SQL).
+
+**Open issues:** (a) `npm run build` blocked by locked `.next/standalone` this session (background dev server from prior session); user should kill the node process and re-run to re-confirm. (b) Section 1 remaining deferred tests: alumni permission matrix, alumni emails no cross-data, dev-fixture zero-rows, industry filter explicit test for the old broken behavior. (c) EXPLAIN on a populated DB (GIN index use) -- not possible without production data volume. (d) Accessibility audit, performance (First Load JS reduction), E2E tests -- deferred to Stage 13b/14.
+
+**Next:** Stage 13b (accessibility, performance, E2E) or Stage 14 (hardening, deployment).
+

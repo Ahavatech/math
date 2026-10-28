@@ -18,6 +18,8 @@ import {
 
 const db = await getTestDb();
 
+const RUN = Date.now().toString(36);
+
 describe.skipIf(db === null)("events service", () => {
   let actorId: string;
   let photoId: string;
@@ -26,7 +28,7 @@ describe.skipIf(db === null)("events service", () => {
   const createdMediaIds: string[] = [];
 
   beforeAll(async () => {
-    const actor = await db!.user.create({ data: { email: "events-test-actor@example.com", name: "Actor" } });
+    const actor = await db!.user.create({ data: { email: `events-test-actor-${RUN}@example.com`, name: "Actor" } });
     actorId = actor.id;
     const media = await db!.mediaAsset.create({
       data: { provider: "cloudinary", publicId: "events-test-photo", url: "https://example.com/p.jpg", alt: "alt" },

@@ -5,12 +5,14 @@ import { setSetting } from "../site-settings";
 
 const db = await getTestDb();
 
+const RUN = Date.now().toString(36);
+
 describe.skipIf(db === null)("getFeaturedLecturer", () => {
   let actorId: string;
   const createdUserIds: string[] = [];
 
   beforeAll(async () => {
-    const actor = await db!.user.create({ data: { email: "featured-lecturer-test-actor@example.com", name: "Actor" } });
+    const actor = await db!.user.create({ data: { email: `featured-lecturer-test-actor-${RUN}@example.com`, name: "Actor" } });
     actorId = actor.id;
   });
 
@@ -59,7 +61,7 @@ describe.skipIf(db === null)("getFeaturedLecturer", () => {
   });
 
   it("automatic mode picks only among published, active, photo-and-bio profiles", async () => {
-    const noPhoto = await db!.user.create({ data: { email: "featured-no-photo@example.com", name: "No Photo" } });
+    const noPhoto = await db!.user.create({ data: { email: `featured-no-photo-${RUN}@example.com`, name: "No Photo" } });
     createdUserIds.push(noPhoto.id);
     await db!.lecturerProfile.create({
       data: { userId: noPhoto.id, slug: "featured-no-photo", fullName: "No Photo", rank: "LECTURER_I", status: "PUBLISHED", bio: "Has a bio but no photo." },
@@ -93,7 +95,7 @@ describe.skipIf(db === null)("getFeaturedLecturer", () => {
 
   it("excludes emeritus and deactivated-account profiles from the automatic pool", async () => {
     const emeritus = await makeEligibleLecturer("auto-emeritus", { isEmeritus: true });
-    const deactivatedUser = await db!.user.create({ data: { email: "featured-deactivated@example.com", name: "Deactivated", isActive: false } });
+    const deactivatedUser = await db!.user.create({ data: { email: `featured-deactivated-${RUN}@example.com`, name: "Deactivated", isActive: false } });
     createdUserIds.push(deactivatedUser.id);
     await db!.lecturerProfile.create({
       data: { userId: deactivatedUser.id, slug: "featured-deactivated", fullName: "Deactivated", rank: "LECTURER_I", status: "PUBLISHED", bio: "bio" },

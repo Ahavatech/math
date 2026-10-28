@@ -10,6 +10,8 @@ import {
 
 const db = await getTestDb();
 
+const RUN = Date.now().toString(36);
+
 describe.skipIf(db === null)("programmes service", () => {
   let programmeId: string;
   let actorId: string;
@@ -17,7 +19,7 @@ describe.skipIf(db === null)("programmes service", () => {
 
   beforeAll(async () => {
     const actor = await db!.user.create({
-      data: { email: "programmes-test-actor@example.com", name: "Programmes Test Actor" },
+      data: { email: `programmes-test-actor-${RUN}@example.com`, name: "Programmes Test Actor" },
     });
     actorId = actor.id;
 

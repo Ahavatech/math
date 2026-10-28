@@ -4,6 +4,8 @@ import { bulkCreateLecturers, bulkSendInvites } from "../lecturer-import";
 
 const db = await getTestDb();
 
+const RUN = Date.now().toString(36);
+
 describe.skipIf(db === null)("bulkCreateLecturers", () => {
   const createdUserIds: string[] = [];
   const actorIds: string[] = [];
@@ -28,12 +30,12 @@ describe.skipIf(db === null)("bulkCreateLecturers", () => {
   });
 
   it("creates accounts and DRAFT profiles for every row without sending any email", async () => {
-    const actor = await db!.user.create({ data: { email: "import-actor-test@example.com", name: "Importer" } });
+    const actor = await db!.user.create({ data: { email: `import-actor-test-${RUN}@example.com`, name: "Importer" } });
     actorIds.push(actor.id);
 
     const results = await bulkCreateLecturers(db!, actor.id, [
-      { row: 2, fullName: "Bulk One", honorific: "Dr.", rank: "LECTURER_I", email: "bulk-one-test@example.com" },
-      { row: 3, fullName: "Bulk Two", honorific: "Prof.", rank: "PROFESSOR", email: "bulk-two-test@example.com" },
+      { row: 2, fullName: "Bulk One", honorific: "Dr.", rank: "LECTURER_I", email: `bulk-one-test-${RUN}@example.com` },
+      { row: 3, fullName: "Bulk Two", honorific: "Prof.", rank: "PROFESSOR", email: `bulk-two-test-${RUN}@example.com` },
     ]);
 
     expect(results).toHaveLength(2);
@@ -50,13 +52,13 @@ describe.skipIf(db === null)("bulkCreateLecturers", () => {
   });
 
   it("never aborts the whole batch when one row fails", async () => {
-    const actor = await db!.user.create({ data: { email: "import-actor-test-2@example.com", name: "Importer 2" } });
+    const actor = await db!.user.create({ data: { email: `import-actor-test-2-${RUN}@example.com`, name: "Importer 2" } });
     actorIds.push(actor.id);
 
     const results = await bulkCreateLecturers(db!, actor.id, [
-      { row: 2, fullName: "Good Row", honorific: "", rank: "LECTURER_I", email: "good-row-test@example.com" },
-      { row: 3, fullName: "Bad Rank Row", honorific: "", rank: "NOT_A_REAL_RANK" as never, email: "bad-rank-row-test@example.com" },
-      { row: 4, fullName: "Another Good Row", honorific: "", rank: "LECTURER_I", email: "another-good-row-test@example.com" },
+      { row: 2, fullName: "Good Row", honorific: "", rank: "LECTURER_I", email: `good-row-test-${RUN}@example.com` },
+      { row: 3, fullName: "Bad Rank Row", honorific: "", rank: "NOT_A_REAL_RANK" as never, email: `bad-rank-row-test-${RUN}@example.com` },
+      { row: 4, fullName: "Another Good Row", honorific: "", rank: "LECTURER_I", email: `another-good-row-test-${RUN}@example.com` },
     ]);
 
     expect(results).toHaveLength(3);
@@ -77,7 +79,7 @@ describe.skipIf(db === null)("bulkSendInvites", () => {
   beforeEach(async () => {
     // Pre-emptive cleanup of hardcoded emails in case a prior run crashed before afterEach.
     const stale = await db?.user.findMany({
-      where: { email: { in: ["send-invites-actor@example.com", "send-invites-a@example.com", "send-invites-b@example.com"] } },
+      where: { email: { in: [`send-invites-actor-${RUN}@example.com`, `send-invites-a-${RUN}@example.com`, `send-invites-b-${RUN}@example.com`] } },
       select: { id: true },
     });
     if (stale?.length) {
@@ -102,9 +104,9 @@ describe.skipIf(db === null)("bulkSendInvites", () => {
   });
 
   it("sends sequentially, reports per-row results, and never aborts on one failure", async () => {
-    const actor = await db!.user.create({ data: { email: "send-invites-actor@example.com", name: "Actor" } });
-    const a = await db!.user.create({ data: { email: "send-invites-a@example.com", name: "A" } });
-    const b = await db!.user.create({ data: { email: "send-invites-b@example.com", name: "B" } });
+    const actor = await db!.user.create({ data: { email: `send-invites-actor-${RUN}@example.com`, name: "Actor" } });
+    const a = await db!.user.create({ data: { email: `send-invites-a-${RUN}@example.com`, name: "A" } });
+    const b = await db!.user.create({ data: { email: `send-invites-b-${RUN}@example.com`, name: "B" } });
     createdUserIds.push(actor.id, a.id, b.id);
 
     const results = await bulkSendInvites(db!, actor.id, [a.id, b.id, "nonexistent-user-id"]);

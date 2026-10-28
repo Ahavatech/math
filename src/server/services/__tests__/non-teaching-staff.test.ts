@@ -11,13 +11,15 @@ import {
 
 const db = await getTestDb();
 
+const RUN = Date.now().toString(36);
+
 describe.skipIf(db === null)("non-teaching-staff service", () => {
   let actorId: string;
   const createdIds: string[] = [];
 
   beforeAll(async () => {
     const actor = await db!.user.create({
-      data: { email: "non-teaching-staff-test-actor@example.com", name: "Staff Test Actor" },
+      data: { email: `non-teaching-staff-test-actor-${RUN}@example.com`, name: "Staff Test Actor" },
     });
     actorId = actor.id;
   });
