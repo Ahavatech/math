@@ -22,6 +22,7 @@ function revalidateNewsPaths(slug?: string) {
   revalidatePath("/admin/news");
   revalidatePath("/news");
   revalidatePath("/news/rss.xml");
+  revalidatePath("/sitemap.xml");
   revalidatePath("/");
   if (slug) revalidatePath(`/news/${slug}`);
 }

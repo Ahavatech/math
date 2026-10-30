@@ -32,6 +32,7 @@ function revalidateEventPaths(slug?: string) {
   revalidatePath("/admin/events");
   revalidatePath("/events");
   revalidatePath("/events/feed.ics");
+  revalidatePath("/sitemap.xml");
   revalidatePath("/");
   if (slug) {
     revalidatePath(`/events/${slug}`);

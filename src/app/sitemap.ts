@@ -2,6 +2,9 @@ import type { MetadataRoute } from "next";
 import { db } from "@/lib/db";
 import { SITE_URL } from "@/lib/seo";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 3600;
+
 function url(path: string, lastModified?: Date): MetadataRoute.Sitemap[number] {
   return {
     url: `${SITE_URL}${path}`,

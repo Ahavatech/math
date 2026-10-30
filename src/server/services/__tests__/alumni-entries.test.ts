@@ -270,4 +270,28 @@ describe.skipIf(db === null)("alumni-entries service", () => {
     const notFound = await findAlumniEntryByReference(db!, "not-a-real-reference");
     expect(notFound).toBeNull();
   });
+
+  it("duplicate email: second submission returns the existing entry without creating a new row", async () => {
+    const RUN = `dup-email-${Math.random().toString(36).slice(2)}`;
+    const email = `dup-${RUN}@example.com`;
+    const baseData = {
+      fullName: `First Submission ${RUN}`,
+      email,
+      programmes: [{ level: "BSC" as const, graduationYear: 2016 }],
+    };
+
+    const first = await submitAlumniEntry(db!, { linkId: null, data: baseData, photoMediaId: null, consentPublicDisplay: true });
+    createdIds.push(first.id);
+
+    const secondData = { ...baseData, fullName: `Second Submission ${RUN}` };
+    const second = await submitAlumniEntry(db!, { linkId: null, data: secondData, photoMediaId: null, consentPublicDisplay: true });
+
+    // Same entry returned, no new row
+    expect(second.id).toBe(first.id);
+    // isDuplicateEmail flag set
+    const flagged = await db!.alumniEntry.findUnique({ where: { id: first.id } });
+    expect(flagged?.isDuplicateEmail).toBe(true);
+    // No data from second submission leaked into the first entry
+    expect(flagged?.fullName).toBe(`First Submission ${RUN}`);
+  });
 });
