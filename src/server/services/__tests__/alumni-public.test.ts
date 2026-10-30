@@ -88,4 +88,65 @@ describe.skipIf(db === null)("alumni-public service", () => {
     expect(names).toContain("Featured Two");
     expect(names).not.toContain("Not Featured");
   });
+
+  it("filters by graduation year (programme set)", async () => {
+    const RUN = `yr-filter-${Math.random().toString(36).slice(2)}`;
+    await db!.alumniEntry.create({
+      data: {
+        fullName: `GradYear Match ${RUN}`,
+        email: `gradyear-match-${RUN}@example.com`,
+        dedupeKey: `gradyear-match-${RUN}|2017`,
+        consentAt: new Date(), consentVersion: "v1",
+        status: "APPROVED", consentPublicDisplay: true,
+        programmes: { create: [{ level: "BSC", graduationYear: 2017 }] },
+      },
+    }).then((e) => createdIds.push(e.id));
+    await db!.alumniEntry.create({
+      data: {
+        fullName: `GradYear NoMatch ${RUN}`,
+        email: `gradyear-nomatch-${RUN}@example.com`,
+        dedupeKey: `gradyear-nomatch-${RUN}|2019`,
+        consentAt: new Date(), consentVersion: "v1",
+        status: "APPROVED", consentPublicDisplay: true,
+        programmes: { create: [{ level: "BSC", graduationYear: 2019 }] },
+      },
+    }).then((e) => createdIds.push(e.id));
+
+    const { entries } = await listApprovedAlumni(db!, { page: 1, perPage: 100, year: 2017 });
+    const names = entries.map((e) => e.fullName);
+    expect(names).toContain(`GradYear Match ${RUN}`);
+    expect(names).not.toContain(`GradYear NoMatch ${RUN}`);
+  });
+
+  it("industry filter is case-insensitive contains, matching free-text roleOrField", async () => {
+    const RUN = `ind-filter-${Math.random().toString(36).slice(2)}`;
+    await db!.alumniEntry.create({
+      data: {
+        fullName: `Industry Match ${RUN}`,
+        email: `industry-match-${RUN}@example.com`,
+        dedupeKey: `industry-match-${RUN}|2020`,
+        consentAt: new Date(), consentVersion: "v1",
+        status: "APPROVED", consentPublicDisplay: true,
+        roleOrField: "Data Science and Analytics",
+        programmes: { create: [{ level: "MSC", graduationYear: 2020 }] },
+      },
+    }).then((e) => createdIds.push(e.id));
+    await db!.alumniEntry.create({
+      data: {
+        fullName: `Industry NoMatch ${RUN}`,
+        email: `industry-nomatch-${RUN}@example.com`,
+        dedupeKey: `industry-nomatch-${RUN}|2021`,
+        consentAt: new Date(), consentVersion: "v1",
+        status: "APPROVED", consentPublicDisplay: true,
+        roleOrField: "Finance",
+        programmes: { create: [{ level: "MSC", graduationYear: 2021 }] },
+      },
+    }).then((e) => createdIds.push(e.id));
+
+    // Partial and mixed-case search
+    const { entries } = await listApprovedAlumni(db!, { page: 1, perPage: 100, industry: "data science" });
+    const names = entries.map((e) => e.fullName);
+    expect(names).toContain(`Industry Match ${RUN}`);
+    expect(names).not.toContain(`Industry NoMatch ${RUN}`);
+  });
 });

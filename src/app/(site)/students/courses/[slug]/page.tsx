@@ -9,6 +9,8 @@ import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Prose } from "@/components/ui/prose";
+import { safeJsonLdString, buildCourseJsonLd } from "@/lib/json-ld";
+import { SITE_URL } from "@/lib/seo";
 
 export const revalidate = 300;
 
@@ -22,6 +24,14 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
   const { slug } = await params;
   const course = await getCourseBySlugPublic(db, slug);
   if (!course) notFound();
+
+  const jsonLd = buildCourseJsonLd({
+    title: course.title,
+    code: course.code,
+    slug: course.slug,
+    description: course.description || null,
+    siteUrl: SITE_URL,
+  });
 
   return (
     <Section>
@@ -97,6 +107,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
           </div>
         ) : null}
       </Container>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLdString(jsonLd) }} />
     </Section>
   );
 }

@@ -23,7 +23,8 @@ type SearchParams = { page?: string; year?: string; level?: string; country?: st
 export default async function AlumniPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams;
   const page = Math.max(1, Number(params.page) || 1);
-  const year = params.year ? Number(params.year) : undefined;
+  const yearNum = params.year ? Number(params.year) : NaN;
+  const year = Number.isInteger(yearNum) && yearNum >= 1960 && yearNum <= 2100 ? yearNum : undefined;
   const level = params.level === "BSC" || params.level === "MSC" || params.level === "PHD" ? params.level : undefined;
   const country = params.country || undefined;
   const industry = params.industry || undefined;
