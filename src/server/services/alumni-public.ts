@@ -1,5 +1,5 @@
 import "server-only";
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient, Prisma } from "@prisma/client";
 import { matchesSearch } from "@/lib/text-search";
 
 const PUBLIC_SELECT = {
@@ -46,12 +46,12 @@ export async function listApprovedAlumni(
           }
         : undefined;
 
-    const where = {
-      status: "APPROVED" as const,
+    const where: Prisma.AlumniEntryWhereInput = {
+      status: "APPROVED",
       consentPublicDisplay: true,
       ...(programmeFilter ? { programmes: programmeFilter } : {}),
       ...(options.country ? { country: options.country } : {}),
-      ...(options.industry ? { roleOrField: options.industry } : {}),
+      ...(options.industry ? { roleOrField: { equals: options.industry } } : {}),
     };
 
     const all = await db.alumniEntry.findMany({
