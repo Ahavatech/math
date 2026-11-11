@@ -68,19 +68,19 @@ export default async function AlumniPage({ searchParams }: { searchParams: Promi
         <form method="get" className="mt-8 grid gap-3 rounded-lg border border-border p-4 sm:grid-cols-4">
           <input type="search" name="q" defaultValue={params.q} placeholder="Search by name" className="h-9 rounded-md border border-input bg-background px-3 text-sm sm:col-span-2" />
           <input type="number" name="year" defaultValue={params.year} placeholder="Graduation year" className="h-9 rounded-md border border-input bg-background px-3 text-sm" />
-          <select name="level" defaultValue={params.level ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+          <select name="level" aria-label="Programme" defaultValue={params.level ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
             <option value="">Any programme</option>
             <option value="BSC">B.Sc.</option>
             <option value="MSC">M.Sc.</option>
             <option value="PHD">Ph.D.</option>
           </select>
-          <select name="country" defaultValue={params.country ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm sm:col-span-2">
+          <select name="country" aria-label="Country" defaultValue={params.country ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm sm:col-span-2">
             <option value="">Any country</option>
             {COUNTRIES.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
-          <select name="industry" defaultValue={params.industry ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm sm:col-span-2">
+          <select name="industry" aria-label="Industry" defaultValue={params.industry ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm sm:col-span-2">
             <option value="">Any industry</option>
             {INDUSTRIES.map((ind) => (
               <option key={ind} value={ind}>{ind}</option>
