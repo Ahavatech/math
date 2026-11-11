@@ -1,4 +1,9 @@
-# Demo deployment (Google Cloud e2-micro + Neon)
+# Demo deployment (Neon + Render or Google Cloud)
+
+Two options for the web server. The database is Neon either way (step 1).
+
+- **Option B, Render (recommended for a quick demo):** jump to "Option B" at the end of this file after step 1 and step 3.
+- **Option A, Google Cloud VM:** steps 2 and 4 to 7 below. Google may ask for a prepayment or card; check before you start.
 
 A short-lived setup to show the site to the HOD. It is not the production
 plan: there are no cron jobs, no off-VM backups, and email and image uploads
@@ -27,7 +32,7 @@ Check both providers' current free-tier terms before you start.
 
    Both must end with `?sslmode=require`.
 
-## 2. Google Cloud: create the VM
+## 2. Option A: Google Cloud, create the VM
 
 1. Compute Engine, create an instance:
    - Machine type **e2-micro**, region us-west1, us-central1 or us-east1 (free-tier regions).
@@ -67,7 +72,7 @@ npm run db:import-legacy
 fills the identity, HOD address, hero, contact, About/History pages and the
 10 lecturer profiles from the old site. Both commands can be re-run safely.
 
-## 4. Build on your computer
+## 4. Option A: build on your computer
 
 Pages are prerendered during the build from the database, so the build must see
 the imported content. Use your demo hostname for the two URLs.
@@ -93,7 +98,7 @@ tar -czf maths-demo.tgz -C .next/standalone .
 The Cloudinary and Resend values are dummies so the app starts. Image uploads
 and emails (invites, password reset) will fail. That is expected for a demo.
 
-## 5. Set up the VM
+## 5. Option A: set up the VM
 
 SSH in (Compute Engine has an SSH button), then:
 
@@ -111,7 +116,7 @@ sudo mkdir -p /opt/maths-oau /var/private-storage
 sudo chown -R $USER /opt/maths-oau /var/private-storage
 ```
 
-## 6. Upload and start the app
+## 6. Option A: upload and start the app
 
 From your computer, upload the bundle (the SSH window's gear menu has Upload
 file, or use `gcloud compute scp maths-demo.tgz VM_NAME:~`). On the VM:
@@ -155,7 +160,7 @@ pm2 save && pm2 startup     # run the command it prints, so it survives a reboot
 curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3000/   # expect 200
 ```
 
-## 7. Nginx and HTTPS
+## 7. Option A: Nginx and HTTPS
 
 ```bash
 sudo tee /etc/nginx/sites-available/maths-demo >/dev/null <<'EOF'
@@ -183,7 +188,7 @@ to get around the rate limiter (see `deploy/nginx/nginx-rate-limit-note.md`).
 
 Open `https://203-0-113-7.sslip.io` in a browser.
 
-## 8. Signing in as admin for the demo
+## 8. Signing in as admin for the demo (both options)
 
 The seed creates your `SEED_ADMIN_EMAIL` user without a password, and invite
 and reset emails cannot send (dummy Resend key). Create a password once, from
@@ -197,6 +202,40 @@ Use the same email as `SEED_ADMIN_EMAIL` and a password of at least 10 character
 The script refuses to run with `NODE_ENV=production`, so run it in a shell where
 that is not set. Delete or rotate this account after the demo.
 
+## Option B: Render
+
+Render builds on its own Linux machines and redeploys on every push to `main`,
+so the VM, Nginx, swap and native-module steps are not needed. HTTPS comes with
+the `*.onrender.com` address.
+
+1. Do **step 1** (Neon) and **step 3** (migrate, seed, import) first, from your
+   computer. In both Neon URLs delete `&channel_binding=require` and keep
+   `sslmode=require`. The build reads the imported content, so this must come
+   before the first deploy.
+2. In Render: New, Blueprint, pick the `Ahavatech/math` repository. It reads
+   `render.yaml` at the repo root and proposes one web service,
+   `oau-maths-demo`.
+3. When asked for the secret values, enter:
+   - `DATABASE_URL`: the **pooled** Neon URL.
+   - `AUTH_URL` and `NEXT_PUBLIC_SITE_URL`: `https://oau-maths-demo.onrender.com`.
+     If that name is taken, Render adds a suffix. Read the real address on the
+     service page, update both values, and press Manual Deploy, because
+     `NEXT_PUBLIC_SITE_URL` is baked in at build time.
+   - `AUTH_SECRET` is generated for you.
+4. Wait for the build. The free plan has 512 MB of memory. If the build stops
+   with an out-of-memory error, change the plan to Starter (about $7 a month)
+   for the demo, then switch back.
+5. Do **step 8** to create the admin password, then open the site.
+
+What to expect on the free plan:
+
+- The service sleeps after about 15 minutes idle and the first request then
+  takes 30 to 60 seconds. Open the site a couple of minutes before the demo.
+- Uploaded files vanish on every restart or deploy (no persistent disk).
+- Updates: push to `main` and Render redeploys. Content changes made in
+  `/admin` live in Neon and are not affected.
+- To stop it, suspend or delete the service in the Render dashboard.
+
 ## What the HOD will see, and what is missing
 
 Works: the full public site, lecturer profiles, programmes, research areas,
@@ -208,7 +247,7 @@ cleanup and reminder jobs, and backups.
 
 ## Updating the demo
 
-Change the content in `/admin`, or rebuild on your computer (step 4), upload a
+On Render, push to `main`. On the VM: change the content in `/admin`, or rebuild on your computer (step 4), upload a
 new `maths-demo.tgz`, re-run the two `npm install` lines, then
 `pm2 restart maths-demo`. Re-run step 3 first only if the database changed.
 
