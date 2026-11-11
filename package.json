@@ -18,6 +18,7 @@
     "format": "prettier --write .",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
+    "db:import-legacy": "tsx prisma/legacy-import/run.ts",
     "db:reset": "tsx scripts/db-reset.ts",
     "db:studio": "prisma studio",
     "admin:invite": "tsx scripts/admin-invite.ts",

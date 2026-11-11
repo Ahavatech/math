@@ -1,0 +1,150 @@
+{
+ "identity": {
+  "name": "Department of Mathematics",
+  "tagline": "Faculty of Science, established 1962",
+  "logoId": null
+ },
+ "hod": {
+  "name": "Prof. B. S. Ogundare",
+  "title": "Head of Department",
+  "photoId": null,
+  "message": "<p>It gives me great pleasure to welcome you to the official website of the Department of Mathematics of the Obafemi Awolowo University, Ile-Ife, Nigeria.</p><p>This Department of Mathematics is one of the foundational departments in the University, established in <strong>1962</strong>. It remains a principal stakeholder in achieving the aspirations and dreams of the founding fathers of this great University, Great Ife.</p><p>Over the years, the department has been and remains committed to delivering quality teaching, rendering good research, and serving selflessly towards the development of the community and the nation at large. At commencement of operations, the department ran two programmes, Mathematics and Statistics, from B.Sc. to Ph.D. level. Our graduates in these fields are our testament to the quality obtainable from this department.</p><p>Recently, in <strong>January 2025</strong>, the Council of the University approved the creation of a separate Department of Statistics from the Department of Mathematics.</p><p>This platform has been designed to serve as a central hub for academic resources, departmental updates, announcements, collaboration, and an alumni face to the entire world.</p><p>As the Head of Department, I am proud of our commitment to academic excellence, innovation, and the holistic development of our students, both undergraduate and postgraduate. I encourage all students, researchers, faculty members, and visitors to make full use of the resources and features available on this website.</p><p>Stay connected, stay informed, and continue to engage in meaningful academic pursuits.</p>"
+ },
+ "hero": {
+  "heading": "Where Numbers Shape the World",
+  "subheading": "The Department of Mathematics at OAU is committed to excellence in mathematical education, cutting-edge research, and the formation of world-class mathematical minds from Ile-Ife to the global stage.",
+  "imageId": null,
+  "ctaLabel": "Explore Programmes",
+  "ctaHref": "/programmes"
+ },
+ "contact": {
+  "address": "Department of Mathematics, Faculty of Science, Obafemi Awolowo University, Ile-Ife, Osun State, Nigeria",
+  "phones": [
+   "+234 (036) 232 000"
+  ],
+  "email": "math@oauife.edu.ng",
+  "officeHours": "Monday to Friday, 8:00 AM to 4:00 PM WAT",
+  "mapLat": null,
+  "mapLng": null
+ },
+ "footer": {
+  "text": "Department of Mathematics, Obafemi Awolowo University, Ile-Ife, Nigeria."
+ },
+ "pages": {
+  "about": "<p>Founded alongside Obafemi Awolowo University itself, the Department of Mathematics has been a cornerstone of scientific and intellectual development in Nigeria. Our faculty are dedicated scholars whose work spans pure mathematics, applied mathematics, and statistics.</p><p>We offer a stimulating academic environment that challenges students to think rigorously, reason precisely, and apply mathematical knowledge to real-world problems, from economics and engineering to data science and theoretical physics.</p><p>Our graduates have gone on to distinguished careers in academia, industry, government, and international organisations across the world, carrying with them the hallmark of an OAU mathematics education.</p>",
+  "history": "<p>The Department of Mathematics is one of the foundational departments of Obafemi Awolowo University, established in 1962 in the Faculty of Science. At commencement of operations, the department ran two programmes, Mathematics and Statistics, from B.Sc. to Ph.D. level.</p><p>In January 2025, the Council of the University approved the creation of a separate Department of Statistics from the Department of Mathematics.</p>",
+  "statistics-note": "<p>In January 2025, the Council of the University approved the creation of a separate Department of Statistics from the Department of Mathematics.</p>"
+ },
+ "lecturers": [
+  {
+   "key": "ogundare",
+   "fullName": "Babatunde Sunday Ogundare",
+   "honorific": "Professor",
+   "rank": "PROFESSOR",
+   "email": "bogunda@oauife.edu.ng",
+   "office": "MBB 014, Yellow House, Mathematics Building, OAU Ile-Ife",
+   "bio": "<p>Qualifications: B.Sc. Mathematics (Ago-Iwoye, 1995); M.Sc. Mathematics (Ife, 2003); PhD Pure & Applied Mathematics (Alice, South Africa). Research interests: Qualitative and quantitative properties of solutions of differential equations.</p>",
+   "scholarUrl": null,
+   "researchGateUrl": null
+  },
+  {
+   "key": "okoya",
+   "fullName": "Samuel Segun Okoya",
+   "honorific": "Professor",
+   "rank": "PROFESSOR",
+   "email": "sokoya@oauife.edu.ng",
+   "office": "MBB 018, Yellow House, OAU, Ile-Ife",
+   "bio": "<p>Professor Okoya graduated with a First-Class Honours degree in Mathematics from the Department of Mathematics, University of Ife (now OAU), Ile-Ife, in 1983. He subsequently earned M.Sc. and Ph.D. (Mathematics) from the same University in 1986 and 1989, respectively. He joined OAU as a Graduate Assistant in 1984 and rose through the ranks to become a Professor in 2003 — the first fully-bred alumnus to attain the position of Professor and Head of the Mathematics Department (2008–2011) at OAU. He is a life member of the Nigerian Mathematical Society (NMS) and the Mathematical Association of Nigeria (MAN), and a member of the American Mathematical Society (2000–date). He served the NMS as Treasurer (2006–2011), Editor-in-Chief of the Journal of NMS (2011–2022), Member of the Board of Trustees (2011–date), Editor of the Notices of the NMS (2016–2022), and Coordinator of the Fellows of the NMS (2024–date). He is a Fellow of both NMS and MAN, and has delivered keynote addresses, plenary talks, and lead papers at national conferences and scientific meetings. He has been invited four times to the International Congress of Mathematicians to deliver a paper (1994, Switzerland; 1998, Germany; 2022, Finland; 2026, USA). He was a recipient of many international Fellowships and grants for study visits to institutions in the UK, Austria, Germany, USA, and Italy. He was a TWAS Associate (1997–1999) in Chennai, India, and a Regular Associate to the Abdus Salam International Centre for Theoretical Physics (ICTP), Trieste, Italy (2001–2006). He was also the first Occupier of the Pastor E. A. Adeboye Professorial Chair in Mathematics, University of Lagos (2013–2017).</p>",
+   "scholarUrl": null,
+   "researchGateUrl": null
+  },
+  {
+   "key": "borokinni",
+   "fullName": "Adebowale Samuel Borokinni",
+   "honorific": "Dr.",
+   "rank": "SENIOR_LECTURER",
+   "email": "aborokinni@oauife.edu.ng",
+   "office": "MBA 208, Yellow House, Mathematics Building",
+   "bio": "<p>Qualifications: PhD (Mathematics). Research interests: Continuum Mechanics.</p>",
+   "scholarUrl": null,
+   "researchGateUrl": null
+  },
+  {
+   "key": "aderogba",
+   "fullName": "Adebayo Abiodun Aderogba",
+   "honorific": "",
+   "rank": "SENIOR_LECTURER",
+   "email": "aaderogba@oauife.edu.ng",
+   "office": "Rm MBA209, Mathematics Building, OAU Ile-Ife",
+   "bio": "<p>Qualifications: PhD (Mathematics). Research interests: Numerical Analysis & Computational Mathematics.</p>",
+   "scholarUrl": null,
+   "researchGateUrl": null
+  },
+  {
+   "key": "olaleye",
+   "fullName": "S. J. Olaleye",
+   "honorific": "Dr.",
+   "rank": "LECTURER_II",
+   "email": "sjolaleye@oauife.edu.ng",
+   "office": "MBC 205, Yellow House, Mathematics Building, OAU Ilé-Ifè",
+   "bio": "<p>Qualifications: B.Sc. Ed. Mathematics (EKSU, 2012); M.Sc. Mathematics (OAU Ife, 2018); Ph.D. Pure Mathematics (OAU Ife, 2025). Research interests: Qualitative Properties of Solutions of Differential Equations.</p>",
+   "scholarUrl": null,
+   "researchGateUrl": null
+  },
+  {
+   "key": "adetona",
+   "fullName": "Rasheed Ayodeji Adetona",
+   "honorific": "",
+   "rank": "LECTURER_I",
+   "email": "adetonara@oauife.edu.ng",
+   "office": "MBA 207, Mathematics Building, OAU Ile-Ife",
+   "bio": "<p>Qualifications: PhD (Mathematics). Research interests: Numerical Analysis.</p>",
+   "scholarUrl": "https://scholar.google.com/citations?user=VV_vxbcAAAAJ&hl=en&oi=ao",
+   "researchGateUrl": "https://www.researchgate.net/profile/Rasheed-Adetona"
+  },
+  {
+   "key": "oguntade",
+   "fullName": "Ibraheem Adesoye Oguntade",
+   "honorific": "",
+   "rank": "LECTURER_I",
+   "email": "Iaoguntade@oauife.edu.ng",
+   "office": "MBB 012, Mathematics Building, OAU Ile-Ife",
+   "bio": "<p>Qualifications: PhD (Mathematics). Research interests: Real Analysis / Nonlinear Functional Analysis.</p>",
+   "scholarUrl": null,
+   "researchGateUrl": null
+  },
+  {
+   "key": "isola",
+   "fullName": "Babatunde Taoheed Ishola",
+   "honorific": "Dr.",
+   "rank": "LECTURER_II",
+   "email": "btishola@oauife.edu.ng",
+   "office": "MBC 208, Yellow House, Mathematics Department, OAU Ile-Ife",
+   "bio": "<p>Qualifications: PhD (Mathematics). Research interests: Functional Analysis (Fixed Point Theory).</p>",
+   "scholarUrl": null,
+   "researchGateUrl": null
+  },
+  {
+   "key": "ajao",
+   "fullName": "Saheed Oladele Ajao",
+   "honorific": "Dr.",
+   "rank": "LECTURER_I",
+   "email": "soajao@oauife.edu.ng",
+   "office": "MBB 008, Mathematics Building, OAU Ile-Ife",
+   "bio": "<p>Ajao Saheed Oladele attended the University of Ilorin for his first degree, where he was awarded a B.Sc. (Ed) in Mathematics in 2006. In 2012, he earned an M.Tech in Applied Mathematics from Ladoke Akintola University of Technology (LAUTECH), Ogbomoso, Nigeria. He also obtained his Ph.D. in Applied Mathematics from the same university in 2019. His research focuses on mathematical modelling with a specialisation in epidemiological modelling.</p>",
+   "scholarUrl": null,
+   "researchGateUrl": null
+  },
+  {
+   "key": "adetayo",
+   "fullName": "Gideon Abioye Adetayo",
+   "honorific": "",
+   "rank": "GRADUATE_ASSISTANT",
+   "email": "gaadetayo@oauife.edu.ng",
+   "office": "Room 213, Mathematics Building C (MBC), OAU Ile-Ife",
+   "bio": "<p>Adetayo Gideon Abioye is a Graduate Assistant in the Department of Mathematics. He holds a B.Sc. in Mathematics and is currently pursuing further studies. His research interests lie in Functional Analysis, where he is exploring the intricacies of locally convex spaces and related areas. Adetayo is passionate about contributing to the development of mathematics in Nigeria, and is open to learning.</p>",
+   "scholarUrl": null,
+   "researchGateUrl": null
+  }
+ ]
+}
