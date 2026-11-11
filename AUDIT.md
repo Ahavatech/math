@@ -820,3 +820,17 @@ NOT DONE (move to Stage 14):
 **Done:** Ran the suite against oau_maths_test: 107 files, 1060/1060 pass. Built and started the app against oau_maths and ran Playwright with axe: first run 24/29, found real defects: nested `<main>` on /search, unlabelled `<select>` on /alumni and /students/courses. Fixed (div instead of main, aria-label on selects); one spec widened to accept 405 on the manuscript file route. Rerun: 29/29, including hydration under the CSP in a real Chromium (no CSP console errors), security headers, sitemap/robots, and anonymous access control. lint and tsc clean; build passes.
 
 **Still open:** fresh-DB migrate, EXPLAIN ANALYZE at 5000 rows, per-page First Load JS table, manual journal browser checks, real PDF download, 12b/12c pending tests, and non-code items (legal review, decision #54, Resend domain, hosting).
+
+
+### Entry 047 | 2026-11-11 | Prompt 047: Database items
+
+**Done:**
+- Fresh empty database: all 20 migrations apply cleanly (pg_trgm created as superuser). `prisma migrate diff` reports only the known unmanaged items (generated searchVec defaults, trigram and functional GIN indexes) that Prisma cannot express. Correction to Entry 043: scripts/check-unmanaged-indexes.ts does not exist in the repo.
+- Seed on the fresh DB: SEED_MODE=production creates 19 nav items and no [SAMPLE] identity setting; a following full seed leaves no NavItem order collisions.
+- EXPLAIN ANALYZE, 5000 NewsPost rows: search query 2.7 ms. Seq Scan chosen because the term matched 20% of rows; with seqscan disabled the GIN index is used (2.1 ms). Scratch DB dropped.
+- BUG FIXED: `finalPdfSha256` was a hash of the PDF's URL, not its bytes. publishArticle now fetches the file and hashes the bytes (50 MB cap, 30 s timeout) and refuses to publish if the file is missing or unreadable.
+- New tests: sha256 of real bytes, refusal on unreadable PDF, transaction atomicity. Snapshot independence test already existed. Existing publication tests stub fetch.
+
+**Checks:** lint clean, tsc 0 errors, vitest 107 files, 1063/1063.
+
+**Still open:** dev-fixture create/--remove integration test, per-page First Load JS table, manual journal browser checks, real uploaded-PDF download check, non-code items (legal, decision #54, Resend, hosting).

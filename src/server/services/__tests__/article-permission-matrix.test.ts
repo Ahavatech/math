@@ -11,7 +11,7 @@
  *   Retract:  SUPER_ADMIN ✓, EiC ✓, EDITOR ✗, HOD ✗, ADMIN ✗
  *   COI:      EiC cannot act on their own submission
  */
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { getTestDb } from "../../../../tests/unit/database/test-db";
 import {
   prepareArticleFromManuscript,
@@ -24,6 +24,16 @@ import { randomUUID } from "node:crypto";
 import { ArticleStatus } from "@prisma/client";
 
 const db = await getTestDb();
+
+// publishArticle checksums the real PDF bytes; stub the network fetch.
+const PDF_BYTES = Buffer.from("%PDF-1.4 test pdf bytes");
+beforeEach(() => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(PDF_BYTES, { status: 200 })));
+});
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
 
 function makeUser(id: string, roles: SessionUser["roles"]): SessionUser {
   return { id, name: "Test", email: `${id}@test.com`, roles, isActive: true };

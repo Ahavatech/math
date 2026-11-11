@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { getTestDb } from "../../../../tests/unit/database/test-db";
 import {
   prepareArticleFromManuscript,
@@ -11,10 +11,20 @@ import {
   listAcknowledgedReviewers,
 } from "@/server/services/article-publication";
 import type { SessionUser } from "@/lib/rbac";
-import { randomUUID } from "node:crypto";
+import { randomUUID, createHash } from "node:crypto";
 import { ArticleStatus } from "@prisma/client";
 
 const db = await getTestDb();
+
+// publishArticle checksums the real PDF bytes; stub the network fetch.
+const PDF_BYTES = Buffer.from("%PDF-1.4 test pdf bytes");
+beforeEach(() => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(PDF_BYTES, { status: 200 })));
+});
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
 
 function makeEiC(id: string, email: string): SessionUser {
   return { id, name: "EiC", email, roles: ["JOURNAL_EDITOR_IN_CHIEF"], isActive: true };
@@ -207,6 +217,42 @@ describe.skipIf(db === null)("article-publication service", () => {
     });
     expect(event).not.toBeNull();
     expect(event!.visibleToAuthor).toBe(true);
+  });
+
+  it("publishArticle stores the sha256 of the real PDF bytes, not of its URL", async () => {
+    const { articleId, actor } = await createPublishableArticle(db!, runId);
+    const result = await publishArticle(db!, actor, articleId);
+    expect(result.ok).toBe(true);
+    const article = await db!.article.findUnique({ where: { id: articleId } });
+    const expected = createHash("sha256").update(PDF_BYTES).digest("hex");
+    expect(article!.finalPdfSha256).toBe(expected);
+  });
+
+  it("publishArticle refuses to publish when the PDF cannot be read, leaving the article DRAFT", async () => {
+    const { articleId, actor } = await createPublishableArticle(db!, runId);
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("nope", { status: 404 })));
+    const result = await publishArticle(db!, actor, articleId);
+    expect(result.ok).toBe(false);
+    const article = await db!.article.findUnique({ where: { id: articleId } });
+    expect(article!.status).toBe(ArticleStatus.DRAFT);
+    expect(article!.finalPdfSha256).toBeNull();
+  });
+
+  it("publish is atomic: a failure inside the transaction leaves article and manuscript unchanged", async () => {
+    const { articleId, ms } = await createPublishableArticle(db!, runId);
+    // An actor id with no User row makes the ManuscriptEvent insert violate its
+    // foreign key partway through the transaction, after the article update.
+    const ghost = makeEiC(`ghost-${runId}`, `ghost-${runId}@test.com`);
+    await expect(publishArticle(db!, ghost, articleId)).rejects.toThrow();
+
+    const article = await db!.article.findUnique({ where: { id: articleId } });
+    expect(article!.status).toBe(ArticleStatus.DRAFT);
+    expect(article!.publishedAt).toBeNull();
+    expect(article!.finalPdfSha256).toBeNull();
+    const manuscript = await db!.manuscript.findUnique({ where: { id: ms.id } });
+    expect(manuscript!.status).toBe("ACCEPTED");
+    const events = await db!.manuscriptEvent.count({ where: { manuscriptId: ms.id, type: "PUBLISHED" } });
+    expect(events).toBe(0);
   });
 
   it("publishArticle is idempotent-safe: cannot publish twice", async () => {
