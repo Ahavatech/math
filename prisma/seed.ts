@@ -365,7 +365,11 @@ export async function seed(db: PrismaClient): Promise<void> {
     }
   }
 
-  for (const setting of SITE_SETTINGS) {
+  // SEED_MODE=production skips the [SAMPLE] site settings so a live
+  // database never carries sample text. Settings then fall back to the
+  // registry defaults until the HOD fills them in from /admin.
+  const isProductionSeed = process.env.SEED_MODE === "production";
+  for (const setting of isProductionSeed ? [] : SITE_SETTINGS) {
     await db.siteSetting.upsert({
       where: { key: setting.key },
       create: { key: setting.key, value: setting.value as never },

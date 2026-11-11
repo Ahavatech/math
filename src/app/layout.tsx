@@ -1,26 +1,27 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { IBM_Plex_Sans, IBM_Plex_Serif } from "next/font/google";
+import "@fontsource/ibm-plex-sans/latin-400.css";
+import "@fontsource/ibm-plex-sans/latin-500.css";
+import "@fontsource/ibm-plex-sans/latin-600.css";
+import "@fontsource/ibm-plex-sans/latin-ext-400.css";
+import "@fontsource/ibm-plex-sans/latin-ext-500.css";
+import "@fontsource/ibm-plex-sans/latin-ext-600.css";
+import "@fontsource/ibm-plex-sans/vietnamese-400.css";
+import "@fontsource/ibm-plex-sans/vietnamese-500.css";
+import "@fontsource/ibm-plex-sans/vietnamese-600.css";
+import "@fontsource/ibm-plex-serif/latin-500.css";
+import "@fontsource/ibm-plex-serif/latin-600.css";
+import "@fontsource/ibm-plex-serif/latin-ext-500.css";
+import "@fontsource/ibm-plex-serif/latin-ext-600.css";
+import "@fontsource/ibm-plex-serif/vietnamese-500.css";
+import "@fontsource/ibm-plex-serif/vietnamese-600.css";
 import "./globals.css";
 
-// latin-ext and vietnamese carry the combining/precomposed diacritics
-// (dot-below, underdot, tone marks) that Yoruba orthography also needs
-// (e.g. Ọ, Ẹ, Ṣ, and combining grave/acute accents) - without them,
-// those characters silently fall back to a system font. next/font's
-// compiler requires a literal array here, not a shared constant.
-const plexSans = IBM_Plex_Sans({
-  subsets: ["latin", "latin-ext", "vietnamese"],
-  weight: ["400", "500", "600"],
-  variable: "--font-sans",
-  display: "swap",
-});
-
-const plexSerif = IBM_Plex_Serif({
-  subsets: ["latin", "latin-ext", "vietnamese"],
-  weight: ["500", "600"],
-  variable: "--font-heading",
-  display: "swap",
-});
+// Fonts are self-hosted through @fontsource (no request to Google at build
+// or run time). latin-ext and vietnamese carry the diacritics Yoruba
+// orthography needs (e.g. Ọ, Ẹ, Ṣ); each file has a unicode-range so the
+// browser only downloads the subsets a page uses. The --font-sans and
+// --font-heading variables are defined in globals.css.
 
 export const metadata: Metadata = {
   title: "Department of Mathematics, OAU",
@@ -31,7 +32,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className={`h-full antialiased ${plexSans.variable} ${plexSerif.variable}`}>
+    <html lang="en" className={`h-full antialiased `}>
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );

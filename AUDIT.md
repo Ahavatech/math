@@ -796,3 +796,20 @@ NOT DONE (move to Stage 14):
 **Next:** Fix lint, verify CSP in a running build, align DEPLOY.md with the VPS, then Stage 14.
 
 **Entry 044 follow-up (2026-11-11):** Fixed shim lint error (eslint-disable block). CSP script-src now allows 'unsafe-inline' (Next inline hydration scripts; nonce would force all pages dynamic), documented in next.config.ts. DEPLOY.md, ecosystem config and backup script rewritten from GCP/Neon to KVM 1 VPS with local PostgreSQL. lint, typecheck, build pass. CSP not yet checked in a live browser.
+
+
+### Entry 045 | 2026-11-11 | Prompt 045: Stage 14 continuation (offline-doable items)
+
+**Asked:** Continue the rest of Stage 14 with the goal of reaching main.
+
+**Done:**
+- Fonts self-hosted via @fontsource (IBM Plex Sans/Serif; latin, latin-ext, vietnamese); next/font/google removed; font variables defined in globals.css.
+- Em dashes removed from UI copy (403, 404, journal manuscript admin pages, design-preview).
+- prisma/seed.ts: SEED_MODE=production skips the [SAMPLE] site settings; documented in .env.example and DEPLOY.md. NavItem order collision was already handled in the seed.
+- Cron file: every job labelled with WAT and UTC times.
+- Playwright + @axe-core/playwright added (playwright.config.ts, `npm run test:e2e`, three specs in tests/e2e: public pages + axe, access control, alumni/journal). Vitest excludes tests/e2e.
+- Built server returns the CSP header on /privacy.
+
+**Checks:** lint 0 problems, tsc 0 errors, build passes with bundle leak check. Vitest NOT run (no PostgreSQL/Docker here). E2E specs written but NOT run (need DB and a browser install).
+
+**Still open:** DB-backed test run, fresh-DB migrate, EXPLAIN ANALYZE, running E2E and axe, CSP check in a real browser, per-page First Load JS table, manual journal browser checks, real PDF download check, intermittent argon2 test timeouts, pending 12b/12c tests (snapshot, atomicity, sha256), dev-fixture coverage. Non-code: legal review of /privacy and retention wording, HOD confirm decision #54, Resend domain, hosting decisions.

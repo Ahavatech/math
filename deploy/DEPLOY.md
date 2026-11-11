@@ -118,6 +118,8 @@ EOF
 ```bash
 cd /opt/maths-oau
 npx prisma migrate deploy
+# First deploy only: seed structure and the first admin without [SAMPLE] text
+SEED_MODE=production npx prisma db seed
 npx tsx prisma/seed.ts
 ```
 

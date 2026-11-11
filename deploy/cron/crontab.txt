@@ -18,30 +18,30 @@
 # EMAIL_FROM=noreply@maths.oauife.edu.ng
 
 # -----------------------------------------------------------------------
-# Backup — daily at 03:00 WAT
+# Backup — daily at 03:00 WAT (02:00 UTC)
 # -----------------------------------------------------------------------
 # 0 2 * * * /opt/maths-oau/deploy/backup-scripts/daily-backup.sh >> /var/log/maths-oau/backup.log 2>&1
 
 # -----------------------------------------------------------------------
-# Alumni cleanup — daily at 04:00 WAT
+# Alumni cleanup — daily at 04:00 WAT (03:00 UTC)
 # Remove orphaned Cloudinary assets for deleted/rejected alumni entries
 # -----------------------------------------------------------------------
 # 0 3 * * * cd /opt/maths-oau && /usr/bin/npx tsx scripts/alumni-cleanup-orphans.ts --apply >> /var/log/maths-oau/cron.log 2>&1
 
 # -----------------------------------------------------------------------
-# Alumni purge rejected — daily at 04:15 WAT
+# Alumni purge rejected — daily at 04:15 WAT (03:15 UTC)
 # Permanently delete rejected alumni entries older than 90 days
 # -----------------------------------------------------------------------
 # 15 3 * * * cd /opt/maths-oau && /usr/bin/npx tsx scripts/alumni-purge-rejected.ts --apply >> /var/log/maths-oau/cron.log 2>&1
 
 # -----------------------------------------------------------------------
-# Contact purge archived — daily at 04:30 WAT
+# Contact purge archived — daily at 04:30 WAT (03:30 UTC)
 # Permanently delete archived contact messages older than 12 months
 # -----------------------------------------------------------------------
 # 30 3 * * * cd /opt/maths-oau && /usr/bin/npx tsx scripts/contact-purge-archived.ts --apply >> /var/log/maths-oau/cron.log 2>&1
 
 # -----------------------------------------------------------------------
-# Journal: purge incomplete drafts — daily at 04:45 WAT
+# Journal: purge incomplete drafts — daily at 04:45 WAT (03:45 UTC)
 # Delete INCOMPLETE manuscripts inactive for 60+ days (Decision #61)
 # -----------------------------------------------------------------------
 # 45 3 * * * cd /opt/maths-oau && /usr/bin/npx tsx scripts/journal-purge-drafts.ts --apply >> /var/log/maths-oau/cron.log 2>&1
@@ -53,13 +53,13 @@
 # */15 * * * * cd /opt/maths-oau && /usr/bin/npx tsx scripts/journal-publish-scheduled.ts --apply >> /var/log/maths-oau/cron.log 2>&1
 
 # -----------------------------------------------------------------------
-# Journal: review reminders — daily at 09:00 WAT
+# Journal: review reminders — daily at 09:00 WAT (08:00 UTC)
 # Sends DUE_SOON (3-day warning) and OVERDUE notices to reviewers
 # -----------------------------------------------------------------------
 # 0 8 * * * cd /opt/maths-oau && /usr/bin/npx tsx scripts/journal-review-reminders.ts --apply >> /var/log/maths-oau/cron.log 2>&1
 
 # -----------------------------------------------------------------------
-# Private storage: orphan cleanup — weekly on Sunday at 05:00 WAT
+# Private storage: orphan cleanup — weekly on Sunday at 05:00 WAT (04:00 UTC)
 # Removes files in PRIVATE_STORAGE_DIR with no matching DB record
 # -----------------------------------------------------------------------
 # 0 4 * * 0 cd /opt/maths-oau && /usr/bin/npx tsx scripts/private-storage-orphans.ts --apply >> /var/log/maths-oau/cron.log 2>&1
