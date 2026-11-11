@@ -78,7 +78,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   }
 
   return (
-    <main>
+    <div>
       <Section>
         <Container>
           <Breadcrumbs items={[{ label: "Search" }]} />
@@ -251,6 +251,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           )}
         </Container>
       </Section>
-    </main>
+    </div>
   );
 }

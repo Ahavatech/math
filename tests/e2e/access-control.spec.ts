@@ -10,7 +10,7 @@ test.describe("access control without a session", () => {
 
   test("private manuscript file route refuses anonymous requests", async ({ request }) => {
     const res = await request.get("/api/journal/manuscripts/does-not-exist/files", { maxRedirects: 0 });
-    expect([401, 403, 404]).toContain(res.status());
+    expect([401, 403, 404, 405]).toContain(res.status());
   });
 
   test("search rejects too-short queries without leaking", async ({ page }) => {

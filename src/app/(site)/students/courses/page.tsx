@@ -35,13 +35,13 @@ export default async function CoursesPage({
 
         <form method="get" className="mt-6 grid gap-3 rounded-lg border border-border p-4 sm:grid-cols-4 print:hidden">
           <input type="search" name="q" defaultValue={params.q} placeholder="Search by code or title" className="h-9 rounded-md border border-input bg-background px-3 text-sm sm:col-span-2" />
-          <select name="programmeLevel" defaultValue={params.programmeLevel ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+          <select name="programmeLevel" aria-label="Programme" defaultValue={params.programmeLevel ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
             <option value="">Any programme</option>
             <option value="BSC">B.Sc.</option>
             <option value="MSC">M.Sc.</option>
             <option value="PHD">Ph.D.</option>
           </select>
-          <select name="semester" defaultValue={params.semester ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+          <select name="semester" aria-label="Semester" defaultValue={params.semester ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
             <option value="">Any semester</option>
             <option value="FIRST">First</option>
             <option value="SECOND">Second</option>

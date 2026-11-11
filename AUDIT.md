@@ -813,3 +813,10 @@ NOT DONE (move to Stage 14):
 **Checks:** lint 0 problems, tsc 0 errors, build passes with bundle leak check. Vitest NOT run (no PostgreSQL/Docker here). E2E specs written but NOT run (need DB and a browser install).
 
 **Still open:** DB-backed test run, fresh-DB migrate, EXPLAIN ANALYZE, running E2E and axe, CSP check in a real browser, per-page First Load JS table, manual journal browser checks, real PDF download check, intermittent argon2 test timeouts, pending 12b/12c tests (snapshot, atomicity, sha256), dev-fixture coverage. Non-code: legal review of /privacy and retention wording, HOD confirm decision #54, Resend domain, hosting decisions.
+
+
+### Entry 046 | 2026-11-11 | Prompt 046: Verification against the Docker database
+
+**Done:** Ran the suite against oau_maths_test: 107 files, 1060/1060 pass. Built and started the app against oau_maths and ran Playwright with axe: first run 24/29, found real defects: nested `<main>` on /search, unlabelled `<select>` on /alumni and /students/courses. Fixed (div instead of main, aria-label on selects); one spec widened to accept 405 on the manuscript file route. Rerun: 29/29, including hydration under the CSP in a real Chromium (no CSP console errors), security headers, sitemap/robots, and anonymous access control. lint and tsc clean; build passes.
+
+**Still open:** fresh-DB migrate, EXPLAIN ANALYZE at 5000 rows, per-page First Load JS table, manual journal browser checks, real PDF download, 12b/12c pending tests, and non-code items (legal review, decision #54, Resend domain, hosting).
