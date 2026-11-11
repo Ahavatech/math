@@ -1,3 +1,19 @@
+/**
+ * Sends review reminders and overdue notices. Also expires stale invitations.
+ * Idempotent: each milestone ("DUE_SOON", "OVERDUE") is recorded in ReviewReminderLog;
+ * re-running never sends the same milestone twice to the same assignment.
+ * Dry run by default; pass --apply to actually send emails and expire invitations.
+ *
+ * Usage:
+ *   npx tsx scripts/journal-review-reminders.ts          # dry run
+ *   npx tsx scripts/journal-review-reminders.ts --apply  # send emails
+ *
+ * Add to cron (Stage 14): run daily at 09:00 WAT.
+ */
+
+// Must come before any service import — shims `server-only` for tsx
+import "./server-only-shim";
+
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -8,12 +24,6 @@ import {
 } from "../src/lib/email";
 import { getJournalSettingsPublic } from "../src/server/services/journal-settings";
 
-/**
- * Sends review reminders and overdue notices. Also expires stale invitations.
- * Idempotent: each milestone ("DUE_SOON", "OVERDUE") is recorded in ReviewReminderLog;
- * re-running never sends the same milestone twice to the same assignment.
- * Dry run by default; pass --apply to actually send emails and expire invitations.
- */
 async function main() {
   const apply = process.argv.includes("--apply");
   const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }) });
