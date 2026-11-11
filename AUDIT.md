@@ -863,3 +863,12 @@ NOT DONE (move to Stage 14):
 **Judgement calls to confirm with HOD:** rank "Lecturer" mapped to LECTURER_I (Ajao, Oguntade); "Dr." shown only where the old site cards showed it; surnames written in capitals on the old site were reordered to given names first; History page text is limited to facts on the old site.
 
 **Checks:** lint clean, tsc 0 errors, build passes. Full Vitest not re-run (no service code changed).
+
+
+### Entry 050 | 2026-11-11 | Prompt 050: Demo deployment guide
+
+**Done:** deploy/DEMO.md (Google Cloud e2-micro + Neon, for an HOD demo, step by step) and scripts/set-admin-password.ts (sets a password for an existing user when email is not configured; refuses NODE_ENV=production). Verified the script on a scratch DB (sets an argon2 hash; unknown email reports "No user with that email"). The guide itself was not executed against real Google Cloud or Neon.
+
+**Gotchas recorded in the guide:** (1) the CSP's `upgrade-insecure-requests` and secure cookies mean plain http://IP breaks the site, so the demo uses a free `<ip-with-dashes>.sslip.io` hostname with Let's Encrypt; (2) a bundle built on Windows carries win32 native modules (@node-rs/argon2, sharp), so the Linux binaries are installed on the VM; (3) pages are prerendered at build, so seed and legacy import must run before `npm run build`; (4) NEXT_PUBLIC_SITE_URL is baked in at build and must be the demo URL; (5) migrations and the build use Neon's direct URL, the running app uses the pooled URL.
+
+**Checks:** lint clean, tsc 0 errors.
