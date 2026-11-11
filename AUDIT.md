@@ -783,3 +783,16 @@ NOT DONE (move to Stage 14):
 **Open issues:** All NOT DONE items from this stage move to Stage 14. No new blocking bugs introduced. The 22 pre-existing lint warnings from Stage 12b are unchanged.
 
 **Next:** Stage 14 -- Hardening and deployment. Also covers accessibility (3), performance (4), E2E (5) from this stage.
+
+
+### Entry 044 | 2026-11-11 | Prompt 044: Total project audit (read-only)
+
+**Asked:** Audit the whole project with the aim of finishing it.
+
+**Done:** Read ROADMAP, DECISIONS, last entries, uncommitted diff. Ran lint, typecheck, build. No source changes.
+
+**Findings:** lint FAIL (1 error, scripts/server-only-shim.ts no-require-imports). typecheck 0 errors. build passes, bundle leak check passes. Vitest could not run: no PostgreSQL reachable at localhost:5432 and no Docker daemon, so the last recorded 1060/1060 is unverified this session. Uncommitted Stage 14 work sits on stage/13b (CSP, deploy/, shim). CSP `script-src 'self'` with no nonce likely blocks Next.js inline scripts. deploy/DEPLOY.md targets GCP e2-micro + Neon, contradicting CLAUDE.md (KVM 1 VPS). Google Fonts still via next/font/google. No Playwright or axe installed; tests/e2e empty. Stage 13b branch not merged to main.
+
+**Next:** Fix lint, verify CSP in a running build, align DEPLOY.md with the VPS, then Stage 14.
+
+**Entry 044 follow-up (2026-11-11):** Fixed shim lint error (eslint-disable block). CSP script-src now allows 'unsafe-inline' (Next inline hydration scripts; nonce would force all pages dynamic), documented in next.config.ts. DEPLOY.md, ecosystem config and backup script rewritten from GCP/Neon to KVM 1 VPS with local PostgreSQL. lint, typecheck, build pass. CSP not yet checked in a live browser.
