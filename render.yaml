@@ -1,0 +1,44 @@
+# Render Blueprint for the DEMO deployment (see deploy/DEMO.md, "Option B").
+# Not the production plan. Secrets are left blank (sync: false): Render asks
+# for them in the dashboard the first time the Blueprint is applied.
+services:
+  - type: web
+    name: oau-maths-demo
+    runtime: node
+    plan: free
+    branch: main
+    autoDeployTrigger: commit
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      # Pooled Neon URL (host contains -pooler), without channel_binding.
+      - key: DATABASE_URL
+        sync: false
+      - key: AUTH_SECRET
+        generateValue: true
+      # Both must be the service's public https address, e.g.
+      # https://oau-maths-demo.onrender.com. NEXT_PUBLIC_SITE_URL is baked in
+      # at build time, so redeploy after changing it.
+      - key: AUTH_URL
+        sync: false
+      - key: NEXT_PUBLIC_SITE_URL
+        sync: false
+      # Dummies so the app starts. Emails and image uploads will not work.
+      - key: EMAIL_FROM
+        value: demo@example.com
+      - key: RESEND_API_KEY
+        value: demo-not-used
+      - key: CLOUDINARY_CLOUD_NAME
+        value: demo
+      - key: CLOUDINARY_API_KEY
+        value: demo
+      - key: CLOUDINARY_API_SECRET
+        value: demo
+      # Render's disk is ephemeral on the free plan: manuscript uploads vanish.
+      - key: PRIVATE_STORAGE_DIR
+        value: /tmp/private-storage

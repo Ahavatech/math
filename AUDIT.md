@@ -872,3 +872,10 @@ NOT DONE (move to Stage 14):
 **Gotchas recorded in the guide:** (1) the CSP's `upgrade-insecure-requests` and secure cookies mean plain http://IP breaks the site, so the demo uses a free `<ip-with-dashes>.sslip.io` hostname with Let's Encrypt; (2) a bundle built on Windows carries win32 native modules (@node-rs/argon2, sharp), so the Linux binaries are installed on the VM; (3) pages are prerendered at build, so seed and legacy import must run before `npm run build`; (4) NEXT_PUBLIC_SITE_URL is baked in at build and must be the demo URL; (5) migrations and the build use Neon's direct URL, the running app uses the pooled URL.
 
 **Checks:** lint clean, tsc 0 errors.
+
+
+### Entry 051 | 2026-11-11 | Prompt 051: Render Blueprint for the demo
+
+**Done:** render.yaml (one free web service, auto-deploy on commit to main, health check /api/health, secrets left blank, AUTH_SECRET generated) and an "Option B: Render" section in deploy/DEMO.md; steps relabelled Option A (Google Cloud) or both. Build command uses `npm ci --include=dev` because the build needs devDependencies (prisma for postinstall, typescript, tailwind, tsx for postbuild) and Render sets NODE_ENV=production.
+
+**Not verified:** nothing was deployed to Render. Unknowns: whether the 512 MB free plan can complete the Next.js build (guide says to move to Starter if not), and whether the chosen service name is free (guide covers the suffix case). The Neon URLs the user pasted in chat were not used; they should reset that password after the demo.
