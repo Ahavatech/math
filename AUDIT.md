@@ -834,3 +834,17 @@ NOT DONE (move to Stage 14):
 **Checks:** lint clean, tsc 0 errors, vitest 107 files, 1063/1063.
 
 **Still open:** dev-fixture create/--remove integration test, per-page First Load JS table, manual journal browser checks, real uploaded-PDF download check, non-code items (legal, decision #54, Resend, hosting).
+
+
+### Entry 048 | 2026-11-11 | Prompt 048: Remaining open items
+
+**Done:**
+- Dev-fixture integration test (tests/unit/scripts/journal-dev-fixture.test.ts): runs the real script against the test DB with a temp PRIVATE_STORAGE_DIR; asserts 1 manuscript, 4 users, 1 file created, and all rows and files gone after `--remove`. Passes.
+- First Load JS: `next build --webpack` prints no per-page sizes in this Next version, so added scripts/measure-first-load-js.ts (`npm run measure:first-load-js`), which sums compressed script bytes in a cold Chromium load. Result: 175.1 kB on most pages (shared baseline, 12 scripts), /staff 179.3, /login 181.3, /journal and /contact 186.8. This is above the ~130 kB target recorded in Stage 04; reduction not attempted.
+- Journal HTTP verification on a throwaway DB with a real PDF (temporary file served locally, removed afterwards): published article 200; PDF streams real %PDF bytes with inline filename "Obi-2026-Published-One.pdf" and the source URL is not leaked in headers or body; retracted article 200 and shows "This article has been retracted." and the reason; draft article and its PDF 404; RSS, sitemap, BibTeX and article pages contain no draft title, reviewer text or file URL; anonymous /journal/dashboard redirects to login; anonymous /api/journal/files/<id> returns 404.
+
+**Not done / could not verify:**
+- Authenticated manual browser checks of the journal admin pages, submission wizard, reviewer dashboard and HOD/ADMIN 403 over real sessions: needs a seeded account with a password and was not attempted.
+- Upload through real Cloudinary (PDF served from a local URL stand-in).
+- First Load JS reduction.
+- Non-code items: legal review, decision #54, Resend domain, hosting.

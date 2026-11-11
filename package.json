@@ -29,7 +29,8 @@
     "journal:dev-fixture": "tsx scripts/journal-dev-fixture.ts",
     "journal:publish-scheduled": "tsx scripts/journal-publish-scheduled.ts",
     "journal:purge-drafts": "tsx scripts/journal-purge-drafts.ts",
-    "journal:review-reminders": "tsx scripts/journal-review-reminders.ts"
+    "journal:review-reminders": "tsx scripts/journal-review-reminders.ts",
+    "measure:first-load-js": "tsx scripts/measure-first-load-js.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
