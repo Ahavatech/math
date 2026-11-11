@@ -21,7 +21,7 @@ Tick items as they are completed and note the AUDIT.md entry number.
 
 ### Pending from Stage 12b/12c (must be resolved before or during Stage 14)
 
-- Tests for article snapshot independence (12c §5b), publish atomicity (12c §5c), final PDF sha256 (12c §5d).
+- [x] Tests for article snapshot independence (12c §5b), publish atomicity (12c §5c), final PDF sha256 (12c §5d). Done in Entry 047; the sha256 is now of the real PDF bytes.
 - Per-page First Load JS: measure using webpack (`next build --webpack`, not Turbopack -- Turbopack does not print per-page sizes). Re-baseline against ~159 kB shared chunk. The 197.9 kB reading in Stage 12b used a different method (standalone server output); the two numbers are not directly comparable.
 - Scripts blocked by `server-only` guard under tsx: `scripts/journal-review-reminders.ts` and `scripts/journal-publish-scheduled.ts` both import from services that have `import "server-only"`. Separate the business logic from Next.js server boundaries so these scripts are runnable for cron before Stage 14a.
 - dev-fixture `create` and `--remove` coverage for the published-article and full-review scenarios.

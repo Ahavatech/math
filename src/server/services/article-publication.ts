@@ -212,7 +212,16 @@ export async function publishArticle(
   const validation = await validateArticleForPublication(db, articleId);
   if (!validation.valid) return { ok: false, reason: `Validation failed: ${validation.missing.join(", ")}` };
 
-  const finalPdfSha256 = computeSha256(articlePdf?.fileUrl ?? articleId);
+  // The checksum is of the actual PDF bytes, so a later swap of the file
+  // behind the URL is detectable. If the file cannot be read, publication
+  // is refused rather than recording a hash of something else.
+  if (!articlePdf?.fileUrl) return { ok: false, reason: "Article has no final PDF to checksum" };
+  let finalPdfSha256: string;
+  try {
+    finalPdfSha256 = await hashPdfFromUrl(articlePdf.fileUrl);
+  } catch {
+    return { ok: false, reason: "Could not read the final PDF to compute its checksum" };
+  }
   const publishedAt = new Date();
   const manuscriptId = articleBase.manuscriptId;
 
@@ -411,6 +420,14 @@ export async function listAcknowledgedReviewers(
 // Internal
 // ---------------------------------------------------------------------------
 
-function computeSha256(input: string): string {
-  return createHash("sha256").update(input).digest("hex");
+const MAX_PDF_BYTES = 50 * 1024 * 1024;
+
+/** sha256 (hex) of the bytes served at a public http(s) URL. Exported for tests. */
+export async function hashPdfFromUrl(url: string): Promise<string> {
+  if (!/^https?:\/\//i.test(url)) throw new Error("Unsupported PDF URL");
+  const res = await fetch(url, { signal: AbortSignal.timeout(30_000) });
+  if (!res.ok) throw new Error(`PDF fetch failed: ${res.status}`);
+  const bytes = Buffer.from(await res.arrayBuffer());
+  if (bytes.length === 0 || bytes.length > MAX_PDF_BYTES) throw new Error("PDF size out of range");
+  return createHash("sha256").update(bytes).digest("hex");
 }
