@@ -168,7 +168,7 @@ export default async function ManuscriptDetailAdminPage({
             <li key={a.id}>
               {a.name}
               {a.isCorresponding && " (corresponding)"}
-              {a.affiliation && ` — ${a.affiliation}`}
+              {a.affiliation && ` - ${a.affiliation}`}
             </li>
           ))}
         </ul>
@@ -342,7 +342,7 @@ export default async function ManuscriptDetailAdminPage({
                     <option key={r.id} value={r.id}>
                       {r.name ?? r.email}
                       {r.profile?.expertiseTags.length
-                        ? ` — ${r.profile.expertiseTags.join(", ")}`
+                        ? ` - ${r.profile.expertiseTags.join(", ")}`
                         : ""}
                     </option>
                   ))}

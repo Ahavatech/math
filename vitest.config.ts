@@ -10,6 +10,7 @@ export default defineConfig({
     globalSetup: ["./tests/unit/database/global-setup.ts"],
     globals: true,
     fileParallelism: false,
+    exclude: ["**/node_modules/**", "**/.git/**", "tests/e2e/**"],
   },
   ssr: {
     // Vite externalizes node_modules deps for SSR/test by default,

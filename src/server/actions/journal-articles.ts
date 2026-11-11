@@ -64,6 +64,7 @@ function revalidateJournalPaths(slug?: string) {
   revalidatePath("/journal");
   revalidatePath("/journal/articles");
   revalidatePath("/journal/rss.xml");
+  revalidatePath("/sitemap.xml");
   if (slug) revalidatePath(`/journal/articles/${slug}`);
 }
 

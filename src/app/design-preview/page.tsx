@@ -38,7 +38,7 @@ export default function DesignPreviewPage() {
       <Section className="space-y-16">
         <PageHeader
           title="Design preview"
-          description="Every token and component in realistic states. Dev-only — this route 404s in production."
+          description="Every token and component in realistic states. Dev-only. This route 404s in production."
         />
 
         <section aria-labelledby="colors-heading" className="space-y-4">

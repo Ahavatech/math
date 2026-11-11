@@ -11,7 +11,8 @@ import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Prose } from "@/components/ui/prose";
 import { Badge } from "@/components/ui/badge";
 import { ZoomableImage } from "@/components/ui/zoomable-image";
-import { safeJsonLdString } from "@/lib/json-ld";
+import { safeJsonLdString, buildEventJsonLd } from "@/lib/json-ld";
+import { SITE_URL } from "@/lib/seo";
 
 export const revalidate = 300;
 
@@ -41,15 +42,17 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
   const upcoming = isUpcoming(event);
   const googleCalendarUrl = buildGoogleCalendarUrl(event);
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Event",
-    name: event.title,
-    startDate: event.startsAt.toISOString(),
-    ...(event.endsAt ? { endDate: event.endsAt.toISOString() } : {}),
-    ...(event.venue ? { location: { "@type": "Place", name: event.venue } } : {}),
-    ...(event.flyer ? { image: [event.flyer.url] } : {}),
-  };
+  const jsonLd = buildEventJsonLd({
+    title: event.title,
+    slug: event.slug,
+    description: event.description,
+    startsAt: event.startsAt,
+    endsAt: event.endsAt,
+    venue: event.venue,
+    speakerName: event.speakerName,
+    flyerUrl: event.flyer?.url,
+    siteUrl: SITE_URL,
+  });
 
   return (
     <Section>

@@ -11,7 +11,8 @@ import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Prose } from "@/components/ui/prose";
 import { Badge } from "@/components/ui/badge";
 import { ZoomableImage } from "@/components/ui/zoomable-image";
-import { safeJsonLdString } from "@/lib/json-ld";
+import { safeJsonLdString, buildNewsArticleJsonLd } from "@/lib/json-ld";
+import { SITE_URL } from "@/lib/seo";
 
 export const revalidate = 300;
 
@@ -40,13 +41,14 @@ export default async function NewsPostPage({ params }: { params: Promise<{ slug:
 
   const others = await listOtherNewsPublic(db, post.id, 3);
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "NewsArticle",
-    headline: post.title,
-    datePublished: post.publishedAt?.toISOString(),
-    ...(post.cover ? { image: [post.cover.url] } : {}),
-  };
+  const jsonLd = buildNewsArticleJsonLd({
+    title: post.title,
+    slug: post.slug,
+    excerpt: post.excerpt,
+    publishedAt: post.publishedAt,
+    coverUrl: post.cover?.url,
+    siteUrl: SITE_URL,
+  });
 
   return (
     <Section>

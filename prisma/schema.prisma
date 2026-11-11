@@ -268,9 +268,11 @@ model Programme {
   updatedAt             DateTime       @updatedAt
 
   specialisations Specialisation[]
+  searchVec       Unsupported("tsvector")?
 
   @@index([status])
   @@index([level])
+  @@index([searchVec], type: Gin)
 }
 
 model Specialisation {
@@ -302,8 +304,10 @@ model ResearchArea {
 
   image     MediaAsset?       @relation("ResearchAreaImage", fields: [imageId], references: [id], onDelete: SetNull)
   lecturers LecturerProfile[] @relation("LecturerResearchArea")
+  searchVec Unsupported("tsvector")?
 
   @@index([status])
+  @@index([searchVec], type: Gin)
 }
 
 model Course {
@@ -330,6 +334,9 @@ model Course {
   @@index([status])
   @@index([semester])
   @@index([programmeLevel])
+  // Functional GIN on to_tsvector(searchText) is unmanaged (Prisma cannot express it);
+  // declared in migration SQL and verified by scripts/check-unmanaged-indexes.ts
+  @@index([searchText])
 }
 
 model HandbookPage {
@@ -350,6 +357,9 @@ model HandbookPage {
   children HandbookPage[] @relation("HandbookPageChildren")
 
   @@index([status])
+  // Functional GIN on to_tsvector(searchText) is unmanaged (Prisma cannot express it);
+  // declared in migration SQL and verified by scripts/check-unmanaged-indexes.ts
+  @@index([searchText])
 }
 
 model Download {
@@ -372,8 +382,10 @@ model Download {
 
   lecturerCvFor LecturerProfile[] @relation("LecturerCv")
   articlePdfFor Article[]         @relation("ArticlePdf")
+  searchVec     Unsupported("tsvector")?
 
   @@index([status, category])
+  @@index([searchVec], type: Gin)
 }
 
 model AcademicCalendarEntry {
@@ -386,7 +398,10 @@ model AcademicCalendarEntry {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
+  searchVec   Unsupported("tsvector")?
+
   @@index([startDate])
+  @@index([searchVec], type: Gin)
 }
 
 // ---------------------------------------------------------------------------
@@ -440,8 +455,10 @@ model LecturerProfile {
   publications  Publication[]
 
   editorialBoardMemberships EditorialBoardMember[]
+  searchVec                 Unsupported("tsvector")?
 
   @@index([status, rank])
+  @@index([searchVec], type: Gin)
 }
 
 model Publication {
@@ -475,9 +492,11 @@ model NonTeachingStaff {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  photo MediaAsset? @relation("NonTeachingPhoto", fields: [photoId], references: [id], onDelete: SetNull)
+  photo     MediaAsset?              @relation("NonTeachingPhoto", fields: [photoId], references: [id], onDelete: SetNull)
+  searchVec Unsupported("tsvector")?
 
   @@index([isActive])
+  @@index([searchVec], type: Gin)
 }
 
 // ---------------------------------------------------------------------------
@@ -501,20 +520,21 @@ enum EventType {
 }
 
 model NewsPost {
-  id            String        @id @default(cuid())
-  slug          String        @unique
+  id            String                    @id @default(cuid())
+  slug          String                    @unique
   title         String
   category      NewsCategory
   excerpt       String?
   body          String
   coverId       String?
-  isPinned      Boolean       @default(false)
-  status        ContentStatus @default(DRAFT)
+  isPinned      Boolean                   @default(false)
+  status        ContentStatus             @default(DRAFT)
   publishedAt   DateTime?
-  previousSlugs String[]      @default([])
+  previousSlugs String[]                  @default([])
   authorId      String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+  searchVec     Unsupported("tsvector")?
 
   cover  MediaAsset? @relation("NewsPostCover", fields: [coverId], references: [id], onDelete: SetNull)
   author User?       @relation("NewsPostAuthor", fields: [authorId], references: [id], onDelete: SetNull)
@@ -522,6 +542,7 @@ model NewsPost {
   @@index([status, publishedAt])
   @@index([category])
   @@index([isPinned])
+  @@index([searchVec], type: Gin)
 }
 
 model EventSeries {
@@ -560,9 +581,11 @@ model Event {
   series EventSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
 
   galleryImages EventGalleryImage[]
+  searchVec     Unsupported("tsvector")?
 
   @@index([status, startsAt])
   @@index([type])
+  @@index([searchVec], type: Gin)
 }
 
 model EventGalleryImage {
@@ -744,11 +767,13 @@ model JournalIssue {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  cover    MediaAsset? @relation("JournalIssueCover", fields: [coverId], references: [id], onDelete: SetNull)
+  cover    MediaAsset?              @relation("JournalIssueCover", fields: [coverId], references: [id], onDelete: SetNull)
   articles Article[]
+  searchVec Unsupported("tsvector")?
 
   @@unique([volume, number])
   @@index([status, publishedAt])
+  @@index([searchVec], type: Gin)
 }
 
 enum ArticleType {
@@ -802,6 +827,9 @@ model Article {
   authors ArticleAuthor[]
 
   @@index([status, publishedAt])
+  // Functional GIN on to_tsvector(searchText) is unmanaged (Prisma cannot express it);
+  // declared in migration SQL and verified by scripts/check-unmanaged-indexes.ts
+  @@index([searchText])
 }
 
 model ArticleAuthor {

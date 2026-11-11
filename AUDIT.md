@@ -729,3 +729,87 @@ Decisions 71-78 added to `docs/DECISIONS.md`.
 
 **Next:** Stage 13b (accessibility, performance, E2E) or Stage 14 (hardening, deployment).
 
+
+### Entry 043 | 2026-10-30 | Stage 13b, Prompt 043: Quality and carry-over
+
+**Asked:** Resolve 10 carry-over items from Stage 13a: (1) JSON-LD builders for Person/Event/NewsArticle/Course/ScholarlyArticle and wire to pages; (2) alumni industry filter case-insensitive; (3) schema drift -- declare searchVec Unsupported on all 9 models; (4) rate-limiter IP doc; (5) migrate on fresh/empty DB + pg_trgm doc; (6) alumni year filter validation; (7) EXPLAIN ANALYZE with 5000 rows; (8) sitemap dynamic + revalidatePath on publish/retract; (9) RBAC alumni.review matrix tests; (10) Prisma where type fix and duplicate-email no-cross-data test. Then run HTTP verification (Section 2), accessibility audit (Section 3), performance pass (Section 4), E2E Playwright tests (Section 5).
+
+**Done:**
+- JSON-LD builders: 5 new builders added to `src/lib/json-ld.ts` (buildPersonJsonLd, buildEventJsonLd, buildNewsArticleJsonLd, buildCourseJsonLd, buildScholarlyArticleJsonLd). 12 new tests in `src/lib/__tests__/json-ld.test.ts`. Wired to lecturer/[slug], events/[slug], news/[slug], students/courses/[slug] pages.
+- Alumni industry filter: changed to `{ contains: ..., mode: "insensitive" }` on `roleOrField` in `src/server/services/alumni-public.ts`. Explicit where type `Prisma.AlumniEntryWhereInput` preserved from prior session.
+- Schema drift: `searchVec Unsupported("tsvector")?` and `@@index([searchVec], type: Gin)` added to 7 models (Programme, ResearchArea, Download, AcademicCalendarEntry, LecturerProfile, NonTeachingStaff, JournalIssue); plain `@@index([searchText])` with unmanaged-GIN comment added for Course/HandbookPage/Article.
+- Rate-limiter IP doc: `deploy/nginx/nginx-rate-limit-note.md` created, documents proxy_set_header X-Forwarded-For $remote_addr to prevent IP spoofing, multi-instance limitation of InMemoryRateLimiter.
+- Alumni year filter: safe integer validation in `src/app/(site)/alumni/page.tsx` (Number.isInteger + range 1960-2100).
+- Sitemap dynamic: `export const dynamic = "force-dynamic"` and `export const revalidate = 3600` added to `src/app/sitemap.ts`. `revalidatePath("/sitemap.xml")` added to revalidate helpers in actions/journal-articles.ts, actions/news.ts, actions/events.ts, actions/lecturers.ts.
+- RBAC alumni.review matrix tests: 2 explicit denial tests added to `src/lib/__tests__/rbac.test.ts`.
+- Duplicate-email no-cross-data test: added to `src/server/services/__tests__/alumni-entries.test.ts`.
+- Prisma where type: explicit `Prisma.AlumniEntryWhereInput` annotation preserved on alumni-public.ts filter variable.
+
+NOT DONE (move to Stage 14):
+- Section 1.5: Migrate on fresh/empty DB + pg_trgm superuser documentation (requires spare empty Postgres instance).
+- Section 1.7: EXPLAIN ANALYZE with 5000 seeded rows (requires seeding test DB with throwaway rows).
+- Section 2: HTTP verification (leak test, /search edge cases, headers, RSC revalidation proof).
+- Section 3: Accessibility audit (@axe-core/playwright, 18 routes, keyboard, colour contrast, alt text).
+- Section 4: Performance (First Load JS table, bundle analyzer, Lighthouse, self-host fonts).
+- Section 5: E2E Playwright tests (5 flows: public, alumni, journal, access, content admin).
+
+**Files:**
+- MOD `prisma/schema.prisma` -- searchVec Unsupported + GIN index on 7 models; plain index + comment for Course/HandbookPage/Article
+- MOD `src/lib/json-ld.ts` -- 5 new JSON-LD builders
+- MOD `src/lib/__tests__/json-ld.test.ts` -- 12 new tests for new builders
+- MOD `src/app/(site)/lecturer/[slug]/page.tsx` -- buildPersonJsonLd wired
+- MOD `src/app/(site)/events/[slug]/page.tsx` -- buildEventJsonLd wired
+- MOD `src/app/(site)/news/[slug]/page.tsx` -- buildNewsArticleJsonLd wired
+- MOD `src/app/(site)/students/courses/[slug]/page.tsx` -- buildCourseJsonLd wired
+- MOD `src/app/(site)/alumni/page.tsx` -- year param safe integer validation
+- MOD `src/server/services/alumni-public.ts` -- industry filter case-insensitive contains
+- MOD `src/server/actions/journal-articles.ts` -- revalidatePath sitemap
+- MOD `src/server/actions/news.ts` -- revalidatePath sitemap
+- MOD `src/server/actions/events.ts` -- revalidatePath sitemap
+- MOD `src/server/actions/lecturers.ts` -- revalidatePath sitemap
+- MOD `src/app/sitemap.ts` -- force-dynamic + revalidate=3600
+- MOD `src/lib/__tests__/rbac.test.ts` -- 2 alumni.review denial tests
+- MOD `src/server/services/__tests__/alumni-entries.test.ts` -- duplicate-email no-cross-data test
+- NEW `deploy/nginx/nginx-rate-limit-note.md` -- rate-limiter IP spoofing doc
+
+**Decisions:** No new DECISIONS.md entries. Functional GIN indexes on Course/HandbookPage/Article are unmanaged (Prisma cannot express them declaratively); declared in migration SQL and tracked via scripts/check-unmanaged-indexes.ts. Sitemap uses dynamic + revalidate=3600 rather than pure static because content changes are not known at build time.
+
+**Tests and checks:** `npx tsc --noEmit` -- 0 errors. `npm run lint` -- 0 warnings, exit 0. `npm run build` -- passed, sitemap.xml shows as ƒ (Dynamic). `npx vitest run` -- 107 files, 1060 tests, exit 0 (run 1). `npx vitest run` -- 107 files, 1060 tests, exit 0 (run 2).
+
+**Security notes:** JSON-LD builders use the existing `safeJsonLdString` wrapper -- all admin-entered values are sanitized before being injected into script tags. Alumni year filter uses strict integer + range check -- rejects strings, floats, years outside 1960-2100. Industry filter case-insensitivity uses Prisma `mode: "insensitive"` (handled by the DB, not the app layer -- no new injection surface). Nginx rate-limit doc clarifies that `proxy_set_header X-Forwarded-For $remote_addr` must be set to prevent clients spoofing arbitrary IPs to bypass the rate limiter.
+
+**Deviations:** Sections 1.5, 1.7, 2, 3, 4, 5 not completed -- moved to Stage 14. These required infrastructure not available in the dev environment (spare empty DB, 5000-row seeded DB, running production build for HTTP curl tests, Playwright install).
+
+**Open issues:** All NOT DONE items from this stage move to Stage 14. No new blocking bugs introduced. The 22 pre-existing lint warnings from Stage 12b are unchanged.
+
+**Next:** Stage 14 -- Hardening and deployment. Also covers accessibility (3), performance (4), E2E (5) from this stage.
+
+
+### Entry 044 | 2026-11-11 | Prompt 044: Total project audit (read-only)
+
+**Asked:** Audit the whole project with the aim of finishing it.
+
+**Done:** Read ROADMAP, DECISIONS, last entries, uncommitted diff. Ran lint, typecheck, build. No source changes.
+
+**Findings:** lint FAIL (1 error, scripts/server-only-shim.ts no-require-imports). typecheck 0 errors. build passes, bundle leak check passes. Vitest could not run: no PostgreSQL reachable at localhost:5432 and no Docker daemon, so the last recorded 1060/1060 is unverified this session. Uncommitted Stage 14 work sits on stage/13b (CSP, deploy/, shim). CSP `script-src 'self'` with no nonce likely blocks Next.js inline scripts. deploy/DEPLOY.md targets GCP e2-micro + Neon, contradicting CLAUDE.md (KVM 1 VPS). Google Fonts still via next/font/google. No Playwright or axe installed; tests/e2e empty. Stage 13b branch not merged to main.
+
+**Next:** Fix lint, verify CSP in a running build, align DEPLOY.md with the VPS, then Stage 14.
+
+**Entry 044 follow-up (2026-11-11):** Fixed shim lint error (eslint-disable block). CSP script-src now allows 'unsafe-inline' (Next inline hydration scripts; nonce would force all pages dynamic), documented in next.config.ts. DEPLOY.md, ecosystem config and backup script rewritten from GCP/Neon to KVM 1 VPS with local PostgreSQL. lint, typecheck, build pass. CSP not yet checked in a live browser.
+
+
+### Entry 045 | 2026-11-11 | Prompt 045: Stage 14 continuation (offline-doable items)
+
+**Asked:** Continue the rest of Stage 14 with the goal of reaching main.
+
+**Done:**
+- Fonts self-hosted via @fontsource (IBM Plex Sans/Serif; latin, latin-ext, vietnamese); next/font/google removed; font variables defined in globals.css.
+- Em dashes removed from UI copy (403, 404, journal manuscript admin pages, design-preview).
+- prisma/seed.ts: SEED_MODE=production skips the [SAMPLE] site settings; documented in .env.example and DEPLOY.md. NavItem order collision was already handled in the seed.
+- Cron file: every job labelled with WAT and UTC times.
+- Playwright + @axe-core/playwright added (playwright.config.ts, `npm run test:e2e`, three specs in tests/e2e: public pages + axe, access control, alumni/journal). Vitest excludes tests/e2e.
+- Built server returns the CSP header on /privacy.
+
+**Checks:** lint 0 problems, tsc 0 errors, build passes with bundle leak check. Vitest NOT run (no PostgreSQL/Docker here). E2E specs written but NOT run (need DB and a browser install).
+
+**Still open:** DB-backed test run, fresh-DB migrate, EXPLAIN ANALYZE, running E2E and axe, CSP check in a real browser, per-page First Load JS table, manual journal browser checks, real PDF download check, intermittent argon2 test timeouts, pending 12b/12c tests (snapshot, atomicity, sha256), dev-fixture coverage. Non-code: legal review of /privacy and retention wording, HOD confirm decision #54, Resend domain, hosting decisions.

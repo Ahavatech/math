@@ -1,0 +1,65 @@
+# Stage 13b: carry-over, production-build verification, accessibility, performance, end-to-end tests
+
+Branch: `stage/13b-quality-e2e` from updated main. Do not push or merge. Read CLAUDE.md, AUDIT.md, ROADMAP.md, docs/STATE.md, docs/SEARCH.md and docs/SEO.md first.
+
+Rules for this stage:
+- No "pre-existing" or "environment" excuses. If something cannot run, say exactly why and what command Kem must run.
+- Every claim in the summary needs a command and its output. "Confirmed in an earlier entry" is not evidence.
+- No em dashes anywhere.
+- Report with the 9-part summary first, PR text last.
+
+## 0. Build first (blocker)
+Stage 13a could not confirm `npm run build`. Stop any process holding `.next` (on Windows: `taskkill /F /IM node.exe`, then delete `.next`). Run `npm run build` and `npx next build --webpack`. Both must exit 0. Paste the route table. If the build fails, fixing it is the first task of this stage.
+
+## 1. Stage 13a carry-over (all of it, no deferrals)
+1. The alumni public list Set filter, by graduation year (a programme with that graduationYear). Add to the filter UI, URL param validated, DB-backed test.
+2. Industry filter: confirm what `roleOrField` filtering does. If it is an exact match against a fixed list but the field is free text, change it to a case-insensitive contains match, or change the UI to free-text search. Add a DB test with a free-text value.
+3. The 13a summary says Prisma "silently ignored" `{ industry: ... }`. Prisma normally throws on unknown fields. Find out why typecheck and runtime did not catch it (an `any` cast, a spread, a loose options type). Fix the root cause and grep the codebase for other `as any`, `as never` and untyped `where` objects in services. List what you found.
+4. Alumni tests still owed: permission matrix (alumni.review allowed roles, HOD read-only, ADMIN rules as designed), emails test (no cross-data between submissions, identical thank-you for duplicate email), dev-fixture create and `--remove` leaving zero rows.
+5. Migrations: run `prisma migrate deploy` on a brand new empty database and on a database restored to the state before the 12d and 13a migrations with a few old-shape alumni rows. Both must succeed. Note whether `CREATE EXTENSION pg_trgm` needs a superuser on the target Postgres and document it in the deploy notes.
+6. Structured data was asked for lecturers, events, news and courses in 13a but only Organization and Breadcrumb were reported. Add or verify JSON-LD for: lecturer (Person), event (Event), news article (NewsArticle), course (Course), journal article (ScholarlyArticle), with draft, archived and pending items emitting nothing. Test the builders and curl one real page of each type on the production build.
+7. Search quality: the EXPLAIN on an empty table proves nothing. Seed 5,000 throwaway rows in the test database for the largest tables, run EXPLAIN ANALYZE for the main search query, confirm the GIN index is used, record timings in docs/SEARCH.md, then remove the rows.
+8. Rate limiter: confirm how the client IP is read behind Nginx (X-Forwarded-For handling), that it cannot be spoofed by a client-supplied header, and document the Nginx setting needed.
+9. sitemap.xml is prerendered static in the build output. It must reflect database changes. Make it dynamic or give it a short revalidate (for example 1 hour), and call revalidatePath("/sitemap.xml") where content is published, unpublished or retracted. Prove it: publish a news item, request /sitemap.xml on the production build, see the URL appear without a rebuild. Then unpublish it and see it disappear.
+10. Schema drift: `prisma migrate dev` wants to drop the searchVec columns (Download, Event, LecturerProfile, NewsPost, NonTeachingStaff, Programme, ResearchArea, and any others added in 13a) because they exist only in raw SQL. Declare them in schema.prisma as `searchVec Unsupported("tsvector")?` on every affected model, and declare the GIN and trigram indexes with @@index(..., type: Gin) where Prisma supports it. Then prove there is no drift: run `npx prisma migrate diff --from-migrations prisma/migrations --to-schema prisma/schema.prisma --shadow-database-url <shadow db url> --exit-code` and it must exit 0 with an empty diff. If Prisma cannot express an index (for example a functional GIN index or a trigram operator class), say so, and add a script check that lists the unmanaged objects so they are not lost. Add a test or CI step that runs this diff so drift can never merge again. Confirm `migrate dev` on the dev database shows no pending changes and that the existing searchVec data is untouched.
+
+## 2. Real HTTP verification on the production build
+Run `npm run build` then `npm run start` (or the standalone server). Against that server, not the dev server:
+1. Leak test: create one hidden item of each searchable and sitemap type (draft, archived, unpublished, pending, retracted-without-page if any, private manuscript, reviewer data, alumni). Prove none appears in /search results, /sitemap.xml, the RSS feeds or the ICS feed. Remove the fixtures after.
+2. /search: empty query, 1 character, very long query, quote and operator characters, SQL metacharacters, unicode, and a 31st request in a minute (429). Show status codes.
+3. Headers on key pages: noindex on /search, canonical URLs correct and absolute, robots.txt content, sitemap URL count per type.
+4. Fix the "stale RSC payload on first request after publish" issue: check that publish, correct, retract, news and event changes call the right revalidatePath and revalidateTag. Prove it with a before and after request.
+
+## 3. Accessibility
+1. Install `@axe-core/playwright` and `@playwright/test` as devDependencies. Add `npm run test:e2e`.
+2. Run axe against these routes at desktop and 375px width: /, /search, /lecturers, one lecturer page, /journal, one article, /journal/submit (signed in as an author), /alumni, /alumni/submit, /events, /news, /courses, /handbook, /downloads, /contact, /login, and the admin dashboard. Zero serious or critical violations. Fix real issues; do not disable rules. List any minor ones left with a reason.
+3. Manual checks by keyboard in the browser, reported route by route: skip link, visible focus on every control, tab order, the Tiptap editor reachable and escapable, the search box, dialogs trap and restore focus, forms announce errors.
+4. Colour contrast on the theme tokens (text on background, muted text, buttons, links in prose). Report ratios.
+5. Every image has alt text or is marked decorative. Lecturer photos use the lecturer's name. The journal PDF links state the file type and size.
+
+## 4. Performance
+1. Measure per-page First Load JS from the webpack build for: /, /search, /lecturers, a lecturer page, /journal, an article, /alumni, /alumni/submit, /journal/submit, and the admin dashboard. Put the table in docs/PERFORMANCE.md.
+2. Explain the 197.9 kB versus about 159 kB shared JS question that has been open since 12a. Find what is in the shared chunk (use `@next/bundle-analyzer`), and remove anything that should not be there. Public pages should not load Tiptap, KaTeX, admin code or the Cloudinary widget unless needed. Dynamic import where it helps.
+3. Lighthouse (CLI or Playwright) on /, a lecturer page, an article and /search, mobile profile, against the production build. Report LCP, CLS, INP or TBT. Targets: LCP under 2.5 s on localhost throttled mobile, CLS under 0.1. Fix cheap wins (image sizes and priority, font loading, layout shift). Do not chase scores.
+4. Fonts: self-host with `next/font/local` so the build and the site do not need Google at build or run time. Confirm the build succeeds with the network disabled.
+
+## 5. End-to-end tests (Playwright, against a seeded `_test` database)
+Create a global setup that seeds a known dataset and tears down only what it created. Keep each flow independent. Write tests for:
+1. Public: home loads, search finds a seeded lecturer and a seeded course, lecturer page renders, event page renders, news page renders.
+2. Alumni: submit with two programmes and consent, see the thank-you, open the confirmation link, see the people-you-might-know list; admin approves; the alumnus appears on /alumni; an unapproved one does not.
+3. Journal: author registers, submits a manuscript (upload a small DOCX), receives a reference number; EiC assigns an editor and a reviewer; reviewer accepts through the invitation link and submits a review; editor records a decision; author revises; editor accepts; EiC prepares and publishes; the article page, citation export and RSS entry exist; retraction leaves the page with a notice. Assert that the author never sees reviewer identity and the reviewer never sees the title page.
+4. Access: HOD and ADMIN get 403 on journal editorial pages, HOD can read manuscripts read-only, unauthenticated users are redirected to login.
+5. Content admin: HOD edits a news item and a lecturer field and the public page updates.
+These must run in CI-friendly mode (`npx playwright test`), with traces on failure. Run the whole suite twice and report both.
+
+## 6. Pending list (add to ROADMAP, do not do now)
+- Donations page (waiting on HOD answers).
+- UI polish pass after the backend is done.
+- Stage 14a: scheduled scripts blocked by the `server-only` import under tsx (journal-review-reminders, journal-publish-scheduled); fix before cron setup.
+- 12c tests still owed if not finished above: snapshot independence, publish atomicity, PDF sha256.
+- Cloudinary photo lifecycle (needs real credentials; manual).
+
+## 7. Quality gate and docs
+`npx tsc --noEmit`, `npm run lint` (0 warnings, and list any config suppressions added), `npx vitest run` twice, `npm run build`, `npx next build --webpack`, `npx playwright test` twice. Update AUDIT.md (new entry only), ROADMAP.md, docs/STATE.md, docs/PERFORMANCE.md, docs/DECISIONS.md.
+
+Finish with the 9-part summary (built, asked vs delivered, failures and surprises, not verified, risks, results, git steps, then PR title and description). Anything not done must say NOT DONE, not "deferred".

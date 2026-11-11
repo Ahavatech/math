@@ -60,6 +60,7 @@ async function requireOwnLecturerProfile() {
 async function revalidateLecturerPaths(lecturerId: string | undefined, slug?: string) {
   revalidatePath("/admin/lecturers");
   revalidatePath("/staff");
+  revalidatePath("/sitemap.xml");
   revalidatePath("/");
   if (slug) revalidatePath(`/lecturer/${slug}`);
   if (lecturerId) {

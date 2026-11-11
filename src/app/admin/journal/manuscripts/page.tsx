@@ -98,7 +98,7 @@ export default async function ManuscriptsListPage({
               {manuscripts.map((ms) => (
                 <tr key={ms.id} className="border-b">
                   <td className="py-2 pr-4 font-mono text-xs text-muted-foreground">
-                    {ms.reference ?? "—"}
+                    {ms.reference ?? "-"}
                   </td>
                   <td className="py-2 pr-4 max-w-xs truncate">{ms.title}</td>
                   <td className="py-2 pr-4">
@@ -109,7 +109,7 @@ export default async function ManuscriptsListPage({
                     </span>
                   </td>
                   <td className="py-2 pr-4 text-muted-foreground">
-                    {ms.submittedAt ? new Date(ms.submittedAt).toLocaleDateString() : "—"}
+                    {ms.submittedAt ? new Date(ms.submittedAt).toLocaleDateString() : "-"}
                   </td>
                   <td className="py-2">
                     <Link

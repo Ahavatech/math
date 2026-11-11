@@ -94,6 +94,20 @@ describe("rbac permission matrix", () => {
     expect(hasPermission(u, "journal.review")).toBe(true);
     expect(hasPermission(u, "journal.submit")).toBe(false);
   });
+
+  it("alumni.review: SUPER_ADMIN, HOD and ADMIN have it; LECTURER, REVIEWER, AUTHOR do not", () => {
+    for (const role of ["SUPER_ADMIN", "HOD", "ADMIN"] as const) {
+      expect(hasPermission(user([role]), "alumni.review")).toBe(true);
+    }
+    for (const role of ["LECTURER", "REVIEWER", "AUTHOR"] as const) {
+      expect(hasPermission(user([role]), "alumni.review")).toBe(false);
+    }
+  });
+
+  it("alumni.review: JOURNAL_EDITOR_IN_CHIEF and JOURNAL_EDITOR do not have it (editorial independence)", () => {
+    expect(hasPermission(user(["JOURNAL_EDITOR_IN_CHIEF"]), "alumni.review")).toBe(false);
+    expect(hasPermission(user(["JOURNAL_EDITOR"]), "alumni.review")).toBe(false);
+  });
 });
 
 describe("hasRole / requireRole", () => {

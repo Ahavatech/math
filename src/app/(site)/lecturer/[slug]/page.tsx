@@ -15,7 +15,8 @@ import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Prose } from "@/components/ui/prose";
 import { CloudImage } from "@/components/ui/cloud-image";
 import { Badge } from "@/components/ui/badge";
-import { safeJsonLdString } from "@/lib/json-ld";
+import { safeJsonLdString, buildPersonJsonLd } from "@/lib/json-ld";
+import { SITE_URL } from "@/lib/seo";
 
 export async function generateStaticParams() {
   try {
@@ -83,15 +84,17 @@ export default async function LecturerPage({ params }: { params: Promise<{ slug:
   const hasContact = lecturer.publicEmail || lecturer.phone || lecturer.officeLocation || lecturer.officeHours;
   const hasLinks = lecturer.scholarUrl || lecturer.orcid || lecturer.researchGateUrl || lecturer.linkedinUrl;
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Person",
+  const jsonLd = buildPersonJsonLd({
     name: lecturer.fullName,
-    jobTitle: rankLabel(lecturer.rank),
-    affiliation: "Department of Mathematics, Obafemi Awolowo University",
-    ...(lecturer.photo ? { image: lecturer.photo.url } : {}),
-    ...(lecturer.publicEmail ? { email: lecturer.publicEmail } : {}),
-  };
+    slug: lecturer.slug,
+    honorific: lecturer.honorific,
+    rank: rankLabel(lecturer.rank),
+    bio: lecturer.bio,
+    photoUrl: lecturer.photo?.url,
+    email: lecturer.publicEmail,
+    orcid: lecturer.orcid,
+    siteUrl: SITE_URL,
+  });
 
   return (
     <Section>

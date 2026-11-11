@@ -5,9 +5,13 @@
  *   npx tsx scripts/journal-publish-scheduled.ts          # dry run (default)
  *   npx tsx scripts/journal-publish-scheduled.ts --apply  # publish eligible articles
  *
- * Add to cron (Section 14 scheduled-jobs): run every 15 minutes.
+ * Add to cron (Stage 14): run every 15 minutes.
  * The script is idempotent: re-running after --apply publishes nothing new.
  */
+
+// Must come before any service import — shims `server-only` for tsx
+import "./server-only-shim";
+
 import "../src/lib/env";
 import { PrismaClient } from "@prisma/client";
 import type { SessionUser } from "../src/lib/rbac";
