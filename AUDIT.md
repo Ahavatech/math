@@ -848,3 +848,18 @@ NOT DONE (move to Stage 14):
 - Upload through real Cloudinary (PDF served from a local URL stand-in).
 - First Load JS reduction.
 - Non-code items: legal review, decision #54, Resend domain, hosting.
+
+
+### Entry 049 | 2026-11-11 | Prompt 049: Pull available content from the old site
+
+**Asked:** Pull content from https://maths.oauife.edu.ng/ for the sections that can be pulled, so the demo site looks whole.
+
+**Findings:** The old site is a single HTML page (about 6.7 MB, mostly base64 images) plus Alumni.html. Programmes, M.Sc. specialisations, research areas, news, events and non-teaching staff were already imported by earlier stages (06, 07b, 08). Gaps were: identity, HOD address, hero, contact, footer (still [SAMPLE]), About/History/Statistics pages (placeholders), and the academic staff.
+
+**Done:** prisma/legacy-import/data.json (snapshot of the public text) and prisma/legacy-import/run.ts, run with `npm run db:import-legacy`. Idempotent and non-destructive: settings replaced only if missing or still [SAMPLE]; pages only while body contains [PLACEHOLDER; lecturers only when no profile exists. Imports 5 settings, 3 pages (published), 10 published lecturer profiles with institutional email, office, bio (live bio, else qualifications and research interest), Scholar and ResearchGate links where present. Em dashes in the HOD text replaced with commas. Verified on a scratch DB: first run 5/3/10, second run 0/0/0; home, /about, /staff, /lecturer/[slug], /contact, /programmes, /research, /news, /events return 200 and the home page shows the real hero and HOD address. Scratch DB dropped. Static pages are prerendered at build, so run seed and import BEFORE `npm run build` (or wait for the 5 minute revalidate).
+
+**Deliberately not imported:** photos (base64 on the old site; upload through /admin, needs Cloudinary), personal phone numbers and non-institutional emails, publications (free-text citations), alumni records (519 names; personal data needing consent under the NDPA), homepage statistics claims (60+/30+/1,200+ conflict with the alumni page's 519; stats stay on auto).
+
+**Judgement calls to confirm with HOD:** rank "Lecturer" mapped to LECTURER_I (Ajao, Oguntade); "Dr." shown only where the old site cards showed it; surnames written in capitals on the old site were reordered to given names first; History page text is limited to facts on the old site.
+
+**Checks:** lint clean, tsc 0 errors, build passes. Full Vitest not re-run (no service code changed).
