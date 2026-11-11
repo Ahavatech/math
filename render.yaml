@@ -8,6 +8,8 @@ services:
     plan: free
     branch: main
     autoDeployTrigger: commit
+    # --include=dev: the build needs devDependencies (prisma, typescript,
+    # tailwind, tsx) even though NODE_ENV=production.
     buildCommand: npm ci --include=dev && npm run build
     startCommand: npm run start
     healthCheckPath: /api/health
