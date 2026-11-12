@@ -952,3 +952,20 @@ NOT DONE (move to Stage 14):
 **Not verified:** other admin pages (media library, editors, users, journal editorial screens, dialogs and the rich-text editor) were not viewed, so the `.admin-main` h1/h2/table rules may need exceptions where a page used a smaller heading on purpose; the Playwright and axe suites (including admin access tests), the full Vitest suite and `npm run build` were not run; keyboard and screen-reader behaviour of the new sidebar; no finish review.
 
 **Not done:** per-page recomposition of admin forms and lists; the donations page. Nothing committed.
+
+
+### Entry 057 | 2026-11-12 | Prompt 057: Stage 16, donations page
+
+**Asked:** Build the donations page. Earlier in the session the user chose the bank-details version (no payment code).
+
+**Constraints honoured:** SCOPE.md excludes online payments, so there is no checkout and no donor data is stored; nothing dynamic is hard-coded and no department facts are invented, so the account details are an admin-editable setting that is off and empty by default (DECISIONS.md #93).
+
+**Done (tests written first):** `src/lib/validators/donations.ts` (zod schema: account number letters, digits, spaces and hyphens only, SWIFT letters and digits, optional email, at most 8 purposes, bounded text, and the page cannot be enabled without account name, bank and account number); the `donations.details` key in the settings registry (versioned and audited by the existing `setSetting`); `src/server/services/donations.ts` (`getDonationsPublic`, null unless enabled); `saveDonationsAction` (site.edit permission via the existing path; friendly validation messages instead of raw zod output; revalidates /donate and the layout for the footer link); admin form `donations-section.tsx` on /admin/site with a warning about checking details; public `/donate` page (intro, what gifts support, a sticky How to give panel with copyable account number, last-changed date and a prompt to confirm large gifts); footer link shown only while the page is on; sitemap entry only while on; clearly fake `[SAMPLE]` entry in the development seed (production seed mode skips it).
+
+**Tests:** 9 validator tests and 5 service tests (null when unset, null when off, details plus updatedAt when on, refusal to save an incomplete enabled configuration, audit and revision rows written), 14/14 with the local test database. The service test deletes the setting before each test because the seed test leaves it in the test database.
+
+**Checks:** tsc 0 errors, eslint clean. Viewed on the local dev server: the admin form (validation error shown, then saved with fake sample values through the real form), `/donate` at 1440 and 390 px, the footer link, no horizontal overflow at 390 px. The sample values are in the local development database only.
+
+**Not verified:** the copy button's success state (the embedded browser refused clipboard access, which is what led to adding a visible "copying is not available" message; the fallback itself was not seen); the full suite as one run after the final test edit (the full run before it was 1077 of 1078 passing; the one failure was my donations service test finding a row left by the seed test, now fixed, and the seed test followed by the donations tests passes 22/22); `npm run build`; Playwright and axe suites; keyboard and screen-reader behaviour; anything on the live site.
+
+**Still needed from the department:** real account name, bank and number; OAU finance approval to publish an account; a decision on who may edit these details (site.edit currently allows HOD, ADMIN and SUPER_ADMIN; restricting to HOD or SUPER_ADMIN is a small change); the wording of the introduction. On the live site the page stays hidden until an admin turns it on.

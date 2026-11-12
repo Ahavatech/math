@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
+import { db } from "@/lib/db";
+import { getDonationsPublic } from "@/server/services/donations";
 import {
   getHeaderNav,
   getFooterNav,
@@ -12,13 +14,14 @@ import {
 } from "@/server/services/site-content";
 
 export default async function SiteLayout({ children }: { children: ReactNode }) {
-  const [headerNav, footerNav, announcement, contact, social, footerText] = await Promise.all([
+  const [headerNav, footerNav, announcement, contact, social, footerText, donations] = await Promise.all([
     getHeaderNav(),
     getFooterNav(),
     getAnnouncement(),
     getContactDetails(),
     getSocialLinks(),
     getFooterText(),
+    getDonationsPublic(db).catch(() => null),
   ]);
 
   return (
@@ -34,7 +37,13 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
       <main id="main-content" className="flex-1">
         {children}
       </main>
-      <SiteFooter nav={footerNav} contact={contact} social={social} footerText={footerText} />
+      <SiteFooter
+        nav={footerNav}
+        contact={contact}
+        social={social}
+        footerText={footerText}
+        showDonate={donations !== null}
+      />
     </div>
   );
 }

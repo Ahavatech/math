@@ -6,11 +6,13 @@ export function SiteFooter({
   contact,
   social,
   footerText,
+  showDonate = false,
 }: {
   nav: NavLink[];
   contact: ContactDetails;
   social: SocialLinks;
   footerText: string | null;
+  showDonate?: boolean;
 }) {
   const year = new Date().getFullYear();
   const hasContact =
@@ -23,6 +25,14 @@ export function SiteFooter({
         <div>
           <p className="font-heading text-xl font-semibold">Department of Mathematics</p>
           <p className="mt-1 text-muted-foreground">Obafemi Awolowo University, Ile-Ife</p>
+          {showDonate ? (
+            <Link
+              href="/donate"
+              className="mt-4 inline-flex min-h-11 items-center border border-foreground px-4 text-[0.9375rem] font-medium transition-colors hover:bg-foreground hover:text-background"
+            >
+              Support the department
+            </Link>
+          ) : null}
         </div>
 
         <nav aria-label="Footer" className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3">

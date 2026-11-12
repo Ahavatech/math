@@ -69,6 +69,10 @@ The journal has its own running head (`src/app/(site)/journal/layout.tsx`, `jour
 
 Admin is an Operate surface: denser than the public site, same ink, rules and single red. `src/app/admin/admin-nav.tsx` is a grouped sidebar (Overview, Website, Academics, People, News and events, Journal) with the current page filled in ink; below 1024px it collapses behind a labelled Menu button (the old fixed sidebar made admin unusable on phones). The dashboard leads with "Waiting for you" (alumni to approve, new messages, manuscripts awaiting screening, draft posts), shown only where the user has the permission to act, then the site's counts as ruled lists instead of stat cards. A small unlayered block at the end of `globals.css` styles `.admin-main` titles, section headings, tables and a 13px text floor, so the 100+ existing admin pages share one look without being edited one by one.
 
+## Donations page (Stage 16)
+
+`/donate` uses the reading-page grammar: serif introduction, ruled "What gifts support" list, and a sticky "How to give" panel with a red rule under its title, the account number set large and selectable, and a copy button with a spoken confirmation. The footer shows a "Support the department" button only while the page is switched on.
+
 ## Layout width
 
 The page container is now 80rem (was 72rem). The primary navigation is inline from 1366 px up; below that the labelled Menu button is used, because ten navigation items do not fit beside the title at 1280 px.
