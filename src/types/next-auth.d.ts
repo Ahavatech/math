@@ -8,6 +8,8 @@ declare module "next-auth" {
       roles: Role[];
       isActive: boolean;
     } & DefaultSession["user"];
+    sessionId?: string;
+    sessionExpiresAt?: number;
   }
 
   interface User {
@@ -19,6 +21,8 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     id?: string;
+    sid?: string;
+    sessionExpiresAt?: number;
     roles?: Role[];
     isActive?: boolean;
     rolesCheckedAt?: number;

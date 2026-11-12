@@ -71,3 +71,20 @@ export async function consumeToken(
     return { userId: row.userId };
   });
 }
+
+/**
+ * Looks at a token without using it up: who it belongs to, if it is still
+ * valid. Lets a form refuse a weak password and let the person try again with
+ * the same link.
+ */
+export async function peekToken(
+  db: Db,
+  token: string,
+  type: UserTokenType,
+): Promise<{ userId: string } | null> {
+  const row = await db.userToken.findUnique({ where: { tokenHash: hashToken(token) } });
+  if (!row || row.type !== type || row.usedAt !== null || row.expiresAt.getTime() < Date.now()) {
+    return null;
+  }
+  return { userId: row.userId };
+}

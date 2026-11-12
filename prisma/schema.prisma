@@ -39,28 +39,37 @@ model User {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  roles  UserRole[]
-  tokens UserToken[]
+  // Two-factor sign-in (TOTP). The secret is stored encrypted; totpLastStep
+  // is the last accepted 30-second step so a code cannot be used twice.
+  totpSecretEnc     String?
+  totpEnabledAt     DateTime?
+  totpLastStep      Int?
+  // When we last emailed this person about repeated failed sign-ins.
+  lastFailedAlertAt DateTime?
+
+  roles         UserRole[]
+  tokens        UserToken[]
+  recoveryCodes RecoveryCode[]
 
   lecturerProfile LecturerProfile?
 
-  updatedSiteSettings         SiteSetting[]       @relation("SiteSettingUpdatedBy")
-  uploadedMedia               MediaAsset[]        @relation("MediaUploadedBy")
-  contentRevisions            ContentRevision[]   @relation("ContentRevisionCreatedBy")
-  auditLogs                   AuditLog[]          @relation("AuditLogActor")
-  createdAlumniLinks          AlumniLink[]        @relation("AlumniLinkCreatedBy")
-  reviewedAlumniEntries       AlumniEntry[]       @relation("AlumniEntryReviewedBy")
-  uploadedDownloads           Download[]          @relation("DownloadUploadedBy")
-  authoredNewsPosts           NewsPost[]          @relation("NewsPostAuthor")
-  submittedManuscripts        Manuscript[]        @relation("ManuscriptSubmittedBy")
-  handledManuscripts          Manuscript[]        @relation("ManuscriptHandlingEditor")
-  uploadedManuscriptFiles     ManuscriptFile[]    @relation("ManuscriptFileUploadedBy")
-  manuscriptEvents            ManuscriptEvent[]   @relation("ManuscriptEventActor")
-  reviewAssignments           ReviewAssignment[]  @relation("ReviewAssignmentReviewer")
-  reviewAssignmentsInvited    ReviewAssignment[]  @relation("ReviewAssignmentInvitedBy")
-  editorialDecisions          EditorialDecision[] @relation("EditorialDecisionEditor")
-  articleAuthorLinks          ArticleAuthor[]     @relation("ArticleAuthorUser")
-  reviewerProfile             ReviewerProfile?    @relation("ReviewerProfileUser")
+  updatedSiteSettings      SiteSetting[]       @relation("SiteSettingUpdatedBy")
+  uploadedMedia            MediaAsset[]        @relation("MediaUploadedBy")
+  contentRevisions         ContentRevision[]   @relation("ContentRevisionCreatedBy")
+  auditLogs                AuditLog[]          @relation("AuditLogActor")
+  createdAlumniLinks       AlumniLink[]        @relation("AlumniLinkCreatedBy")
+  reviewedAlumniEntries    AlumniEntry[]       @relation("AlumniEntryReviewedBy")
+  uploadedDownloads        Download[]          @relation("DownloadUploadedBy")
+  authoredNewsPosts        NewsPost[]          @relation("NewsPostAuthor")
+  submittedManuscripts     Manuscript[]        @relation("ManuscriptSubmittedBy")
+  handledManuscripts       Manuscript[]        @relation("ManuscriptHandlingEditor")
+  uploadedManuscriptFiles  ManuscriptFile[]    @relation("ManuscriptFileUploadedBy")
+  manuscriptEvents         ManuscriptEvent[]   @relation("ManuscriptEventActor")
+  reviewAssignments        ReviewAssignment[]  @relation("ReviewAssignmentReviewer")
+  reviewAssignmentsInvited ReviewAssignment[]  @relation("ReviewAssignmentInvitedBy")
+  editorialDecisions       EditorialDecision[] @relation("EditorialDecisionEditor")
+  articleAuthorLinks       ArticleAuthor[]     @relation("ArticleAuthorUser")
+  reviewerProfile          ReviewerProfile?    @relation("ReviewerProfileUser")
 
   @@index([isActive])
 }
@@ -302,8 +311,8 @@ model ResearchArea {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
-  image     MediaAsset?       @relation("ResearchAreaImage", fields: [imageId], references: [id], onDelete: SetNull)
-  lecturers LecturerProfile[] @relation("LecturerResearchArea")
+  image     MediaAsset?              @relation("ResearchAreaImage", fields: [imageId], references: [id], onDelete: SetNull)
+  lecturers LecturerProfile[]        @relation("LecturerResearchArea")
   searchVec Unsupported("tsvector")?
 
   @@index([status])
@@ -380,8 +389,8 @@ model Download {
   media      MediaAsset? @relation("DownloadMedia", fields: [mediaId], references: [id], onDelete: SetNull)
   uploadedBy User?       @relation("DownloadUploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
 
-  lecturerCvFor LecturerProfile[] @relation("LecturerCv")
-  articlePdfFor Article[]         @relation("ArticlePdf")
+  lecturerCvFor LecturerProfile[]        @relation("LecturerCv")
+  articlePdfFor Article[]                @relation("ArticlePdf")
   searchVec     Unsupported("tsvector")?
 
   @@index([status, category])
@@ -398,7 +407,7 @@ model AcademicCalendarEntry {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  searchVec   Unsupported("tsvector")?
+  searchVec Unsupported("tsvector")?
 
   @@index([startDate])
   @@index([searchVec], type: Gin)
@@ -520,20 +529,20 @@ enum EventType {
 }
 
 model NewsPost {
-  id            String                    @id @default(cuid())
-  slug          String                    @unique
+  id            String                   @id @default(cuid())
+  slug          String                   @unique
   title         String
   category      NewsCategory
   excerpt       String?
   body          String
   coverId       String?
-  isPinned      Boolean                   @default(false)
-  status        ContentStatus             @default(DRAFT)
+  isPinned      Boolean                  @default(false)
+  status        ContentStatus            @default(DRAFT)
   publishedAt   DateTime?
-  previousSlugs String[]                  @default([])
+  previousSlugs String[]                 @default([])
   authorId      String?
-  createdAt     DateTime                  @default(now())
-  updatedAt     DateTime                  @updatedAt
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
   searchVec     Unsupported("tsvector")?
 
   cover  MediaAsset? @relation("NewsPostCover", fields: [coverId], references: [id], onDelete: SetNull)
@@ -666,9 +675,9 @@ model AlumniEntry {
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
 
-  photo      MediaAsset?      @relation("AlumniPhoto", fields: [photoId], references: [id], onDelete: SetNull)
-  reviewedBy User?            @relation("AlumniEntryReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
-  link       AlumniLink?      @relation(fields: [linkId], references: [id], onDelete: SetNull)
+  photo      MediaAsset?       @relation("AlumniPhoto", fields: [photoId], references: [id], onDelete: SetNull)
+  reviewedBy User?             @relation("AlumniEntryReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  link       AlumniLink?       @relation(fields: [linkId], references: [id], onDelete: SetNull)
   programmes AlumniProgramme[]
 
   @@index([status])
@@ -767,8 +776,8 @@ model JournalIssue {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  cover    MediaAsset?              @relation("JournalIssueCover", fields: [coverId], references: [id], onDelete: SetNull)
-  articles Article[]
+  cover     MediaAsset?              @relation("JournalIssueCover", fields: [coverId], references: [id], onDelete: SetNull)
+  articles  Article[]
   searchVec Unsupported("tsvector")?
 
   @@unique([volume, number])
@@ -873,25 +882,25 @@ model EditorialBoardMember {
 }
 
 model Manuscript {
-  id                     String           @id @default(cuid())
-  reference              String?          @unique
-  title                  String
-  abstract               String
-  keywords               String[]
-  articleType            ArticleType      @default(RESEARCH_ARTICLE)
-  coverLetter            String?
-  suggestedReviewers     Json?
-  excludedReviewers      Json?
-  anonymisedConfirmedAt  DateTime?
-  agreementVersion       String?
-  agreementAcceptedAt    DateTime?
-  submittedAt            DateTime?
-  status                 ManuscriptStatus @default(INCOMPLETE)
-  submittedById          String?
-  handlingEditorId       String?
-  currentRound           Int              @default(1)
-  createdAt              DateTime         @default(now())
-  updatedAt              DateTime         @updatedAt
+  id                    String           @id @default(cuid())
+  reference             String?          @unique
+  title                 String
+  abstract              String
+  keywords              String[]
+  articleType           ArticleType      @default(RESEARCH_ARTICLE)
+  coverLetter           String?
+  suggestedReviewers    Json?
+  excludedReviewers     Json?
+  anonymisedConfirmedAt DateTime?
+  agreementVersion      String?
+  agreementAcceptedAt   DateTime?
+  submittedAt           DateTime?
+  status                ManuscriptStatus @default(INCOMPLETE)
+  submittedById         String?
+  handlingEditorId      String?
+  currentRound          Int              @default(1)
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
 
   submittedBy    User? @relation("ManuscriptSubmittedBy", fields: [submittedById], references: [id], onDelete: SetNull)
   handlingEditor User? @relation("ManuscriptHandlingEditor", fields: [handlingEditorId], references: [id], onDelete: SetNull)
@@ -978,12 +987,12 @@ model ReviewAssignment {
   createdAt     DateTime               @default(now())
   updatedAt     DateTime               @updatedAt
 
-  manuscript      Manuscript          @relation(fields: [manuscriptId], references: [id], onDelete: Cascade)
-  round           ManuscriptRound     @relation(fields: [roundId], references: [id], onDelete: Cascade)
-  reviewer        User                @relation("ReviewAssignmentReviewer", fields: [reviewerId], references: [id], onDelete: Restrict)
-  invitedBy       User?               @relation("ReviewAssignmentInvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
-  review          Review?
-  reminderLogs    ReviewReminderLog[]
+  manuscript   Manuscript          @relation(fields: [manuscriptId], references: [id], onDelete: Cascade)
+  round        ManuscriptRound     @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  reviewer     User                @relation("ReviewAssignmentReviewer", fields: [reviewerId], references: [id], onDelete: Restrict)
+  invitedBy    User?               @relation("ReviewAssignmentInvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
+  review       Review?
+  reminderLogs ReviewReminderLog[]
 
   @@unique([manuscriptId, roundId, reviewerId])
   @@index([reviewerId, status])
@@ -991,17 +1000,17 @@ model ReviewAssignment {
 }
 
 model Review {
-  id                   String               @id @default(cuid())
-  assignmentId         String               @unique
+  id                   String                @id @default(cuid())
+  assignmentId         String                @unique
   recommendation       ReviewRecommendation?
   commentsToAuthor     String?
   commentsToAuthorHtml String?
   commentsToEditor     String?
   commentsToEditorHtml String?
-  isDraft              Boolean              @default(true)
+  isDraft              Boolean               @default(true)
   submittedAt          DateTime?
-  createdAt            DateTime             @default(now())
-  updatedAt            DateTime             @updatedAt
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
 
   assignment ReviewAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
 }
@@ -1096,4 +1105,40 @@ model ReviewReminderLog {
 
   @@unique([assignmentId, milestone])
   @@index([assignmentId])
+}
+
+/// A one-time code that lets someone sign in when they have lost their
+/// authenticator app. Only a hash is stored.
+model RecoveryCode {
+  id        String    @id @default(cuid())
+  userId    String
+  codeHash  String
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// A signed-in session (identified by the jti in its token) that has been
+/// ended on the server, so a copy of its cookie stops working at once.
+model RevokedSession {
+  jti       String   @id
+  userId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
+/// One sign-in attempt, kept for a short time so the limit survives a server
+/// restart and repeated failures can trigger an alert.
+model LoginAttempt {
+  id     String   @id @default(cuid())
+  key    String
+  at     DateTime @default(now())
+  failed Boolean  @default(true)
+
+  @@index([key, at])
+  @@index([at])
 }

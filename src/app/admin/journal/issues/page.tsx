@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { humanise } from "@/lib/labels";
 import Link from "next/link";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
 import { listIssuesAdmin } from "@/server/services/journal-issues";
@@ -27,7 +28,7 @@ export default async function JournalIssuesPage() {
               <Link href={`/admin/journal/issues/${issue.id}`} className="font-medium text-primary underline">
                 Vol. {issue.volume}, No. {issue.number} ({issue.year}){issue.title ? ` - ${issue.title}` : ""}
               </Link>
-              <p className="text-muted-foreground">{issue.status} - {issue._count.articles} article(s)</p>
+              <p className="text-muted-foreground">{humanise(issue.status)} - {issue._count.articles} {issue._count.articles === 1 ? "article" : "articles"}</p>
             </div>
             {issue.status !== "ARCHIVED" ? <ArchiveButton id={issue.id} action={archiveIssueAction} /> : null}
           </li>

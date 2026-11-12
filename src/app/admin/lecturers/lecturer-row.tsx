@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/admin/confirm-button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { rankLabel } from "@/lib/lecturer-rank";
@@ -94,38 +95,51 @@ export function LecturerRow({ lecturer, completeness }: { lecturer: LecturerRowD
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-1">
-          <Button type="button" variant="ghost" size="icon" aria-label="Move up" onClick={() => move("up")} disabled={pending}>
+          <Button type="button" variant="ghost" size="icon" aria-label={`Move up: ${lecturer.fullName}`} onClick={() => move("up")} disabled={pending}>
             <ArrowUp className="size-4" />
           </Button>
-          <Button type="button" variant="ghost" size="icon" aria-label="Move down" onClick={() => move("down")} disabled={pending}>
+          <Button type="button" variant="ghost" size="icon" aria-label={`Move down: ${lecturer.fullName}`} onClick={() => move("down")} disabled={pending}>
             <ArrowDown className="size-4" />
           </Button>
-          <Button type="button" size="sm" variant="outline" onClick={sendInvite} disabled={pending}>
+          <Button type="button" size="sm" variant="outline" onClick={sendInvite} disabled={pending} aria-label={`${lecturer.inviteState === "not_invited" ? "Send invite" : "Resend invite"}: ${lecturer.fullName}`}>
             {lecturer.inviteState === "not_invited" ? "Send invite" : "Resend invite"}
           </Button>
           {lecturer.status === "PUBLISHED" ? (
-            <Button type="button" size="sm" variant="outline" onClick={() => runAction(unpublishLecturerAction)} disabled={pending}>
+            <Button type="button" size="sm" variant="outline" onClick={() => runAction(unpublishLecturerAction)} disabled={pending} aria-label={`Unpublish: ${lecturer.fullName}`}>
               Unpublish
             </Button>
           ) : (
-            <Button type="button" size="sm" variant="outline" onClick={() => runAction(publishLecturerAction)} disabled={pending}>
+            <Button type="button" size="sm" variant="outline" onClick={() => runAction(publishLecturerAction)} disabled={pending} aria-label={`Publish: ${lecturer.fullName}`}>
               Publish
             </Button>
           )}
           {lecturer.status === "ARCHIVED" ? (
-            <Button type="button" size="sm" variant="outline" onClick={() => runAction(restoreLecturerAction)} disabled={pending}>
+            <Button type="button" size="sm" variant="outline" onClick={() => runAction(restoreLecturerAction)} disabled={pending} aria-label={`Restore: ${lecturer.fullName}`}>
               Restore
             </Button>
           ) : (
-            <Button type="button" size="sm" variant="outline" onClick={() => runAction(archiveLecturerAction)} disabled={pending}>
+            <Button type="button" size="sm" variant="outline" onClick={() => runAction(archiveLecturerAction)} disabled={pending} aria-label={`Archive: ${lecturer.fullName}`}>
               Archive
             </Button>
           )}
-          <Button type="button" size="sm" variant="outline" onClick={toggleActive} disabled={pending}>
-            {lecturer.user.isActive ? "Deactivate" : "Reactivate"}
-          </Button>
+          {lecturer.user.isActive ? (
+            <ConfirmButton
+              label="Deactivate"
+              subject={lecturer.fullName}
+              variant="outline"
+              disabled={pending}
+              title={`Deactivate ${lecturer.fullName}'s account?`}
+              description="They are signed out within a minute and cannot sign in until you reactivate the account. Their public profile is not changed."
+              confirmLabel="Deactivate"
+              onConfirm={toggleActive}
+            />
+          ) : (
+            <Button type="button" size="sm" variant="outline" onClick={toggleActive} disabled={pending} aria-label={`Reactivate: ${lecturer.fullName}`}>
+              Reactivate
+            </Button>
+          )}
           {lecturer.status === "PUBLISHED" ? (
-            <a href={`/lecturer/${lecturer.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline">
+            <a href={`/lecturer/${lecturer.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline" aria-label={`View public page: ${lecturer.fullName}`}>
               View public
             </a>
           ) : null}

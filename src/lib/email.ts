@@ -4,6 +4,7 @@ import { render } from "@react-email/components";
 import { env } from "@/lib/env";
 import { InviteEmail } from "@/emails/invite";
 import { PasswordResetEmail } from "@/emails/password-reset";
+import { SecurityNoticeEmail } from "@/emails/security-notice";
 import { AlumniApprovedEmail } from "@/emails/alumni-approved";
 import { ContactNotificationEmail } from "@/emails/contact-notification";
 import { JournalVerifyEmail } from "@/emails/journal-verify";
@@ -71,6 +72,35 @@ export async function sendPasswordResetEmail(params: { to: string; token: string
     params.to,
     "Reset your password",
     PasswordResetEmail({ resetUrl }),
+  );
+}
+
+export async function sendFailedLoginAlertEmail(params: { to: string; name: string }) {
+  await send(
+    params.to,
+    "Failed sign-in attempts on your account",
+    SecurityNoticeEmail({
+      heading: "Failed sign-in attempts",
+      paragraphs: [
+        `Hello ${params.name}, someone entered the wrong password for your account on the Department of Mathematics website several times in the last half hour.`,
+        "If that was you, there is nothing to do. If it was not, your account is still safe because the password was not accepted, but you may want to choose a new password from the sign-in page (Forgot your password?).",
+        "We send this notice at most once an hour.",
+      ],
+    }),
+  );
+}
+
+export async function sendPasswordChangedEmail(params: { to: string; name: string; how: "reset" | "change" }) {
+  await send(
+    params.to,
+    "Your password was changed",
+    SecurityNoticeEmail({
+      heading: "Your password was changed",
+      paragraphs: [
+        `Hello ${params.name}, the password for your account on the Department of Mathematics website was just ${params.how === "reset" ? "reset using an emailed link" : "changed"}. You have been signed out on your other devices.`,
+        "If you did this, nothing more is needed. If you did not, use Forgot your password? on the sign-in page straight away and tell the department's web administrator.",
+      ],
+    }),
   );
 }
 

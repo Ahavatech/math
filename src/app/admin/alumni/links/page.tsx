@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { AdminEmpty } from "@/components/admin/admin-bits";
 import Link from "next/link";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
@@ -40,7 +41,7 @@ export default async function AdminAlumniLinksPage() {
                 : "active";
           return <LinkRow key={link.id} link={link} status={status} entriesReceived={link._count.entries} />;
         })}
-        {links.length === 0 ? <p className="text-sm text-muted-foreground">No links yet.</p> : null}
+        {links.length === 0 ? <AdminEmpty title="No alumni links yet">A link lets a cohort of graduates send in their details. Generate one for a graduating year. Nothing they send is public until you approve it.</AdminEmpty> : null}
       </ul>
     </div>
   );

@@ -70,25 +70,25 @@ export default async function AdminDashboardPage() {
     {
       heading: "People",
       rows: [
-        { label: "Users", value: userCount },
-        { label: "Lecturer profiles", value: lecturerCount },
-        { label: "Published lecturer profiles", value: publishedLecturerCount },
-        { label: "Non-teaching staff", value: nonTeachingStaffCount },
+        { label: "Users", value: userCount, href: "/admin/users", permission: "users.manage" as Permission },
+        { label: "Lecturer profiles", value: lecturerCount, href: "/admin/lecturers", permission: "lecturers.manage" as Permission },
+        { label: "Published lecturer profiles", value: publishedLecturerCount, href: "/admin/lecturers", permission: "lecturers.manage" as Permission },
+        { label: "Non-teaching staff", value: nonTeachingStaffCount, href: "/admin/staff", permission: "lecturers.manage" as Permission },
       ],
     },
     {
       heading: "Content",
       rows: [
-        { label: "Upcoming events", value: upcomingEventCount },
-        { label: "Published courses", value: courseCount },
-        { label: "Handbook pages", value: handbookPageCount },
+        { label: "Upcoming events", value: upcomingEventCount, href: "/admin/events", permission: "events.manage" as Permission },
+        { label: "Published courses", value: courseCount, href: "/admin/courses", permission: "students.manage" as Permission },
+        { label: "Handbook pages", value: handbookPageCount, href: "/admin/handbook", permission: "students.manage" as Permission },
       ],
     },
     {
       heading: "Journal",
       rows: [
-        { label: "Published issues", value: journalIssueCount },
-        { label: "Published articles", value: journalArticleCount },
+        { label: "Published issues", value: journalIssueCount, href: "/admin/journal/issues", permission: "journal.edit" as Permission },
+        { label: "Published articles", value: journalArticleCount, href: "/admin/journal/articles", permission: "journal.edit" as Permission },
       ],
     },
   ];
@@ -137,7 +137,15 @@ export default async function AdminDashboardPage() {
               <dl>
                 {group.rows.map((row) => (
                   <div key={row.label} className="flex items-baseline justify-between gap-4 border-b border-border py-2.5">
-                    <dt className="text-muted-foreground">{row.label}</dt>
+                    <dt className="text-muted-foreground">
+                      {hasPermission(user, row.permission) ? (
+                        <Link href={row.href} className="link-rule py-1">
+                          {row.label}
+                        </Link>
+                      ) : (
+                        row.label
+                      )}
+                    </dt>
                     <dd className="tabular font-semibold">{row.value}</dd>
                   </div>
                 ))}

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { AdminEmpty } from "@/components/admin/admin-bits";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { listDownloadsAdmin } from "@/server/services/downloads";
@@ -32,7 +33,7 @@ export default async function AdminDownloadsPage() {
           </ul>
         </div>
       ))}
-      {downloads.length === 0 ? <p className="text-sm text-muted-foreground">No downloads yet.</p> : null}
+      {downloads.length === 0 ? <AdminEmpty title="No downloads yet">Upload forms, timetables and guides for students. Each published file appears on the student resources page.</AdminEmpty> : null}
     </div>
   );
 }

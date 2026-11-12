@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { AdminEmpty } from "@/components/admin/admin-bits";
 import Link from "next/link";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
 import { db as prisma } from "@/lib/db";
@@ -81,7 +82,7 @@ export default async function ManuscriptsListPage({
       </form>
 
       {manuscripts.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No manuscripts found.</p>
+        <AdminEmpty title="No manuscripts match">Try a different status or search. New submissions appear here as soon as an author submits.</AdminEmpty>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

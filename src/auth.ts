@@ -3,7 +3,16 @@ import Credentials from "next-auth/providers/credentials";
 import { db } from "@/lib/db";
 import { verifyPassword, dummyHash } from "@/lib/password";
 import { loginSchema } from "@/lib/validators/auth";
-import { checkLoginAttempt, clientIpFromHeaders } from "@/lib/login-throttle";
+import { clientIpFromHeaders } from "@/lib/login-throttle";
+import { env } from "@/lib/env";
+import {
+  checkLoginAttempt,
+  claimFailedLoginAlert,
+  recordSuccessfulLogin,
+} from "@/server/services/login-attempts";
+import { isSessionRevoked } from "@/server/services/sessions";
+import { verifySecondFactor } from "@/server/services/two-factor";
+import { sendFailedLoginAlertEmail } from "@/lib/email";
 import type { Role } from "@prisma/client";
 
 // How often a signed-in user's account state (active, roles, password change)
@@ -26,8 +35,19 @@ export class RateLimitedSignin extends CredentialsSignin {
   code = "rate_limited";
 }
 
+/** The password was right and this account needs a second-factor code. */
+export class TotpRequiredSignin extends CredentialsSignin {
+  code = "totp_required";
+}
+
+/** The second-factor code was missing its match. */
+export class TotpInvalidSignin extends CredentialsSignin {
+  code = "totp_invalid";
+}
+
 type RolesToken = {
   id?: string;
+  sid?: string;
   roles?: Role[];
   isActive?: boolean;
   rolesCheckedAt?: number;
@@ -86,6 +106,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       credentials: {
         email: {},
         password: {},
+        totp: {},
       },
       async authorize(credentials, request) {
         const parsed = loginSchema.safeParse(credentials);
@@ -96,7 +117,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         // Throttle here, not only in the login form's server action: the
         // /api/auth/callback/credentials endpoint reaches this code too, and
         // a limit that only the form enforces can be walked around.
-        if (!checkLoginAttempt(clientIpFromHeaders(request?.headers), email).allowed) {
+        if (!(await checkLoginAttempt(db, clientIpFromHeaders(request?.headers), email)).allowed) {
           throw new RateLimitedSignin();
         }
 
@@ -112,8 +133,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const passwordOk = await verifyPassword(hashToCheck, password);
 
         if (!user || !user.isActive || !user.passwordHash || !passwordOk) {
+          // Warn the owner after repeated failures. Never let this change what
+          // the visitor sees or how long it takes.
+          void claimFailedLoginAlert(db, email)
+            .then((owner) => (owner ? sendFailedLoginAlertEmail({ to: owner.email, name: owner.name }) : undefined))
+            .catch((error) => console.error("Failed-sign-in alert failed:", error));
           return null;
         }
+
+        // Second factor, for accounts that have turned it on. Reached only
+        // with the right password, and counted by the same attempt limit.
+        if (user.totpEnabledAt) {
+          const supplied = typeof credentials?.totp === "string" ? credentials.totp.trim() : "";
+          if (!supplied) throw new TotpRequiredSignin();
+          const codeOk = await verifySecondFactor(db, user.id, supplied, env.AUTH_SECRET);
+          if (!codeOk) throw new TotpInvalidSignin();
+        }
+
+        await recordSuccessfulLogin(db, email);
 
         await db.user.update({
           where: { id: user.id },
@@ -134,11 +171,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = (user as { id: string }).id;
+        // An identifier for this one sign-in, so it can be ended on the server.
+        token.sid = crypto.randomUUID();
+        token.sessionExpiresAt = Date.now() + SESSION_MAX_AGE_SECONDS * 1000;
         token.roles = (user as { roles: Role[] }).roles;
         token.isActive = true;
         token.rolesCheckedAt = Date.now();
         token.passwordChangedAt = (user as unknown as { passwordChangedAt: number | null }).passwordChangedAt;
         return token;
+      }
+
+      // Signed out (or revoked) on the server: this cookie is dead even though
+      // its signature is still valid.
+      if (await isSessionRevoked(db, token.sid as string | undefined)) {
+        return { ...token, isActive: false, roles: [] };
       }
 
       const refreshed = await refreshTokenRoles(token as RolesToken, db);
@@ -148,6 +194,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.id = token.id as string;
       session.user.roles = (token.roles as Role[]) ?? [];
       session.user.isActive = (token.isActive as boolean) ?? false;
+      session.sessionId = token.sid as string | undefined;
+      session.sessionExpiresAt = token.sessionExpiresAt as number | undefined;
       return session;
     },
   },

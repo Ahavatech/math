@@ -28,6 +28,7 @@ const USER_LIST_SELECT = {
   updatedAt: true,
   lastLoginAt: true,
   passwordHash: true,
+  totpEnabledAt: true,
   roles: true,
 } as const;
 
@@ -37,8 +38,12 @@ const USER_LIST_SELECT = {
  * client component and a Server->Client Component prop is serialized into
  * the page's RSC payload.
  */
-function toSafeUser<T extends { passwordHash: string | null }>({ passwordHash, ...user }: T) {
-  return { ...user, hasPassword: passwordHash !== null };
+function toSafeUser<T extends { passwordHash: string | null; totpEnabledAt: Date | null }>({
+  passwordHash,
+  totpEnabledAt,
+  ...user
+}: T) {
+  return { ...user, hasPassword: passwordHash !== null, hasTwoFactor: totpEnabledAt !== null };
 }
 
 export async function listUsers(db: PrismaClient) {

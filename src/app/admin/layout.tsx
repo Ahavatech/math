@@ -4,6 +4,8 @@ import { AdminShell } from "./admin-shell";
 import { getCurrentUser, hasPermission, type Permission } from "@/lib/rbac";
 import { logoutAction } from "@/server/actions/auth";
 import { db } from "@/lib/db";
+import { env } from "@/lib/env";
+import { twoFactorRequiredFor, twoFactorStatus } from "@/server/services/two-factor";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -72,6 +74,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const user = await getCurrentUser();
   if (!user || !user.isActive) {
     redirect("/login");
+  }
+
+  // Admin accounts must have two-factor sign-in on before they use the admin
+  // area. Done here on the server for every /admin page, not just hidden links.
+  if (env.ADMIN_2FA_REQUIRED === "true" && twoFactorRequiredFor(user.roles)) {
+    if ((await twoFactorStatus(db, user.id)) !== "on") redirect("/two-factor?required=1");
   }
 
   const hasAnyJournalPermission = JOURNAL_PERMISSIONS.some((permission) => hasPermission(user, permission));

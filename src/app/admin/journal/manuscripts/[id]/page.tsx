@@ -1,4 +1,5 @@
 import { redirect, notFound } from "next/navigation";
+import { humanise } from "@/lib/labels";
 import Link from "next/link";
 import { getCurrentUser, hasPermission, hasRole } from "@/lib/rbac";
 import { db as prisma } from "@/lib/db";
@@ -155,7 +156,7 @@ export default async function ManuscriptDetailAdminPage({
         <p className="font-mono text-xs text-muted-foreground">{ms.reference ?? "No reference"}</p>
         <h1 className="text-2xl font-semibold mt-1">{ms.title}</h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Status: <strong>{ms.status}</strong>
+          Status: <strong>{humanise(ms.status)}</strong>
           {ms.submittedAt && ` · Submitted ${new Date(ms.submittedAt).toLocaleDateString()}`}
         </p>
       </div>
@@ -188,7 +189,7 @@ export default async function ManuscriptDetailAdminPage({
             {ms.files.map((f) => (
               <li key={f.id} className="flex items-center justify-between">
                 <span className="text-muted-foreground">
-                  {f.kind}: {f.originalName} ({formatBytes(f.size)})
+                  {humanise(f.kind)}: {f.originalName} ({formatBytes(f.size)})
                 </span>
                 <a href={`/api/journal/files/${f.id}`} className="text-primary underline ml-4">
                   Download
@@ -415,7 +416,7 @@ export default async function ManuscriptDetailAdminPage({
                   <td className="py-1.5 pr-3">
                     {a.reviewer.name ?? a.reviewer.email}
                   </td>
-                  <td className="py-1.5 pr-3">{a.status}</td>
+                  <td className="py-1.5 pr-3">{humanise(a.status)}</td>
                   <td className="py-1.5 pr-3">
                     {a.dueAt ? new Date(a.dueAt).toLocaleDateString() : "-"}
                   </td>

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { AdminEmpty } from "@/components/admin/admin-bits";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { listCalendarEntriesAdmin } from "@/server/services/academic-calendar";
@@ -23,7 +24,7 @@ export default async function AdminCalendarPage() {
         {entries.map((entry) => (
           <CalendarEntryRow key={entry.id} entry={entry} />
         ))}
-        {entries.length === 0 ? <p className="text-sm text-muted-foreground">No calendar entries yet.</p> : null}
+        {entries.length === 0 ? <AdminEmpty title="No calendar entries yet">Add the dates students rely on, such as the start of lectures and the examination period. They appear on the public calendar as soon as they are saved.</AdminEmpty> : null}
       </ul>
     </div>
   );

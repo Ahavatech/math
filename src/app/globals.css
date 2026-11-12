@@ -352,3 +352,26 @@
   max-width: 60rem;
 }
 
+
+/* Form fields in the admin: comfortable to hit and to read. */
+.admin-main input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
+.admin-main select {
+  min-height: 2.5rem;
+  font-size: 0.9375rem;
+}
+
+.admin-main textarea {
+  font-size: 0.9375rem;
+}
+
+.admin-main label,
+.admin-main [data-slot="label"] {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.admin-main input[type="checkbox"],
+.admin-main input[type="radio"] {
+  width: 1.125rem;
+  height: 1.125rem;
+}

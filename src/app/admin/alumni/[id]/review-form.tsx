@@ -1,8 +1,10 @@
 "use client";
 
+import { humanise } from "@/lib/labels";
 import { useActionState, useState, useTransition } from "react";
 import type { AlumniEntry, AlumniProgramme } from "@prisma/client";
 import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/admin/confirm-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { COUNTRIES } from "@/lib/countries";
@@ -135,7 +137,7 @@ export function ReviewForm({
       </form>
 
       <div className="space-y-3 border-t border-border pt-6">
-        <p className="text-sm font-medium">Status: {entry.status}</p>
+        <p className="text-sm font-medium">Status: {humanise(entry.status)}</p>
         {entry.isDuplicateEmail ? (
           <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700 border border-amber-200">
             Duplicate email detected -- another entry with this email address has been submitted.
@@ -152,7 +154,7 @@ export function ReviewForm({
             >
               {duplicates.map((d) => (
                 <option key={d.id} value={d.id}>
-                  {d.fullName} ({d.programmes[0]?.graduationYear ?? "?"}, {d.status})
+                  {d.fullName} ({d.programmes[0]?.graduationYear ?? "?"}, {humanise(d.status)})
                 </option>
               ))}
             </select>
@@ -225,18 +227,16 @@ export function ReviewForm({
 
         {canErase ? (
           <div className="border-t border-border pt-3">
-            <Button
-              type="button"
-              variant="destructive"
+            <ConfirmButton
+              label="Erase permanently"
+              subject={entry.fullName}
+              size="default"
               disabled={busy}
-              onClick={() => {
-                if (window.confirm("Permanently erase this entry and its photo? This cannot be undone.")) {
-                  run(eraseAlumniEntryAction);
-                }
-              }}
-            >
-              Erase permanently
-            </Button>
+              title="Erase this entry for good?"
+              description="The entry and its photo are deleted from the database and cannot be recovered. Use this for a removal request or a duplicate."
+              confirmLabel="Erase permanently"
+              onConfirm={() => run(eraseAlumniEntryAction)}
+            />
           </div>
         ) : null}
       </div>

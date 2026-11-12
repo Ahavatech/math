@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { AdminEmpty } from "@/components/admin/admin-bits";
 import Link from "next/link";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
@@ -28,7 +29,7 @@ export default async function AdminStaffPage() {
         {staff.map((member) => (
           <StaffRow key={member.id} staff={member} needsReview={Boolean(importFlags[member.id])} />
         ))}
-        {staff.length === 0 ? <p className="text-sm text-muted-foreground">No non-teaching staff yet.</p> : null}
+        {staff.length === 0 ? <AdminEmpty title="No non-teaching staff yet">Add the technical and administrative staff you want listed on the public staff page.</AdminEmpty> : null}
       </ul>
     </div>
   );

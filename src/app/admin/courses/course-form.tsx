@@ -1,5 +1,6 @@
 "use client";
 
+import { SaveBar } from "@/components/admin/save-bar";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Course } from "@prisma/client";
@@ -162,10 +163,14 @@ export function CourseForm({
         </select>
       </div>
 
-      {result?.error ? <p className="text-sm text-destructive" role="alert">{result.error}</p> : null}
-      <Button type="button" onClick={save} disabled={pending}>
+      <SaveBar actions={
+        <Button type="button" onClick={save} disabled={pending}>
         {pending ? "Saving..." : "Save"}
       </Button>
+      }>
+        {result?.error ? <p className="text-sm text-destructive" role="alert">{result.error}</p> : null}
+      
+      </SaveBar>
     </div>
   );
 }

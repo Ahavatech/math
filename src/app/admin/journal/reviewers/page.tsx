@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { AdminEmpty } from "@/components/admin/admin-bits";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser, hasPermission, hasRole } from "@/lib/rbac";
 import { db } from "@/lib/db";
@@ -63,7 +64,7 @@ export default async function AdminJournalReviewersPage() {
         Users with the REVIEWER role. Edit expertise, active status and notes below.
       </p>
       {reviewers.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No reviewers found.</p>
+        <AdminEmpty title="No reviewers found">Reviewers are added when an editor invites them from a manuscript, and are listed here once they have an account.</AdminEmpty>
       ) : (
         <div className="space-y-6">
           {reviewers.map(({ user: u }) => {

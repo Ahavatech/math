@@ -39,16 +39,16 @@ export function EventRow({ event, needsReview }: { event: Event; needsReview: bo
       </div>
       <div className="flex shrink-0 items-center gap-1">
         {event.status === "ARCHIVED" ? (
-          <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => setStatus("DRAFT")}>
+          <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => setStatus("DRAFT")} aria-label={`Restore: ${event.title}`}>
             Restore
           </Button>
         ) : (
-          <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => setStatus("ARCHIVED")}>
+          <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => setStatus("ARCHIVED")} aria-label={`Archive: ${event.title}`}>
             Archive
           </Button>
         )}
         {event.status === "PUBLISHED" ? (
-          <a href={`/events/${event.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline">
+          <a href={`/events/${event.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline" aria-label={`View public page: ${event.title}`}>
             View public
           </a>
         ) : null}

@@ -41,15 +41,15 @@ export function DownloadRow({ download }: { download: Download }) {
         </div>
       </div>
       <div className="flex items-center gap-1">
-        <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => move("up")}>Up</Button>
-        <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => move("down")}>Down</Button>
+        <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => move("up")} aria-label={`Up: ${download.title}`}>Up</Button>
+        <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => move("down")} aria-label={`Down: ${download.title}`}>Down</Button>
         {download.status === "ARCHIVED" ? (
-          <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => setStatus("DRAFT")}>Restore</Button>
+          <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => setStatus("DRAFT")} aria-label={`Restore: ${download.title}`}>Restore</Button>
         ) : (
-          <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => setStatus("ARCHIVED")}>Archive</Button>
+          <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => setStatus("ARCHIVED")} aria-label={`Archive: ${download.title}`}>Archive</Button>
         )}
         {download.status === "DRAFT" ? (
-          <Button type="button" size="sm" disabled={pending} onClick={() => setStatus("PUBLISHED")}>Publish</Button>
+          <Button type="button" size="sm" disabled={pending} onClick={() => setStatus("PUBLISHED")} aria-label={`Publish: ${download.title}`}>Publish</Button>
         ) : null}
       </div>
     </li>

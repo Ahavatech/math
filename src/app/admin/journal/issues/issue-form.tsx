@@ -1,5 +1,6 @@
 "use client";
 
+import { SaveBar } from "@/components/admin/save-bar";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { MediaPicker, type SelectedMedia } from "@/components/admin/media-picker";
@@ -73,9 +74,13 @@ export function IssueForm({ issue }: { issue?: IssueInput }) {
           <option value="ARCHIVED">Archived</option>
         </select>
       </div>
-      {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
+      <SaveBar actions={
+        <Button type="submit" disabled={pending}>{pending ? "Saving..." : "Save"}</Button>
+      }>
+        {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
       {result?.success ? <Alert><AlertDescription>Saved.</AlertDescription></Alert> : null}
-      <Button type="submit" disabled={pending}>{pending ? "Saving..." : "Save"}</Button>
+      
+      </SaveBar>
     </form>
   );
 }

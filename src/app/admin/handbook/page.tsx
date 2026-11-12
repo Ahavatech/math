@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { AdminEmpty } from "@/components/admin/admin-bits";
 import Link from "next/link";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
@@ -53,7 +54,7 @@ export default async function AdminHandbookPage() {
             ) : null}
           </li>
         ))}
-        {pages.length === 0 ? <p className="text-sm text-muted-foreground">No handbook pages yet.</p> : null}
+        {pages.length === 0 ? <AdminEmpty title="No handbook pages yet">Each page you add becomes a section of the student handbook and appears in its contents once published.</AdminEmpty> : null}
       </ul>
     </div>
   );

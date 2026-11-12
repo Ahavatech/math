@@ -1,5 +1,6 @@
 "use client";
 
+import { SaveBar } from "@/components/admin/save-bar";
 import { useState, useTransition } from "react";
 import type { Page } from "@prisma/client";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
@@ -58,9 +59,13 @@ export function JournalPageForm({ page }: { page: Page }) {
           <option value="ARCHIVED">Archived</option>
         </select>
       </div>
-      {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
+      <SaveBar actions={
+        <Button onClick={save} disabled={pending}>{pending ? "Saving..." : "Save"}</Button>
+      }>
+        {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
       {result?.success ? <Alert><AlertDescription>Saved.</AlertDescription></Alert> : null}
-      <Button onClick={save} disabled={pending}>{pending ? "Saving..." : "Save"}</Button>
+      
+      </SaveBar>
     </div>
   );
 }

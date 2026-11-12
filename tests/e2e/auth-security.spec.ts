@@ -96,6 +96,11 @@ test.describe("login redirects", () => {
     expect((await request.get("/journal/login")).status()).toBe(404);
   });
 
+  test("the two-factor page sends a signed-out visitor to sign in", async ({ page }) => {
+    await page.goto("/two-factor");
+    await expect(page).toHaveURL(/\/login/);
+  });
+
   test("the login page is not indexed and sends a restrictive cache policy", async ({ request }) => {
     const res = await request.get("/login");
     const html = await res.text();

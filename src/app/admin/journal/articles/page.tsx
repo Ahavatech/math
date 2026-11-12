@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { StatusBadge } from "@/components/admin/status-badge";
 import Link from "next/link";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
@@ -26,7 +27,7 @@ export default async function JournalArticlesPage() {
               {article.title || "(untitled)"}
             </Link>
             <p className="text-muted-foreground">
-              {article.status}
+              <StatusBadge status={article.status} />
               {article.issue ? ` - Vol. ${article.issue.volume}, No. ${article.issue.number}` : " - online first"}
             </p>
           </li>

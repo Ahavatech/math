@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { AdminEmpty } from "@/components/admin/admin-bits";
 import Link from "next/link";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
@@ -28,7 +29,7 @@ export default async function AdminResearchPage() {
         {areas.map((area) => (
           <ResearchAreaRow key={area.id} area={area} needsReview={Boolean(importFlags[area.slug])} />
         ))}
-        {areas.length === 0 ? <p className="text-sm text-muted-foreground">No research areas yet.</p> : null}
+        {areas.length === 0 ? <AdminEmpty title="No research areas yet">Research areas show on the public research page. Add one with a short description and an image.</AdminEmpty> : null}
       </ul>
     </div>
   );

@@ -14,5 +14,12 @@ export default defineConfig({
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: process.env.E2E_BASE_URL
     ? undefined
-    : { command: "npm run start", url: baseURL, reuseExistingServer: true, timeout: 120_000 },
+    : {
+        command: "npm run start",
+        url: baseURL,
+        reuseExistingServer: true,
+        timeout: 120_000,
+        // The browser tests sign in as an admin without an authenticator app.
+        env: { ADMIN_2FA_REQUIRED: "false" },
+      },
 });
