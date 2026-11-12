@@ -1040,3 +1040,22 @@ I also corrected an earlier error of mine: Entry 057 and DECISIONS #93 said the 
 **Checked:** images load (confirmed in the page: natural sizes, no broken images) on the homepage, news list, staff list, a lecturer page, the event page and its gallery. The preview browser painted some screenshots late, so a few were blank even though the images had loaded. tsc 0 errors. Not re-run in full after this change: lint, Vitest, Playwright.
 
 **Not done:** real portraits for the HOD and lecturers; these need the actual photo files (or upload through /admin once Cloudinary is configured on the live site). The live site was not touched.
+
+
+### Entry 061 | 2026-11-12 | Prompt 061: Admin sidebar redesign, admin UI audit, privacy notice
+
+**Asked:** The sidebar is too bland (no logo, no colour), too long and cannot be closed. Do a serious UI audit of the admin end. Write the privacy notice; the user will say what to change.
+
+**Admin shell:** `src/app/admin/admin-shell.tsx` (new) and `src/app/admin/admin-nav.tsx` (rewritten). Ink sidebar with the department mark; groups fold away and only the current group starts open; a "Jump to a page" box (press `/`); active page solid red; a "Hide the menu" button and a top-bar Menu button, remembered in the browser; phone drawer that closes with Escape or a tap outside and is removed from the accessibility tree when closed. The top bar is sticky and shows the current page and group.
+
+**Audit:** `docs/ADMIN-UI-AUDIT.md` lists 9 items fixed (sidebar, top bar, status badges, text and tap sizes, real tabs, raw enum values, wide lists, alumni empty state, users pagination) and 9 still open (long forms, editor toolbar, row action labels, destructive-action confirmation, other empty states, other enums, dashboard links, breadcrumbs, colour). It is not a review of every admin page; the list of pages not looked at is in that file.
+
+**Also changed:** `StatusBadge` (`src/components/admin/status-badge.tsx`) used on nine admin lists; `/admin/users` now has search and 25 per page (`listUsersPage` in `src/server/services/users.ts`, no password hash returned) because about 2,700 test accounts made it unusable.
+
+**Privacy notice:** the text lives in `src/lib/privacy-notice.ts` and was written from what the code actually does (forms, cookies, Cloudinary, Resend, retention periods, 12 hour sessions); unit tests tie the retention numbers and session length to the code. It is stored as the `privacy` page, shown at `/privacy` with a "Last updated" date and linked from the footer. Existing databases get it with `npm run privacy:apply` (only replaces the old draft unless `--force`). It still contains three `[PLACEHOLDER ...]` paragraphs and stays flagged for legal review; the user will say what to change.
+
+**Tests:** 11 new unit tests (privacy notice 6, users list 5); Playwright covers the sidebar, jump box, hide and show, the phone drawer and the privacy page. Playwright: 100 passed, 5 skipped with admin credentials; 88 passed, 17 skipped without. eslint and tsc clean.
+
+**Found:** the full Vitest run became very slow. The test database `oau_maths_test` had about 4,500 users and 2,000 manuscripts left by earlier interrupted runs. See the result line below.
+
+**Not done:** the open audit items; deploy to the VPS (Stages 18 to 20 are not live yet; run `npm run privacy:apply` on the server after deploying).

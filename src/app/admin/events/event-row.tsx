@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatWAT } from "@/lib/time";
 import { setEventStatusAction } from "@/server/actions/events";
+import { StatusBadge } from "@/components/admin/status-badge";
+import { humanise } from "@/lib/labels";
 
 export function EventRow({ event, needsReview }: { event: Event; needsReview: boolean }) {
   const [pending, startTransition] = useTransition();
@@ -28,8 +30,8 @@ export function EventRow({ event, needsReview }: { event: Event; needsReview: bo
           {event.title}
         </Link>
         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <Badge variant="secondary">{event.type}</Badge>
-          <Badge variant="secondary">{event.status}</Badge>
+          <Badge variant="secondary">{humanise(event.type)}</Badge>
+          <StatusBadge status={event.status} />
           <span>{formatWAT(event.startsAt)}</span>
           {event.venue ? <span>- {event.venue}</span> : null}
           {needsReview ? <Badge variant="outline">Imported from the old site, needs HOD review</Badge> : null}

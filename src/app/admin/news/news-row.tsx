@@ -6,6 +6,8 @@ import type { MediaAsset, NewsPost } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { setNewsPostStatusAction } from "@/server/actions/news";
+import { StatusBadge } from "@/components/admin/status-badge";
+import { humanise } from "@/lib/labels";
 
 export function NewsRow({ post, needsReview }: { post: NewsPost & { cover: MediaAsset | null }; needsReview: boolean }) {
   const [pending, startTransition] = useTransition();
@@ -27,8 +29,8 @@ export function NewsRow({ post, needsReview }: { post: NewsPost & { cover: Media
           {post.title}
         </Link>
         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <Badge variant="secondary">{post.category}</Badge>
-          <Badge variant="secondary">{post.status}</Badge>
+          <Badge variant="secondary">{humanise(post.category)}</Badge>
+          <StatusBadge status={post.status} />
           {post.isPinned ? <Badge>Pinned</Badge> : null}
           {post.publishedAt && post.publishedAt > new Date() ? <Badge variant="outline">Scheduled</Badge> : null}
           {needsReview ? <Badge variant="outline">Imported from the old site, needs HOD review</Badge> : null}

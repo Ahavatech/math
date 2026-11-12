@@ -165,3 +165,16 @@ test.describe("donations page", () => {
     await expect(page.locator("footer a[href='/donate']")).toHaveCount(1);
   });
 });
+
+test.describe("privacy notice", () => {
+  test("is linked from every page footer and says when it was last updated", async ({ page }) => {
+    await page.goto("/news");
+    await page.getByRole("contentinfo").getByRole("link", { name: "Privacy notice" }).click();
+    await page.waitForURL(/\/privacy$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Privacy notice" })).toBeVisible();
+    await expect(page.getByText(/Last updated/)).toBeVisible();
+    for (const heading of ["Your rights", "How long we keep information", "Cookies"]) {
+      await expect(page.getByRole("heading", { level: 2, name: heading })).toBeVisible();
+    }
+  });
+});

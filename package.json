@@ -20,6 +20,7 @@
     "db:seed": "prisma db seed",
     "db:import-legacy": "tsx prisma/legacy-import/run.ts",
     "dev:sample-media": "tsx scripts/dev-sample-media.ts",
+    "privacy:apply": "tsx scripts/set-privacy-notice.ts",
     "db:reset": "tsx scripts/db-reset.ts",
     "db:studio": "prisma studio",
     "admin:invite": "tsx scripts/admin-invite.ts",

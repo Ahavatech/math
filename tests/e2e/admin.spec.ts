@@ -62,22 +62,62 @@ test.describe("admin area", () => {
     });
   }
 
-  test("the sidebar marks the current page", async ({ page }) => {
+  test("the sidebar marks the current page and opens only the group you are in", async ({ page }) => {
     await page.goto("/admin/news");
-    await expect(page.getByRole("navigation", { name: "Admin" }).getByRole("link", { name: "News" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
+    const nav = page.getByRole("navigation", { name: "Admin" });
+    await expect(nav.getByRole("link", { name: "News", exact: true })).toHaveAttribute("aria-current", "page");
+    // Other groups start folded, so the list stays short.
+    await expect(nav.getByRole("link", { name: "Programmes", exact: true })).toHaveCount(0);
+    const academics = nav.getByRole("button", { name: /Academics/ });
+    await expect(academics).toHaveAttribute("aria-expanded", "false");
+    await academics.click();
+    await expect(academics).toHaveAttribute("aria-expanded", "true");
+    await expect(nav.getByRole("link", { name: "Programmes", exact: true })).toBeVisible();
   });
 
-  test("on a phone the sidebar sits behind a Menu button and the page does not overflow", async ({ page }) => {
+  test("the jump box finds a page by name", async ({ page }) => {
+    await page.goto("/admin");
+    await page.getByRole("searchbox", { name: "Jump to a page" }).fill("lectur");
+    const nav = page.getByRole("navigation", { name: "Admin" });
+    await expect(nav.getByRole("link", { name: /Lecturers/ })).toBeVisible();
+    await nav.getByRole("link", { name: /Lecturers/ }).click();
+    await page.waitForURL(/\/admin\/lecturers/);
+    await page.goto("/admin");
+    await page.getByRole("searchbox", { name: "Jump to a page" }).fill("zzzz-no-such-page");
+    await expect(page.getByText(/No page matches/)).toBeVisible();
+  });
+
+  test("pressing / jumps to the search box", async ({ page }) => {
+    await page.goto("/admin");
+    await page.locator("main").click();
+    await page.keyboard.press("/");
+    await expect(page.getByRole("searchbox", { name: "Jump to a page" })).toBeFocused();
+  });
+
+  test("on a large screen the sidebar can be hidden, and stays hidden after a reload", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/admin");
+    const nav = page.getByRole("navigation", { name: "Admin" });
+    await expect(nav).toBeVisible();
+    await page.getByRole("button", { name: "Hide the menu" }).click();
+    await expect(nav).toBeHidden();
+    await page.reload();
+    await expect(nav).toBeHidden();
+    await page.getByRole("button", { name: "Menu", exact: true }).click();
+    await expect(nav).toBeVisible();
+  });
+
+  test("on a phone the sidebar is a drawer behind a Menu button, closes with Escape, and the page does not overflow", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/admin/lecturers");
-    await expect(page.getByRole("button", { name: "Menu" })).toBeVisible();
+    const menu = page.getByRole("button", { name: "Menu", exact: true });
+    await expect(menu).toBeVisible();
     await expect(page.getByRole("navigation", { name: "Admin" })).toBeHidden();
     expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1)).toBe(false);
-    await page.getByRole("button", { name: "Menu" }).click();
+    await menu.click();
     await expect(page.getByRole("navigation", { name: "Admin" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("navigation", { name: "Admin" })).toBeHidden();
   });
 
   test("the donations form refuses to turn the page on without bank details", async ({ page }) => {

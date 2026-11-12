@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { reorderResearchAreaAction } from "@/server/actions/research-areas";
+import { StatusBadge } from "@/components/admin/status-badge";
 
 export function ResearchAreaRow({
   area,
@@ -34,7 +35,7 @@ export function ResearchAreaRow({
           {area.title}
         </Link>
         <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-          <Badge variant="secondary">{area.status}</Badge>
+          <StatusBadge status={area.status} />
           {needsReview ? <Badge variant="outline">Imported from the old site, needs HOD review</Badge> : null}
         </div>
       </div>

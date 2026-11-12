@@ -7,6 +7,7 @@ import { getSetting } from "@/server/services/site-settings";
 import { isUpcoming } from "@/lib/time";
 import { Button } from "@/components/ui/button";
 import { EventRow } from "./event-row";
+import { UnderlineTabs } from "@/components/ui/filter-links";
 
 export default async function AdminEventsPage({
   searchParams,
@@ -42,14 +43,13 @@ export default async function AdminEventsPage({
         </div>
       </div>
 
-      <div className="flex gap-2 text-sm">
-        <Link href="/admin/events?tab=upcoming" className={tab === "upcoming" ? "font-semibold underline" : "text-muted-foreground"}>
-          Upcoming
-        </Link>
-        <Link href="/admin/events?tab=past" className={tab === "past" ? "font-semibold underline" : "text-muted-foreground"}>
-          Past
-        </Link>
-      </div>
+      <UnderlineTabs
+        label="Event period"
+        items={[
+          { label: "Upcoming", href: "/admin/events?tab=upcoming", active: tab === "upcoming" },
+          { label: "Past", href: "/admin/events?tab=past", active: tab === "past" },
+        ]}
+      />
 
       <form method="get" className="flex gap-2">
         <input type="hidden" name="tab" value={tab} />

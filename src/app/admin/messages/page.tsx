@@ -6,6 +6,8 @@ import { listContactMessagesAdmin } from "@/server/services/contact";
 import { getSetting } from "@/server/services/site-settings";
 import { Badge } from "@/components/ui/badge";
 import { NotificationSettingsForm } from "./notification-settings-form";
+import { StatusBadge } from "@/components/admin/status-badge";
+import { humanise } from "@/lib/labels";
 
 const STATUSES = ["NEW", "READ", "REPLIED", "ARCHIVED"] as const;
 const TYPES = ["ADMISSIONS", "RESEARCH", "COLLABORATION", "ALUMNI", "GENERAL"] as const;
@@ -60,8 +62,8 @@ export default async function AdminMessagesPage({
                 {message.subject}
               </Link>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <Badge variant="secondary">{message.status}</Badge>
-                <Badge variant="outline">{message.type}</Badge>
+                <StatusBadge status={message.status} />
+                <Badge variant="outline">{humanise(message.type)}</Badge>
                 <span>{message.name}</span>
                 <span>{message.createdAt.toLocaleDateString()}</span>
               </div>
