@@ -43,9 +43,9 @@ export function CopyButton({ value, label }: { value: string; label: string }) {
       >
         {state === "copied" ? "Copied" : `Copy ${label}`}
       </button>
-      <p role="status" aria-live="polite" className={message ? "mt-2 text-sm text-muted-foreground" : "sr-only"}>
+      <span role="status" aria-live="polite" className={message ? "mt-2 block text-sm text-muted-foreground" : "sr-only"}>
         {message}
-      </p>
+      </span>
     </>
   );
 }

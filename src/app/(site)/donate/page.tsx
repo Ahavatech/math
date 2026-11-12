@@ -85,17 +85,17 @@ export default async function DonatePage() {
                   <dd
                     className={
                       row.copy
-                        ? "tabular mt-0.5 font-heading text-2xl font-semibold break-all select-all"
+                        ? "tabular mt-0.5 font-heading text-2xl font-semibold break-all"
                         : "mt-0.5 text-lg font-medium"
                     }
                   >
-                    {row.value}
+                    <span className={row.copy ? "select-all" : undefined}>{row.value}</span>
+                    {row.copy ? (
+                      <span className="mt-2 block font-sans text-base font-normal">
+                        <CopyButton value={row.value} label="account number" />
+                      </span>
+                    ) : null}
                   </dd>
-                  {row.copy ? (
-                    <div className="mt-2">
-                      <CopyButton value={row.value} label="account number" />
-                    </div>
-                  ) : null}
                 </div>
               ))}
             </dl>

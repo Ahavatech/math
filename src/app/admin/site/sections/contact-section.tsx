@@ -35,6 +35,7 @@ export function ContactSection({ value }: { value: SettingValue<"contact.details
         {phones.map((phone, i) => (
           <div key={i} className="flex gap-2">
             <Input
+              aria-label={`Phone number ${i + 1}`}
               value={phone}
               onChange={(e) => {
                 setPhones((prev) => prev.map((p, idx) => (idx === i ? e.target.value : p)));
@@ -45,6 +46,7 @@ export function ContactSection({ value }: { value: SettingValue<"contact.details
               type="button"
               variant="ghost"
               size="icon"
+              aria-label={`Remove phone number ${i + 1}`}
               onClick={() => {
                 setPhones((prev) => prev.filter((_, idx) => idx !== i));
                 setDirty(true);

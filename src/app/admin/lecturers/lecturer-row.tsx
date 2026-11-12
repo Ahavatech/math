@@ -93,10 +93,10 @@ export function LecturerRow({ lecturer, completeness }: { lecturer: LecturerRowD
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-1">
-          <Button type="button" variant="ghost" size="icon" onClick={() => move("up")} disabled={pending}>
+          <Button type="button" variant="ghost" size="icon" aria-label="Move up" onClick={() => move("up")} disabled={pending}>
             <ArrowUp className="size-4" />
           </Button>
-          <Button type="button" variant="ghost" size="icon" onClick={() => move("down")} disabled={pending}>
+          <Button type="button" variant="ghost" size="icon" aria-label="Move down" onClick={() => move("down")} disabled={pending}>
             <ArrowDown className="size-4" />
           </Button>
           <Button type="button" size="sm" variant="outline" onClick={sendInvite} disabled={pending}>

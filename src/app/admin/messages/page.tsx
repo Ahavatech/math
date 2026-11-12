@@ -37,13 +37,13 @@ export default async function AdminMessagesPage({
 
       <form method="get" className="flex flex-wrap gap-2">
         <input type="search" name="q" defaultValue={params.q} placeholder="Search name, email or subject" className="h-9 rounded-md border border-input bg-background px-3 text-sm" />
-        <select name="status" defaultValue={params.status ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+        <select name="status" aria-label="Status" defaultValue={params.status ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
           <option value="">All statuses</option>
           {STATUSES.map((s) => (
             <option key={s} value={s}>{s}</option>
           ))}
         </select>
-        <select name="type" defaultValue={params.type ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+        <select name="type" aria-label="Type" defaultValue={params.type ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
           <option value="">All types</option>
           {TYPES.map((t) => (
             <option key={t} value={t}>{t}</option>
