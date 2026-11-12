@@ -1,0 +1,34 @@
+# Cron jobs for the OAU Mathematics site on the shared VPS.
+# Install as the maths user:  crontab -u maths /opt/oaumaths/repo/deploy/shared-vps/crontab.txt
+#
+# Cron runs in UTC on this server unless changed; WAT is UTC+1.
+# Each job loads /etc/oaumaths/env first, so it sees the same settings as the app.
+# The scripts need the source tree and dev dependencies, which live in
+# /opt/oaumaths/repo (installed by update.sh), not in the standalone app folder.
+
+SHELL=/bin/bash
+PATH=/opt/node24/bin:/usr/local/bin:/usr/bin:/bin
+
+# Backup: daily 03:00 WAT (02:00 UTC)
+0 2 * * * set -a; . /etc/oaumaths/env; set +a; /opt/oaumaths/repo/deploy/backup-scripts/daily-backup.sh >> /var/log/oaumaths/backup.log 2>&1
+
+# Alumni: remove orphaned Cloudinary assets, 04:00 WAT
+0 3 * * * cd /opt/oaumaths/repo && set -a && . /etc/oaumaths/env && set +a && npx tsx scripts/alumni-cleanup-orphans.ts --apply >> /var/log/oaumaths/cron.log 2>&1
+
+# Alumni: purge rejected entries older than 90 days, 04:15 WAT
+15 3 * * * cd /opt/oaumaths/repo && set -a && . /etc/oaumaths/env && set +a && npx tsx scripts/alumni-purge-rejected.ts --apply >> /var/log/oaumaths/cron.log 2>&1
+
+# Contact messages: purge archived older than 12 months, 04:30 WAT
+30 3 * * * cd /opt/oaumaths/repo && set -a && . /etc/oaumaths/env && set +a && npx tsx scripts/contact-purge-archived.ts --apply >> /var/log/oaumaths/cron.log 2>&1
+
+# Journal: purge incomplete drafts inactive for 60+ days, 04:45 WAT
+45 3 * * * cd /opt/oaumaths/repo && set -a && . /etc/oaumaths/env && set +a && npx tsx scripts/journal-purge-drafts.ts --apply >> /var/log/oaumaths/cron.log 2>&1
+
+# Journal: publish scheduled articles, every 15 minutes
+*/15 * * * * cd /opt/oaumaths/repo && set -a && . /etc/oaumaths/env && set +a && npx tsx scripts/journal-publish-scheduled.ts --apply >> /var/log/oaumaths/cron.log 2>&1
+
+# Journal: review reminders, 09:00 WAT (08:00 UTC)
+0 8 * * * cd /opt/oaumaths/repo && set -a && . /etc/oaumaths/env && set +a && npx tsx scripts/journal-review-reminders.ts --apply >> /var/log/oaumaths/cron.log 2>&1
+
+# Private storage: remove files with no database record, Sundays 05:00 WAT
+0 4 * * 0 cd /opt/oaumaths/repo && set -a && . /etc/oaumaths/env && set +a && npx tsx scripts/private-storage-orphans.ts --apply >> /var/log/oaumaths/cron.log 2>&1

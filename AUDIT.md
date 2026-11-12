@@ -879,3 +879,18 @@ NOT DONE (move to Stage 14):
 **Done:** render.yaml (one free web service, auto-deploy on commit to main, health check /api/health, secrets left blank, AUTH_SECRET generated) and an "Option B: Render" section in deploy/DEMO.md; steps relabelled Option A (Google Cloud) or both. Build command uses `npm ci --include=dev` because the build needs devDependencies (prisma for postinstall, typescript, tailwind, tsx for postbuild) and Render sets NODE_ENV=production.
 
 **Not verified:** nothing was deployed to Render. Unknowns: whether the 512 MB free plan can complete the Next.js build (guide says to move to Starter if not), and whether the chosen service name is free (guide covers the suffix case). The Neon URLs the user pasted in chat were not used; they should reset that password after the demo.
+
+
+### Entry 052 | 2026-11-12 | Prompt 052: Deploy on a shared Hostinger KVM 1
+
+**Asked:** Host the site on the user's existing Hostinger KVM 1, which already runs another site, using the domain oaumaths.online (free student domain, also verified in Resend), PostgreSQL on the VPS, deployed as for launch.
+
+**Server facts (pasted by the user, read-only commands):** Ubuntu 24.04, 1 vCPU, 3.8 GB RAM, no swap, 45 GB free, Nginx 1.24 on 80/443, an existing Next.js app on port 3000 run by PM2 as root, global Node v20, no PostgreSQL.
+
+**Done:** deploy/shared-vps/ with DEPLOY-SHARED.md (12 steps, snapshot first, undo section), update.sh, oaumaths.service (systemd, user maths, port 3100, MemoryMax 1G), env.example, nginx-site.conf and nginx-zones.conf (prefixed rate-limit zones in conf.d, no edit to nginx.conf, port 80 block for certbot to extend), crontab.txt (all jobs, each sourcing /etc/oaumaths/env, run from the source checkout), logrotate-oaumaths.
+
+**Design choices:** the existing site is never edited; Node 24 lives in /opt/node24 so the global Node 20 is untouched; the site is built on the VPS (the build prerenders from the database and the native modules must be Linux, so a Windows build is not usable), niced, with 2 GB swap, and the output is rsynced to /opt/oaumaths/app so the live site keeps serving during a build; cron scripts run from /opt/oaumaths/repo because the standalone output has no tsx or sources. This reverses my earlier advice to build off the box.
+
+**Not verified:** nothing was run on the VPS. Only `bash -n update.sh` was checked. Unknowns: how the existing site's Nginx is laid out (guide step 0 inspects it), whether the repo is private (deploy key note), how long a first build takes on one vCPU, and the Resend DNS records.
+
+**Notes:** the user has not yet asked to commit, merge or push these files, and the VPS clones main, so they must be merged before the guide works. DECISIONS.md was not changed (hosting topology still listed as open). Real Resend and Cloudinary credentials must be created by the user.

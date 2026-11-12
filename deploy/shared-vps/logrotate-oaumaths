@@ -1,0 +1,8 @@
+/var/log/oaumaths/*.log {
+    weekly
+    rotate 8
+    compress
+    missingok
+    notifempty
+    copytruncate
+}

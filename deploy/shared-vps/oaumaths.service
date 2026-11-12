@@ -1,0 +1,29 @@
+# /etc/systemd/system/oaumaths.service
+# Runs the OAU Mathematics site as the unprivileged "maths" user on port 3100.
+# The environment comes from /etc/oaumaths/env (not in the repository).
+
+[Unit]
+Description=OAU Mathematics website
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+User=maths
+Group=maths
+WorkingDirectory=/opt/oaumaths/app
+EnvironmentFile=/etc/oaumaths/env
+ExecStart=/opt/node24/bin/node server.js
+Restart=always
+RestartSec=3
+
+# Protect the neighbouring site: this service cannot take more than 1 GB.
+MemoryMax=1G
+
+# Basic hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target
