@@ -1023,3 +1023,20 @@ I also corrected an earlier error of mine: Entry 057 and DECISIONS #93 said the 
 - No two-factor sign-in for admin accounts; no email alert on repeated failed sign-ins; password rules are length only (no common-password check).
 - Someone can lock a known email out for a minute at a time by failing five attempts; that is the cost of per-email limits.
 - I did not re-audit every token flow (alumni, reviewer invitation, email verification) beyond their existing tests, or run a penetration test; the individual admin forms only received accessibility fixes, not recomposition; the live server has none of this until you deploy.
+
+
+### Entry 060 | 2026-11-12 | Prompt 060: Sample images from the Desktop to see the UI with pictures
+
+**Asked:** Use the pictures on the Desktop to fill in HOD, lecturer, event and other image slots so the UI can be judged with images.
+
+**What the Desktop contains:** about 730 images, mostly the user's graphic design work for other clients and groups, personal photos and documents. There are no photos labelled as the HOD or as department lecturers. The only portraits are student election posters, a business advert and personal pictures. I did not use any photograph of a real person as a staff or HOD portrait: that would attach a private individual's face to a named staff profile, and I cannot tell who is who from a picture. I also left out the election poster, the jotter advert (it shows a phone number) and the work done for other clients.
+
+**Used:** the building photo from the NAMSSN project folder as the homepage hero (it is only 428 x 321 pixels, so it is soft at large sizes), and two maths graphics (a chalkboard and a formula pattern) cropped into research area images, news covers, event flyers, a gallery and neutral square stand-ins for the portrait slots. Nothing was uploaded to Cloudinary or any other service: the files are served from `public/dev-images/` (git-ignored, never deployed) and recorded as MediaAsset rows with provider "local".
+
+**Added:** `scripts/dev-sample-media.ts` (`npm run dev:sample-media`; `--remove` takes it all out again). It refuses to run with NODE_ENV=production or against any database not on localhost, is idempotent, sets the hero image, the HOD photo slot, lecturer photo slots (only where empty), four research area images, three `[SAMPLE]` news posts with covers and three `[SAMPLE]` events (two upcoming with portrait flyers, one past with a four-photo gallery).
+
+**Found by looking at it with images:** event flyers were cropped to a 16:9 banner on the event page, cutting a portrait poster to a thin strip. The event page now shows the flyer whole at its own proportions (a portrait flyer sits in a narrower column); the events service now returns the flyer's width and height. News list covers, research images, the hero and the staff and lecturer photo slots lay out correctly.
+
+**Checked:** images load (confirmed in the page: natural sizes, no broken images) on the homepage, news list, staff list, a lecturer page, the event page and its gallery. The preview browser painted some screenshots late, so a few were blank even though the images had loaded. tsc 0 errors. Not re-run in full after this change: lint, Vitest, Playwright.
+
+**Not done:** real portraits for the HOD and lecturers; these need the actual photo files (or upload through /admin once Cloudinary is configured on the live site). The live site was not touched.

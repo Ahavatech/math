@@ -60,8 +60,21 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Events", href: "/events" }, { label: event.title }]} />
 
         {event.flyer ? (
-          <div className="relative mt-6 aspect-video overflow-hidden border border-border">
-            <ZoomableImage src={event.flyer.url} alt={event.flyer.alt ?? event.title} priority />
+          // Flyers are usually portrait posters: show them whole at their own
+          // proportions instead of cropping them to a wide banner. A portrait
+          // flyer sits in a narrower column so it does not fill the screen.
+          <div
+            className={`mt-6 overflow-hidden border border-border ${
+              event.flyer.width && event.flyer.height && event.flyer.height > event.flyer.width ? "max-w-sm" : ""
+            }`}
+          >
+            <ZoomableImage
+              src={event.flyer.url}
+              alt={event.flyer.alt ?? event.title}
+              width={event.flyer.width ?? 1200}
+              height={event.flyer.height ?? 800}
+              priority
+            />
           </div>
         ) : null}
 

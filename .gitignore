@@ -47,3 +47,6 @@ next-env.d.ts
 # playwright
 /test-results/
 /playwright-report/
+
+# Local sample images for viewing the UI (see scripts/dev-sample-media.ts)
+/public/dev-images/
