@@ -5,6 +5,8 @@ import { AuthError } from "next-auth";
 import { signIn, signOut, auth } from "@/auth";
 import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
+import { safeCallbackPath } from "@/lib/safe-redirect";
+import { defaultLandingPath } from "@/lib/rbac";
 import { consumeToken, issueToken } from "@/server/services/tokens";
 import { logAction, contextFromHeaders } from "@/server/services/audit";
 import { changeOwnPassword, WrongPasswordError } from "@/server/services/account";
@@ -16,7 +18,6 @@ import {
   changePasswordSchema,
 } from "@/lib/validators/auth";
 import {
-  loginRateLimiter,
   forgotPasswordRateLimiter,
   tokenConsumeRateLimiter,
   changePasswordRateLimiter,
@@ -44,23 +45,30 @@ export async function loginAction(
     return { error: GENERIC_LOGIN_ERROR };
   }
 
-  const ip = await clientIp();
-  const ipCheck = loginRateLimiter.check(`ip:${ip}`);
-  const emailCheck = loginRateLimiter.check(`email:${parsed.data.email}`);
-  if (!ipCheck.allowed || !emailCheck.allowed) {
-    return { error: RATE_LIMITED_ERROR };
-  }
+  // Where to go afterwards: a safe return address if one was given,
+  // otherwise the right place for this person's roles. Working this out
+  // before signing in reveals nothing to the visitor: it only takes effect
+  // if the password turns out to be right.
+  const requested = safeCallbackPath(formData.get("callbackUrl"));
+  const account = await db.user.findUnique({
+    where: { email: parsed.data.email },
+    select: { roles: { select: { role: true } } },
+  });
+  const destination = requested ?? defaultLandingPath(account?.roles.map((r) => r.role) ?? []);
 
   try {
+    // Rate limiting happens inside the Auth.js credentials check (src/auth.ts)
+    // so it also covers the /api/auth/callback/credentials endpoint.
     await signIn("credentials", {
       email: parsed.data.email,
       password: parsed.data.password,
-      redirectTo: "/admin",
+      redirectTo: destination,
     });
     return {};
   } catch (error) {
     if (error instanceof AuthError) {
-      return { error: GENERIC_LOGIN_ERROR };
+      const code = (error as { code?: string }).code;
+      return { error: code === "rate_limited" ? RATE_LIMITED_ERROR : GENERIC_LOGIN_ERROR };
     }
     // next-auth throws a redirect "error" on success; let it propagate.
     throw error;

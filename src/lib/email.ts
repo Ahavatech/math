@@ -97,7 +97,7 @@ export async function sendVerificationEmail(params: { to: string; token: string 
 }
 
 export async function sendAlreadyRegisteredEmail(params: { to: string }) {
-  const signInUrl = new URL("/journal/login", env.AUTH_URL).toString();
+  const signInUrl = new URL("/login?callbackUrl=%2Fjournal%2Fdashboard", env.AUTH_URL).toString();
   await send(params.to, "You already have an account", JournalAlreadyRegisteredEmail({ signInUrl }));
 }
 

@@ -1,18 +1,19 @@
+import type { Metadata } from "next";
+import { AuthShell } from "../auth-shell";
 import { ForgotPasswordForm } from "./forgot-password-form";
+
+export const metadata: Metadata = {
+  title: "Forgot your password",
+  robots: { index: false, follow: false },
+};
 
 export default function ForgotPasswordPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="space-y-1 text-center">
-          <h1 className="text-xl font-semibold">Forgot your password?</h1>
-          <p className="text-muted-foreground text-sm">
-            Enter your email and we will send you a reset link if an account
-            exists.
-          </p>
-        </div>
-        <ForgotPasswordForm />
-      </div>
-    </div>
+    <AuthShell
+      title="Forgot your password?"
+      description="Enter your email and we will send you a reset link if an account exists."
+    >
+      <ForgotPasswordForm />
+    </AuthShell>
   );
 }

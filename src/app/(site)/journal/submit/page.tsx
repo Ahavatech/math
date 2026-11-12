@@ -30,7 +30,7 @@ export default async function JournalSubmitPage() {
 
   const session = await auth();
   if (!session?.user) {
-    redirect("/journal/login?next=/journal/submit");
+    redirect("/login?callbackUrl=%2Fjournal%2Fsubmit");
   }
 
   const user = session.user;

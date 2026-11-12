@@ -12,10 +12,10 @@ import { JOURNAL_AUTHOR_AGREEMENT_V1 } from "@/lib/constants";
 
 async function requireAuthor() {
   const session = await auth();
-  if (!session?.user) redirect("/journal/login?next=/journal/submit");
+  if (!session?.user) redirect("/login?callbackUrl=%2Fjournal%2Fsubmit");
   const user = session.user;
   if (!hasRole({ id: user.id, roles: user.roles, isActive: user.isActive ?? true }, "AUTHOR")) {
-    redirect("/journal/login?next=/journal/submit");
+    redirect("/login?callbackUrl=%2Fjournal%2Fsubmit");
   }
   return user;
 }

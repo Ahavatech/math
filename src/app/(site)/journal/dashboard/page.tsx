@@ -29,12 +29,12 @@ const STATUS_TONE: Record<string, StatusTone> = {
 export default async function JournalDashboardPage() {
   const session = await auth();
   if (!session?.user) {
-    redirect("/journal/login?next=/journal/dashboard");
+    redirect("/login?callbackUrl=%2Fjournal%2Fdashboard");
   }
 
   const user = session.user;
   if (!hasRole({ id: user.id, roles: user.roles, isActive: user.isActive ?? true }, "AUTHOR")) {
-    redirect("/journal/login?next=/journal/dashboard");
+    redirect("/login?callbackUrl=%2Fjournal%2Fdashboard");
   }
 
   const manuscripts = await getAuthorManuscripts(prisma, user.id);

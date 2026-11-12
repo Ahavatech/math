@@ -22,7 +22,7 @@ export default async function ReviewerInvitationPage({ params, searchParams }: P
 
   const session = await auth();
   if (!session?.user) {
-    redirect(`/journal/login?next=/journal/reviewer/invitation/${token}${action ? `?action=${action}` : ""}`);
+    redirect(`/login?callbackUrl=${encodeURIComponent(`/journal/reviewer/invitation/${token}${action ? `?action=${action}` : ""}`)}`);
   }
 
   if (action === "accept") {

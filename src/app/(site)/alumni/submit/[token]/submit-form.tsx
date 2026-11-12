@@ -152,10 +152,10 @@ export function SubmitForm({
       </div>
 
       {/* Programmes */}
-      <fieldset className="space-y-3 rounded-md border border-border p-4">
+      <fieldset className="space-y-3 border-t-2 border-foreground p-0 pt-4">
         <legend className="px-1 text-sm font-medium">Programme(s) studied at OAU</legend>
         {programmes.map((prog, i) => (
-          <div key={i} className="space-y-3 rounded-md bg-muted/40 p-3">
+          <div key={i} className="space-y-3 border border-border bg-secondary/60 p-3">
             <input type="hidden" name={`programmes[${i}][level]`} value={prog.level} />
             <input type="hidden" name={`programmes[${i}][entryYear]`} value={prog.entryYear} />
             <input type="hidden" name={`programmes[${i}][graduationYear]`} value={prog.graduationYear} />
@@ -165,7 +165,7 @@ export function SubmitForm({
                 <button
                   type="button"
                   onClick={() => removeProgramme(i)}
-                  className="text-xs text-destructive hover:underline"
+                  className="py-1 text-sm text-destructive underline"
                 >
                   Remove
                 </button>
@@ -178,7 +178,7 @@ export function SubmitForm({
                   id={`level-${i}`}
                   value={prog.level}
                   onChange={(e) => updateProgramme(i, "level", e.target.value)}
-                  className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                  className="h-12 w-full border border-input bg-background px-3 text-base"
                 >
                   {LEVELS.map((l) => (
                     <option key={l.value} value={l.value}>{l.label}</option>
@@ -217,7 +217,7 @@ export function SubmitForm({
           <button
             type="button"
             onClick={addProgramme}
-            className="text-xs text-primary hover:underline"
+            className="link-rule py-1 text-sm font-medium text-primary"
           >
             + Add another degree
           </button>
@@ -247,7 +247,7 @@ export function SubmitForm({
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label htmlFor="country">Country</Label>
-          <select id="country" name="country" className="h-11 w-full rounded-md border border-input bg-background px-2 text-sm">
+          <select id="country" name="country" className="h-12 w-full border border-input bg-background px-3 text-base">
             <option value="">Select</option>
             {COUNTRIES.map((c) => (
               <option key={c} value={c}>{c}</option>
@@ -256,7 +256,7 @@ export function SubmitForm({
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="industry">Industry</Label>
-          <select id="industry" name="industry" className="h-11 w-full rounded-md border border-input bg-background px-2 text-sm">
+          <select id="industry" name="industry" className="h-12 w-full border border-input bg-background px-3 text-base">
             <option value="">Select</option>
             {INDUSTRIES.map((ind) => (
               <option key={ind} value={ind}>{ind}</option>
@@ -280,14 +280,14 @@ export function SubmitForm({
           onChange={handlePhotoChange}
           className="block w-full text-sm"
         />
-        {photoUploading ? <p className="text-xs text-muted-foreground">Uploading...</p> : null}
-        {photoPublicId ? <p className="text-xs text-muted-foreground">Photo attached.</p> : null}
-        {photoError ? <p className="text-xs text-destructive">{photoError}</p> : null}
+        {photoUploading ? <p className="text-sm text-muted-foreground">Uploading...</p> : null}
+        {photoPublicId ? <p className="text-sm text-muted-foreground">Photo attached.</p> : null}
+        {photoError ? <p className="text-base text-destructive">{photoError}</p> : null}
       </div>
 
-      <div className="flex items-start gap-2 rounded-md border border-border bg-muted p-3">
-        <input id="consentPublicDisplay" name="consentPublicDisplay" type="checkbox" required className="mt-1 h-4 w-4" />
-        <Label htmlFor="consentPublicDisplay" className="text-sm font-normal leading-snug">
+      <div className="flex items-start gap-3 border border-foreground bg-secondary p-4">
+        <input id="consentPublicDisplay" name="consentPublicDisplay" type="checkbox" required className="mt-1 size-5 accent-primary" />
+        <Label htmlFor="consentPublicDisplay" className="text-base font-normal leading-snug">
           {ALUMNI_CONSENT_V1} Read the full{" "}
           <Link href="/privacy" className="underline">
             privacy notice
@@ -297,7 +297,7 @@ export function SubmitForm({
       </div>
 
       {state?.error ? (
-        <p className="text-sm text-destructive" role="alert">
+        <p className="text-base text-destructive" role="alert">
           {state.error}
         </p>
       ) : null}

@@ -45,6 +45,12 @@ export class InMemoryRateLimiter implements RateLimiter {
 // (e.g. `${ip}` or `${ip}:${email}`) so IP and per-email limits can be
 // checked independently.
 export const loginRateLimiter = new InMemoryRateLimiter({ limit: 5, windowMs: 60_000 });
+// A slower cap on one email, so a patient guesser cannot stay just under the
+// per-minute limit all day: 20 attempts per email per hour.
+export const loginEmailHourlyRateLimiter = new InMemoryRateLimiter({
+  limit: 20,
+  windowMs: 60 * 60_000,
+});
 export const forgotPasswordRateLimiter = new InMemoryRateLimiter({
   limit: 3,
   windowMs: 60_000,

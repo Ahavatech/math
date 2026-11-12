@@ -26,7 +26,7 @@ export function RegisterAuthorForm({
         </p>
         <p className="text-muted-foreground text-sm">
           Already verified?{" "}
-          <Link href="/journal/login" className="underline">
+          <Link href="/login?callbackUrl=%2Fjournal%2Fdashboard" className="underline">
             Sign in
           </Link>
         </p>
@@ -94,7 +94,7 @@ export function RegisterAuthorForm({
 
       <p className="text-muted-foreground text-center text-sm">
         Already have an account?{" "}
-        <Link href="/journal/login" className="underline">
+        <Link href="/login?callbackUrl=%2Fjournal%2Fdashboard" className="underline">
           Sign in
         </Link>
       </p>

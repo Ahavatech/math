@@ -55,6 +55,9 @@ test.describe("admin area", () => {
       const response = await page.goto(route);
       expect(response?.status()).toBe(200);
       await expect(page.locator("main h1").first()).toBeVisible();
+      // Let client components finish hydrating before scanning, so a control
+      // that is still being given its label is not reported.
+      await page.waitForLoadState("networkidle");
       expect(await seriousViolations(page)).toEqual([]);
     });
   }

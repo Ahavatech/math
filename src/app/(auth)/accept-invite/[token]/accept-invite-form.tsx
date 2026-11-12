@@ -12,9 +12,14 @@ export function AcceptInviteForm({ token }: { token: string }) {
 
   if (state?.success) {
     return (
-      <div className="space-y-4 text-center">
-        <p className="text-sm">Your password has been set.</p>
-        <Link href="/login" className="text-sm underline">
+      <div className="space-y-4">
+        <p className="border-t-2 border-accent pt-3 text-lg" role="status">
+          Your password has been set.
+        </p>
+        <Link
+          href="/login"
+          className="inline-flex h-12 items-center bg-primary px-6 text-base font-medium text-primary-foreground transition-colors hover:bg-foreground"
+        >
           Sign in
         </Link>
       </div>
@@ -22,7 +27,7 @@ export function AcceptInviteForm({ token }: { token: string }) {
   }
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className="space-y-5">
       <input type="hidden" name="token" value={token} />
       <div className="space-y-1.5">
         <Label htmlFor="password">Password</Label>
@@ -32,15 +37,17 @@ export function AcceptInviteForm({ token }: { token: string }) {
           type="password"
           required
           minLength={10}
+          maxLength={128}
           autoComplete="new-password"
+          className="h-12 rounded-none text-base"
         />
       </div>
       {state?.error ? (
-        <p className="text-destructive text-sm" role="alert">
+        <p className="border-2 border-destructive bg-destructive/5 p-3 text-destructive" role="alert">
           {state.error}
         </p>
       ) : null}
-      <Button type="submit" className="w-full" disabled={pending}>
+      <Button type="submit" className="h-12 w-full text-base" disabled={pending}>
         {pending ? "Setting password..." : "Set password"}
       </Button>
     </form>

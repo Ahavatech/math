@@ -240,7 +240,7 @@ const PUBLIC_EVENT_SELECT = {
   speakerName: true,
   speakerAffiliation: true,
   description: true,
-  flyer: { select: { id: true, url: true, alt: true } },
+  flyer: { select: { id: true, url: true, alt: true, width: true, height: true } },
   registrationUrl: true,
   slidesUrl: true,
   recordingUrl: true,

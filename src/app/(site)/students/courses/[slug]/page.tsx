@@ -44,17 +44,17 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
             { label: course.code },
           ]}
         />
-        <h1 className="mt-4 font-heading text-3xl font-semibold sm:text-4xl">{course.code}</h1>
-        <p className="mt-1 text-lg text-muted-foreground">{course.title}</p>
+        <h1 className="tabular mt-4 font-heading text-5xl leading-[1.05] font-semibold">{course.code}</h1>
+        <p className="mt-2 border-b-2 border-foreground pb-5 font-heading text-2xl text-muted-foreground">{course.title}</p>
 
-        <dl className="mt-4 flex flex-wrap gap-6 text-sm text-muted-foreground">
-          <div><dt className="inline font-medium text-foreground">Units: </dt><dd className="inline">{course.units}</dd></div>
-          <div><dt className="inline font-medium text-foreground">Level: </dt><dd className="inline">{course.level}</dd></div>
-          <div><dt className="inline font-medium text-foreground">Semester: </dt><dd className="inline">{course.semester === "FIRST" ? "First" : "Second"}</dd></div>
-          {course.isElective ? <div>Elective</div> : null}
+        <dl className="tabular mt-0 grid grid-cols-2 border-b border-border sm:grid-cols-4">
+          <div className="border-r border-border py-3 pr-4"><dt className="text-sm text-muted-foreground">Units</dt><dd className="text-xl font-semibold">{course.units}</dd></div>
+          <div className="border-r border-border px-4 py-3 sm:border-r"><dt className="text-sm text-muted-foreground">Level</dt><dd className="text-xl font-semibold">{course.level}</dd></div>
+          <div className="border-r border-border py-3 pr-4 sm:px-4"><dt className="text-sm text-muted-foreground">Semester</dt><dd className="text-xl font-semibold">{course.semester === "FIRST" ? "First" : "Second"}</dd></div>
+          <div className="px-4 py-3"><dt className="text-sm text-muted-foreground">Type</dt><dd className="text-xl font-semibold">{course.isElective ? "Elective" : "Core"}</dd></div>
         </dl>
 
-        <Link href={`/programmes/${enumToLevelSlug(course.programmeLevel)}`} className="mt-2 inline-block text-sm text-primary underline">
+        <Link href={`/programmes/${enumToLevelSlug(course.programmeLevel)}`} className="link-rule mt-3 inline-block py-2 font-medium text-primary">
           Part of the {course.programmeLevel} programme
         </Link>
 
@@ -63,13 +63,14 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
         ) : null}
 
         {course.prerequisites.length > 0 ? (
-          <div className="mt-8">
-            <h2 className="font-heading text-lg font-semibold">Prerequisites</h2>
-            <ul className="mt-2 space-y-1">
+          <div className="mt-10">
+            <h2 className="border-b-2 border-foreground pb-2 font-heading text-2xl font-semibold">Prerequisites</h2>
+            <ul>
               {course.prerequisites.map((p) => (
-                <li key={p.id}>
-                  <Link href={`/students/courses/${p.slug}`} className="text-primary hover:underline">
-                    {p.code} - {p.title}
+                <li key={p.id} className="index-row border-b border-border">
+                  <Link href={`/students/courses/${p.slug}`} className="flex min-h-14 items-baseline gap-4 py-3">
+                    <span className="tabular font-semibold text-primary">{p.code}</span>
+                    <span className="text-muted-foreground">{p.title}</span>
                   </Link>
                 </li>
               ))}
@@ -78,13 +79,14 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
         ) : null}
 
         {course.requiredFor.length > 0 ? (
-          <div className="mt-6">
-            <h2 className="font-heading text-lg font-semibold">Required for</h2>
-            <ul className="mt-2 space-y-1">
+          <div className="mt-10">
+            <h2 className="border-b-2 border-foreground pb-2 font-heading text-2xl font-semibold">Required for</h2>
+            <ul>
               {course.requiredFor.map((p) => (
-                <li key={p.id}>
-                  <Link href={`/students/courses/${p.slug}`} className="text-primary hover:underline">
-                    {p.code} - {p.title}
+                <li key={p.id} className="index-row border-b border-border">
+                  <Link href={`/students/courses/${p.slug}`} className="flex min-h-14 items-baseline gap-4 py-3">
+                    <span className="tabular font-semibold text-primary">{p.code}</span>
+                    <span className="text-muted-foreground">{p.title}</span>
                   </Link>
                 </li>
               ))}
@@ -93,12 +95,12 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
         ) : null}
 
         {course.lecturers.length > 0 ? (
-          <div className="mt-6">
-            <h2 className="font-heading text-lg font-semibold">Lecturers</h2>
-            <ul className="mt-2 space-y-1">
+          <div className="mt-10">
+            <h2 className="border-b-2 border-foreground pb-2 font-heading text-2xl font-semibold">Lecturers</h2>
+            <ul>
               {course.lecturers.map((l) => (
-                <li key={l.id}>
-                  <Link href={`/lecturer/${l.slug}`} className="text-primary hover:underline">
+                <li key={l.id} className="index-row border-b border-border">
+                  <Link href={`/lecturer/${l.slug}`} className="flex min-h-14 items-center py-3 font-medium text-primary">
                     {l.fullName}
                   </Link>
                 </li>

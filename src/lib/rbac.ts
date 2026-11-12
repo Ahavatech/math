@@ -140,6 +140,20 @@ export function requirePermission(
 }
 
 /**
+ * Where to send someone after they sign in when no safe return address was
+ * given. Staff and editors land in the admin area; people who only review
+ * or only author land in the journal screens meant for them, not in an
+ * admin shell that has nothing for them.
+ */
+export function defaultLandingPath(roles: Role[]): string {
+  const staffRoles: Role[] = ["SUPER_ADMIN", "HOD", "ADMIN", "LECTURER", "JOURNAL_EDITOR_IN_CHIEF", "JOURNAL_EDITOR"];
+  if (roles.some((role) => staffRoles.includes(role))) return "/admin";
+  if (roles.includes("REVIEWER")) return "/journal/reviewer";
+  if (roles.includes("AUTHOR")) return "/journal/dashboard";
+  return "/admin";
+}
+
+/**
  * A lecturer may edit only their own portfolio; an admin with
  * lecturers.manage may edit any of them.
  */

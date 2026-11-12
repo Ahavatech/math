@@ -221,7 +221,12 @@
 /* A ruled index row: hairline above, a red tick slides in on hover. */
 .index-row {
   position: relative;
-  transition: padding-left 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* The row's content steps right to make room for the tick. Transform, not
+   padding, so nothing is re-laid out while it moves. */
+.index-row > * {
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .index-row::before {
@@ -237,9 +242,9 @@
   transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.index-row:hover,
-.index-row:focus-within {
-  padding-left: 0.75rem;
+.index-row:hover > *,
+.index-row:focus-within > * {
+  transform: translateX(0.625rem);
 }
 
 .index-row:hover::before,
