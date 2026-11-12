@@ -51,7 +51,7 @@ export function StatsSection({ value }: { value: SettingValue<"homepage.stats"> 
                 value={stat.mode}
                 onValueChange={(mode) => update(key, { mode: mode as "auto" | "manual" })}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger aria-label={`${label} mode`} className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

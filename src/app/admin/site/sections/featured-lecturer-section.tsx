@@ -43,7 +43,7 @@ export function FeaturedLecturerSection({
           setDirty(true);
         }}
       >
-        <SelectTrigger className="w-full sm:w-64">
+        <SelectTrigger aria-label="Featured lecturer mode" className="w-full sm:w-64">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

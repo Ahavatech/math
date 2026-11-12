@@ -34,18 +34,18 @@ export default async function AdminCoursesPage({
       </div>
 
       <form method="get" className="flex flex-wrap gap-2">
-        <select name="programmeLevel" defaultValue={params.programmeLevel ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+        <select name="programmeLevel" aria-label="Programme" defaultValue={params.programmeLevel ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
           <option value="">All programmes</option>
           <option value="BSC">B.Sc.</option>
           <option value="MSC">M.Sc.</option>
           <option value="PHD">Ph.D.</option>
         </select>
-        <select name="semester" defaultValue={params.semester ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+        <select name="semester" aria-label="Semester" defaultValue={params.semester ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
           <option value="">Both semesters</option>
           <option value="FIRST">First</option>
           <option value="SECOND">Second</option>
         </select>
-        <select name="status" defaultValue={params.status ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+        <select name="status" aria-label="Status" defaultValue={params.status ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
           <option value="">All statuses</option>
           <option value="DRAFT">Draft</option>
           <option value="PUBLISHED">Published</option>

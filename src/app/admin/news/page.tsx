@@ -37,17 +37,18 @@ export default async function AdminNewsPage({
         <input
           type="search"
           name="q"
+          aria-label="Search by title"
           defaultValue={params.q}
           placeholder="Search by title"
           className="h-9 rounded-md border border-input bg-background px-3 text-sm"
         />
-        <select name="status" defaultValue={params.status ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+        <select name="status" aria-label="Status" defaultValue={params.status ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
           <option value="">All statuses</option>
           <option value="DRAFT">Draft</option>
           <option value="PUBLISHED">Published</option>
           <option value="ARCHIVED">Archived</option>
         </select>
-        <select name="category" defaultValue={params.category ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+        <select name="category" aria-label="Category" defaultValue={params.category ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
           <option value="">All categories</option>
           <option value="ANNOUNCEMENT">Announcement</option>
           <option value="ACHIEVEMENT">Achievement</option>

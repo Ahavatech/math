@@ -97,12 +97,12 @@ export function UploadForm() {
         <Input id="dl-description" value={description} onChange={(e) => setDescription(e.target.value)} />
       </div>
       <div className="flex gap-2">
-        <select value={category} onChange={(e) => setCategory(e.target.value as typeof category)} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+        <select aria-label="Category" value={category} onChange={(e) => setCategory(e.target.value as typeof category)} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
           {ADMIN_DOWNLOAD_CATEGORIES.map((c) => (
             <option key={c} value={c}>{c}</option>
           ))}
         </select>
-        <select value={status} onChange={(e) => setStatus(e.target.value)} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+        <select aria-label="Status" value={status} onChange={(e) => setStatus(e.target.value)} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
           <option value="DRAFT">Draft</option>
           <option value="PUBLISHED">Published</option>
         </select>

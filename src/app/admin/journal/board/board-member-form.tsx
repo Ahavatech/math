@@ -48,7 +48,7 @@ export function BoardMemberForm({ lecturers }: { lecturers: { id: string; fullNa
       </div>
 
       {mode === "lecturer" ? (
-        <select name="lecturerProfileId" className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm">
+        <select name="lecturerProfileId" aria-label="Lecturer" className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm">
           <option value="">Choose a lecturer...</option>
           {lecturers.map((l) => (
             <option key={l.id} value={l.id}>{l.fullName}</option>

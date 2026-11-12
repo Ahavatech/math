@@ -29,6 +29,7 @@ export function SocialLinksSection({ value }: { value: SettingValue<"social.link
           <div className="flex-1 space-y-1.5">
             <Label>Label</Label>
             <Input
+              aria-label={`Link ${i + 1} label`}
               value={link.label}
               onChange={(e) => {
                 setLinks((prev) => prev.map((l, idx) => (idx === i ? { ...l, label: e.target.value } : l)));
@@ -39,6 +40,7 @@ export function SocialLinksSection({ value }: { value: SettingValue<"social.link
           <div className="flex-1 space-y-1.5">
             <Label>URL</Label>
             <Input
+              aria-label={`Link ${i + 1} URL`}
               value={link.url}
               onChange={(e) => {
                 setLinks((prev) => prev.map((l, idx) => (idx === i ? { ...l, url: e.target.value } : l)));
@@ -51,6 +53,7 @@ export function SocialLinksSection({ value }: { value: SettingValue<"social.link
             variant="ghost"
             size="icon"
             className="self-end"
+            aria-label={`Remove link ${i + 1}`}
             onClick={() => {
               setLinks((prev) => prev.filter((_, idx) => idx !== i));
               setDirty(true);

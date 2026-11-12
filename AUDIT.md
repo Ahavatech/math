@@ -969,3 +969,25 @@ NOT DONE (move to Stage 14):
 **Not verified:** the copy button's success state (the embedded browser refused clipboard access, which is what led to adding a visible "copying is not available" message; the fallback itself was not seen); the full suite as one run after the final test edit (the full run before it was 1077 of 1078 passing; the one failure was my donations service test finding a row left by the seed test, now fixed, and the seed test followed by the donations tests passes 22/22); `npm run build`; Playwright and axe suites; keyboard and screen-reader behaviour; anything on the live site.
 
 **Still needed from the department:** real account name, bank and number; OAU finance approval to publish an account; a decision on who may edit these details (site.edit currently allows HOD, ADMIN and SUPER_ADMIN; restricting to HOD or SUPER_ADMIN is a small change); the wording of the introduction. On the live site the page stays hidden until an admin turns it on.
+
+
+### Entry 058 | 2026-11-12 | Prompt 058: Browser and accessibility tests against the redesign
+
+**Asked:** Run the browser and accessibility tests.
+
+**First run:** a local production build (passed, bundle leak check passed) and the existing Playwright suite: 29/29. That suite only scans 17 public pages at desktop width, so it said nothing about the redesign's riskiest areas.
+
+**Added (branch stage/17-e2e-coverage):** `tests/e2e/redesign.spec.ts` (axe on the journal pages, programme, research and donations pages, and a lecturer profile; no horizontal overflow on 8 pages at 390, 1280 and 1440 px; the header Search link inside the window at 1280 px; the mobile menu opening, listing sections, closing on Escape and after navigation; filter links announcing the current item; the donations page being either absent with no footer link, or complete) and `tests/e2e/admin.spec.ts` (needs E2E_ADMIN_EMAIL and E2E_ADMIN_PASSWORD of a development or staging account, otherwise skips; signs in once and reuses the session because the login form is rate limited; axe on six admin pages; sidebar current-page marker; phone layout; donations form validation).
+
+**Real defects found and fixed:**
+- /donate: `definition-list` violation (the copy button sat inside the description list's wrapper). Moved into the `dd`; the status message is now a span, not a paragraph.
+- /admin/site: five unlabelled select triggers (stats and featured lecturer), icon-only remove buttons (phones, social links), and unlabelled phone and social-link inputs.
+- /admin/news, courses, messages, downloads, journal board: filter selects with no accessible name.
+- Icon-only up/down buttons on lecturers, staff, research areas, programme specialisations and event gallery had no name; specialisation remove/restore too.
+Most of these pre-date the redesign (admin from earlier stages); the redesign did not introduce them but the new admin axe test exposed them.
+
+**Test bugs fixed:** two locators that matched more than one element (`Upcoming`, `Account number`), and the admin login being repeated per test.
+
+**Final runs (production build, local seeded database):** with admin credentials 74 passed, 5 skipped, 0 failed (3.0 min); without them 66 passed, 13 skipped, 0 failed (1.1 min). Skips are tests whose content is absent in this database (four journal text pages with no content) and the donations-form test when donations are already on. tsc 0 errors, eslint clean, detector `[]`. Earlier in the session the full Vitest run was 1077/1078 before the one test fix; Vitest was not rerun in full after the label-only edits in this entry.
+
+**Not covered / noticed:** axe checks WCAG 2.0 A and AA serious and critical rules only, so manual keyboard and screen-reader review and the "moderate" findings are still open; only six admin pages are scanned (journal editorial screens, dialogs, the rich-text editor and media library interactions are not); the users list is unpaginated and the local database has about 2,500 test users, which made the axe scan take 1.8 minutes (a real deployment has few users, but a paginated list is worth adding); the live VPS has not been tested by Playwright.

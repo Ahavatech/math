@@ -137,10 +137,10 @@ export function GalleryManager({ eventId, images }: { eventId: string; images: G
             <p className="truncate text-xs text-muted-foreground">{img.caption}</p>
             <div className="flex items-center justify-between">
               <div className="flex gap-1">
-                <Button type="button" size="icon" variant="ghost" disabled={pending || i === 0} onClick={() => move(img.id, "up")}>
+                <Button type="button" size="icon" variant="ghost" disabled={pending || i === 0} aria-label="Move up" onClick={() => move(img.id, "up")}>
                   <ArrowUp className="size-4" />
                 </Button>
-                <Button type="button" size="icon" variant="ghost" disabled={pending || i === images.length - 1} onClick={() => move(img.id, "down")}>
+                <Button type="button" size="icon" variant="ghost" disabled={pending || i === images.length - 1} aria-label="Move down" onClick={() => move(img.id, "down")}>
                   <ArrowDown className="size-4" />
                 </Button>
               </div>

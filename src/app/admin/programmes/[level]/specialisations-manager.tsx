@@ -52,13 +52,13 @@ function SpecialisationRow({ spec }: { spec: Specialisation }) {
     <li className={`space-y-2 rounded-md border border-border p-3 ${spec.isActive ? "" : "opacity-60"}`}>
       <div className="flex items-center gap-2">
         <Input value={title} onChange={(e) => setTitle(e.target.value)} className="flex-1" />
-        <Button type="button" variant="ghost" size="icon" onClick={() => move("up")} disabled={pending}>
+        <Button type="button" variant="ghost" size="icon" aria-label="Move up" onClick={() => move("up")} disabled={pending}>
           <ArrowUp className="size-4" />
         </Button>
-        <Button type="button" variant="ghost" size="icon" onClick={() => move("down")} disabled={pending}>
+        <Button type="button" variant="ghost" size="icon" aria-label="Move down" onClick={() => move("down")} disabled={pending}>
           <ArrowDown className="size-4" />
         </Button>
-        <Button type="button" variant="ghost" size="icon" onClick={toggleActive} disabled={pending}>
+        <Button type="button" variant="ghost" size="icon" aria-label={spec.isActive ? "Remove specialisation" : "Restore specialisation"} onClick={toggleActive} disabled={pending}>
           {spec.isActive ? <Trash2 className="size-4" /> : <RotateCcw className="size-4" />}
         </Button>
       </div>
