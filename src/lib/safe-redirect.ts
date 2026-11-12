@@ -5,7 +5,7 @@
  * Everything else (other hosts, protocol-relative addresses, backslashes,
  * control characters, paths outside these areas) is refused.
  */
-const ALLOWED_PREFIXES = ["/admin", "/journal/dashboard", "/journal/reviewer", "/journal/submit"];
+const ALLOWED_PREFIXES = ["/admin", "/two-factor", "/journal/dashboard", "/journal/reviewer", "/journal/submit"];
 const PLACEHOLDER_ORIGIN = "http://placeholder.invalid";
 
 export function safeCallbackPath(value: unknown): string | null {

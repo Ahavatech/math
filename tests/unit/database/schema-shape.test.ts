@@ -120,7 +120,8 @@ describe("schema shape (no database required)", () => {
 
   it("every model has a primary key and a createdAt column", () => {
     // JournalCounter is a counter-only table (year + value) with no timestamps — excluded.
-    const COUNTER_ONLY = new Set(["JournalCounter"]);
+    // LoginAttempt is a short-lived event log whose single timestamp is named `at`.
+    const COUNTER_ONLY = new Set(["JournalCounter", "LoginAttempt"]);
     for (const model of models) {
       const hasPrimaryKey = model.lines.some((line) => line.includes("@id"));
       expect(hasPrimaryKey, `${model.name} has no @id field`).toBe(true);

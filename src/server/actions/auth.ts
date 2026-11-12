@@ -4,12 +4,18 @@ import { headers } from "next/headers";
 import { AuthError } from "next-auth";
 import { signIn, signOut, auth } from "@/auth";
 import { db } from "@/lib/db";
-import { hashPassword } from "@/lib/password";
 import { safeCallbackPath } from "@/lib/safe-redirect";
 import { defaultLandingPath } from "@/lib/rbac";
-import { consumeToken, issueToken } from "@/server/services/tokens";
-import { logAction, contextFromHeaders } from "@/server/services/audit";
-import { changeOwnPassword, WrongPasswordError } from "@/server/services/account";
+import { issueToken } from "@/server/services/tokens";
+import { revokeSession, purgeExpiredRevocations } from "@/server/services/sessions";
+import { after } from "next/server";
+import { contextFromHeaders } from "@/server/services/audit";
+import {
+  changeOwnPassword,
+  setPasswordFromToken,
+  WeakPasswordError,
+  WrongPasswordError,
+} from "@/server/services/account";
 import {
   loginSchema,
   forgotPasswordSchema,
@@ -22,7 +28,7 @@ import {
   tokenConsumeRateLimiter,
   changePasswordRateLimiter,
 } from "@/lib/rate-limit";
-import { sendPasswordResetEmail } from "@/lib/email";
+import { sendPasswordResetEmail, sendPasswordChangedEmail } from "@/lib/email";
 
 async function clientIp(): Promise<string> {
   const h = await headers();
@@ -33,10 +39,12 @@ async function clientIp(): Promise<string> {
 const GENERIC_LOGIN_ERROR = "Incorrect email or password.";
 const RATE_LIMITED_ERROR = "Too many attempts. Please try again later.";
 
+export type LoginState = { error?: string; needsCode?: boolean };
+
 export async function loginAction(
-  _prevState: { error?: string } | undefined,
+  _prevState: LoginState | undefined,
   formData: FormData,
-): Promise<{ error?: string }> {
+): Promise<LoginState> {
   const parsed = loginSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
@@ -62,12 +70,20 @@ export async function loginAction(
     await signIn("credentials", {
       email: parsed.data.email,
       password: parsed.data.password,
+      totp: typeof formData.get("totp") === "string" ? (formData.get("totp") as string) : "",
       redirectTo: destination,
     });
     return {};
   } catch (error) {
     if (error instanceof AuthError) {
       const code = (error as { code?: string }).code;
+      if (code === "totp_required") return { needsCode: true };
+      if (code === "totp_invalid") {
+        return {
+          needsCode: true,
+          error: "That code is not right. Try the current code from your app, or a recovery code.",
+        };
+      }
       return { error: code === "rate_limited" ? RATE_LIMITED_ERROR : GENERIC_LOGIN_ERROR };
     }
     // next-auth throws a redirect "error" on success; let it propagate.
@@ -76,6 +92,31 @@ export async function loginAction(
 }
 
 export async function logoutAction() {
+  // End this session on the server first, so a copy of the cookie stops
+  // working too, then clear the cookie in this browser.
+  const session = await auth();
+  if (session?.sessionId && session.user?.id) {
+    try {
+      await revokeSession(db, {
+        jti: session.sessionId,
+        userId: session.user.id,
+        expiresAt: new Date(session.sessionExpiresAt ?? Date.now() + 12 * 60 * 60 * 1000),
+      });
+      await purgeExpiredRevocations(db);
+    } catch (error) {
+      console.error("Could not record the sign-out on the server:", error);
+    }
+  }
+  await signOut({ redirectTo: "/login" });
+}
+
+/** Signs this account out on every device, including this one. */
+export async function signOutEverywhereAction() {
+  const session = await auth();
+  if (session?.user?.id) {
+    // Every token stamped with an older passwordChangedAt stops working.
+    await db.user.update({ where: { id: session.user.id }, data: { passwordChangedAt: new Date() } });
+  }
   await signOut({ redirectTo: "/login" });
 }
 
@@ -101,15 +142,17 @@ export async function forgotPasswordAction(
   const user = await db.user.findUnique({ where: { email: parsed.data.email } });
   if (user && user.isActive) {
     const { token } = await issueToken(db, user.id, "PASSWORD_RESET");
-    try {
-      await sendPasswordResetEmail({ to: user.email, token });
-    } catch (error) {
-      // Must not throw past this point: a thrown error here would
-      // produce a different response than the generic message below,
-      // which would leak exactly the "does this email exist" signal
-      // this flow exists to hide.
-      console.error(`Failed to send password reset email for user ${user.id}:`, error);
-    }
+    // Send after the response has gone: waiting for the mail provider would
+    // make this path visibly slower for real accounts than for unknown
+    // addresses, which would leak exactly what the generic message hides. A
+    // failure is logged and never changes what the visitor sees.
+    after(async () => {
+      try {
+        await sendPasswordResetEmail({ to: user.email, token });
+      } catch (error) {
+        console.error(`Failed to send password reset email for user ${user.id}:`, error);
+      }
+    });
   }
 
   return { message: GENERIC_FORGOT_PASSWORD_MESSAGE };
@@ -132,28 +175,21 @@ export async function resetPasswordAction(
     return { error: RATE_LIMITED_ERROR };
   }
 
-  const consumed = await consumeToken(db, parsed.data.token, "PASSWORD_RESET");
-  if (!consumed) {
-    return { error: "This reset link is invalid or has expired." };
-  }
-
-  const passwordHash = await hashPassword(parsed.data.password);
-  await db.user.update({
-    where: { id: consumed.userId },
-    data: { passwordHash, passwordChangedAt: new Date() },
-  });
-
-  await logAction(
+  const result = await setPasswordFromToken(
     db,
-    {
-      actorId: consumed.userId,
-      action: "user.reset_password",
-      entityType: "User",
-      entityId: consumed.userId,
-      summary: "Reset password via token",
-    },
+    { token: parsed.data.token, password: parsed.data.password, type: "PASSWORD_RESET" },
     contextFromHeaders(await headers()),
   );
+  if (!result.ok) return { error: result.message };
+
+  // Tell the owner, so a reset they did not ask for does not go unnoticed.
+  after(async () => {
+    try {
+      await sendPasswordChangedEmail({ to: result.user.email, name: result.user.name, how: "reset" });
+    } catch (error) {
+      console.error(`Failed to send password-changed notice for user ${result.user.id}:`, error);
+    }
+  });
 
   return { success: true };
 }
@@ -175,28 +211,12 @@ export async function acceptInviteAction(
     return { error: RATE_LIMITED_ERROR };
   }
 
-  const consumed = await consumeToken(db, parsed.data.token, "INVITE");
-  if (!consumed) {
-    return { error: "This invite link is invalid or has expired." };
-  }
-
-  const passwordHash = await hashPassword(parsed.data.password);
-  await db.user.update({
-    where: { id: consumed.userId },
-    data: { passwordHash, passwordChangedAt: new Date() },
-  });
-
-  await logAction(
+  const result = await setPasswordFromToken(
     db,
-    {
-      actorId: consumed.userId,
-      action: "user.accept_invite",
-      entityType: "User",
-      entityId: consumed.userId,
-      summary: "Accepted invite and set password",
-    },
+    { token: parsed.data.token, password: parsed.data.password, type: "INVITE" },
     contextFromHeaders(await headers()),
   );
+  if (!result.ok) return { error: result.message };
 
   return { success: true };
 }
@@ -234,10 +254,22 @@ export async function changePasswordAction(
       contextFromHeaders(await headers()),
     );
   } catch (error) {
-    if (error instanceof WrongPasswordError) {
+    if (error instanceof WrongPasswordError || error instanceof WeakPasswordError) {
       return { error: error.message };
     }
     throw error;
+  }
+
+  if (session.user.email) {
+    const to = session.user.email;
+    const name = session.user.name ?? "";
+    after(async () => {
+      try {
+        await sendPasswordChangedEmail({ to, name, how: "change" });
+      } catch (error) {
+        console.error("Failed to send password-changed notice:", error);
+      }
+    });
   }
 
   return { success: true };

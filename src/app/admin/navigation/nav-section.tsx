@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { NavItem, NavLocation } from "@prisma/client";
 import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/admin/confirm-button";
 import { Input } from "@/components/ui/input";
 import {
   createNavItemAction,
@@ -73,9 +74,9 @@ function NavRow({
         <Button size="sm" onClick={save} disabled={pending}>
           Save
         </Button>
-        <Button size="icon-sm" variant="destructive" onClick={() => act(deleteNavItemAction)} aria-label="Delete">
-          <Trash2 className="size-4" />
-        </Button>
+        <ConfirmButton label="Delete" subject={label} size="icon-sm" title="Delete this menu item?" description={`"${label}" and any items nested under it will be removed from the site menu. This cannot be undone.`} confirmLabel="Delete item" onConfirm={() => act(deleteNavItemAction)}>
+          <Trash2 className="size-4" aria-hidden="true" />
+        </ConfirmButton>
       </div>
       {error ? (
         <p className="text-destructive text-xs" role="alert">

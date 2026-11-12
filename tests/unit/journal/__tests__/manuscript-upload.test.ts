@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { afterAll, afterEach, describe, expect, it } from "vitest";
 import { Readable } from "node:stream";
 import { getTestDb } from "../../database/test-db";

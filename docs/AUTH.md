@@ -7,8 +7,9 @@
 | Sign in | `/login` | Credentials provider. Generic "Incorrect email or password" error that never reveals whether the email exists. Inactive users cannot sign in. Updates `lastLoginAt` on success. Rate limited by IP and by email. |
 | Accept invite | `/accept-invite/[token]` | Sets a password (minimum 10 characters), consumes the INVITE token, sends the user to `/login`. Does not sign them in automatically. |
 | Forgot password | `/forgot-password` | Always shows the same message regardless of whether the email exists. Sends a reset link only when the user exists and is active. Rate limited by IP and by email. |
-| Reset password | `/reset-password/[token]` | Sets a new password, consumes the PASSWORD_RESET token. |
-| Sign out | server action `logoutAction` | Clears the session, redirects to `/login`. |
+| Reset password | `/reset-password/[token]` | Sets a new password and consumes the PASSWORD_RESET token. The password is checked first (see Password rules), so a refused password lets the person retry with the same link. A deactivated account cannot be reset. Every other unused reset link for that user is cancelled, other sessions are signed out, and the owner gets a "password was changed" email. It never signs the person in. |
+| Sign out | server action `logoutAction` | Records the session's `sid` in `RevokedSession` (so a copy of the cookie stops working at once) and clears the cookie. "Sign out on all devices" (`/admin/my-profile/security`) stamps `passwordChangedAt`, which ends every session. |
+| Two-factor sign-in | `/two-factor` | See Two-factor sign-in below. |
 | Change password | `/admin/my-profile/security` | Requires the current password. Minimum 10 characters. Rate limited (5/min by user, 5/min by IP). Writes an AuditLog entry and stamps `User.passwordChangedAt`, which signs out other active sessions within about a minute - see "Session behaviour" below. |
 
 ## Token rules
@@ -70,7 +71,7 @@ Each Cloudinary media folder (`src/lib/media-folders.ts`) requires the permissio
 - A session lasts 12 hours from sign-in (`SESSION_MAX_AGE_SECONDS` in `src/auth.ts`), then the person signs in again. It is not extended while they work.
 - On every request that reads the session, the `jwt` callback checks whether more than 60 seconds have passed since the roles/active-status were last read from the database (`rolesCheckedAt`, `ROLES_RECHECK_INTERVAL_MS`). If so, it re-reads `User.isActive` and `UserRole` fresh from the database. A deactivated user, or one whose roles changed, loses access within about a minute without needing to sign out and back in.
 - That same recheck also compares the token's stamped `passwordChangedAt` against the database value; a mismatch (the password changed since this token was issued) marks the token inactive, so changing or resetting your password signs out other active sessions within about a minute (see DECISIONS.md #37 - a JWT strategy with no server-side session store has no way to invalidate a session instantly).
-- Known limit: signing out clears the cookie in that browser, but a copy of the session token that someone had already stolen stays valid until it expires (at most 12 hours) or the next recheck finds the account changed. A stateless JWT cannot be revoked on demand. Closing this fully needs a server-side revocation marker (a `sessionsRevokedAt` column checked in the recheck); see "Open items".
+- Sign-out is enforced on the server. Every session token carries a random `sid`; signing out writes it to `RevokedSession` (kept until the token would have expired anyway) and the `jwt` callback checks that table on every request that reads the session, so a stolen copy of the cookie is dead from the moment the owner signs out. Tokens issued before this existed have no `sid` and can only live out their 12 hours.
 - `src/proxy.ts` (Next.js's `proxy` convention) gives coarse protection: no valid session cookie on `/admin/*` or `/journal/dashboard/*` redirects to `/login?callbackUrl=...`. It reads the cookie with `getToken()` and never re-issues it: wrapping the proxy in Auth.js's `auth()` re-issued the cookie on every request, which let a request still in flight at sign-out put the cookie back (confirmed in Stage 18). This is not where real authorization happens — every page and server action re-checks via `src/lib/rbac.ts`'s `requireRole`/`requirePermission`, because the proxy only knows "signed in or not," never which role or permission a specific action needs.
 - Cookies: `httpOnly`, `sameSite: lax` (Auth.js defaults). Over HTTPS (`AUTH_URL` starting with `https://`) they are also `Secure` and carry the `__Secure-` / `__Host-` prefixes; this was checked against the live site in Stage 18.
 - After sign-in the person is sent to a safe return address if one was given (`callbackUrl`, allowlisted to `/admin`, `/journal/dashboard`, `/journal/reviewer` and `/journal/submit` by `src/lib/safe-redirect.ts`, never to another host), otherwise to the right place for their roles (`defaultLandingPath` in `src/lib/rbac.ts`): staff and editors to `/admin`, reviewers to `/journal/reviewer`, authors to `/journal/dashboard`.
@@ -84,14 +85,34 @@ Each Cloudinary media folder (`src/lib/media-folders.ts`) requires the permissio
 
 ## Rate limiting
 
-- `src/lib/rate-limit.ts`'s `InMemoryRateLimiter` is a single-process, in-memory sliding window. It does **not** share state across multiple Node instances — see DECISIONS.md for the explicit single-instance limitation this creates, and what must change if the app is ever deployed with more than one instance.
+- Sign-in attempts are limited in the database (`LoginAttempt`, `src/server/services/login-attempts.ts`), so a restart no longer resets the limit and several processes share it. Other limiters below still use `src/lib/rate-limit.ts`'s `InMemoryRateLimiter`, a single-process, in-memory sliding window. It does **not** share state across multiple Node instances — see DECISIONS.md for the explicit single-instance limitation this creates, and what must change if the app is ever deployed with more than one instance.
 - Login is limited inside the Auth.js credentials check itself (`checkLoginAttempt` in `src/lib/login-throttle.ts`, called from `authorize()` in `src/auth.ts`), so the limit covers the login form and the `/api/auth/callback/credentials` endpoint alike: 5/min by IP, 5/min by email (case-insensitive) and 20/hour by email. Before Stage 18 only the form's server action enforced it, and the endpoint could be hit without limit (confirmed: 12 wrong passwords then the right one succeeded).
 - Also applied to: forgot-password (3/min by IP, 3/min by email), and token consumption on accept-invite/reset-password (10/min by IP).
 
 
+## Password rules
+
+- 10 to 128 characters (`src/lib/validators/auth.ts`), and `passwordProblem()` in `src/lib/weak-password.ts` refuses a short list of very common passwords, simple repetition and runs, and a password that is little more than the person's own name or email. It runs for password change, reset and accept-invite, and a refused password never uses up a reset or invite link.
+- Changing or resetting a password stamps `passwordChangedAt`, ending other sessions within a minute, and emails the owner.
+
+## Failed sign-in alerts
+
+After five failed sign-ins on a real, active account within 30 minutes, the owner gets one email (at most one an hour, `User.lastFailedAlertAt`). Nothing is sent for an address with no account, so the alert cannot be used to find out which emails exist. Failures are `LoginAttempt` rows marked `failed`; a correct sign-in clears the mark.
+
+## Two-factor sign-in (TOTP)
+
+- Anyone can turn it on at `/two-factor`. It is **required** for SUPER_ADMIN, HOD and ADMIN: the `/admin` layout redirects those roles to `/two-factor?required=1` until it is on. Set `ADMIN_2FA_REQUIRED=false` in the server environment only as an emergency switch.
+- Standard authenticator-app codes (RFC 6238: SHA-1, 6 digits, 30 seconds, one step of drift either way), implemented in `src/lib/totp.ts` and checked against the RFC's test vectors. A code can be used once (`User.totpLastStep`).
+- The secret is stored encrypted (AES-256-GCM, key derived from `AUTH_SECRET`), so a copy of the database alone cannot make codes. Rotating `AUTH_SECRET` would make stored secrets unreadable; if that is ever done, reset two-factor for everyone.
+- Setup shows a QR code and the key, and only turns on after a correct code. It then shows eight recovery codes once; they are stored as hashes and each works once. Making new codes needs the password.
+- At sign-in the login form asks for the code after a correct password (`TotpRequiredSignin`). A wrong code counts against the same sign-in limit. A recovery code can be typed in the same box.
+- Turning it off needs the password and is refused for roles that must have it.
+- **Lost phone and recovery codes:** a Super Admin clicks "Reset two-factor" next to the person on `/admin/users` (written to the audit log); they set it up again at their next sign-in. If the only Super Admin is locked out, set `ADMIN_2FA_REQUIRED=false`, restart, sign in, reset the account, and turn it back on.
+
 ## Open items (not done)
 
-- Server-side session revocation (a `sessionsRevokedAt` column, set on sign-out and checked in the recheck) so a stolen token stops working at once. Needs a migration.
-- The rate limiter is in memory for one process: a restart clears it, and a second instance would not share it.
-- Two-factor sign-in for admin accounts.
-- The email sent to the throttled address is not rate limited separately from the page; account lockout notification email does not exist.
+- No `includeSubDomains`/preload on HSTS (deliberate).
+- The in-memory limiters for forgot-password, token consumption and uploads still reset on restart and are per process; only sign-in is in the database.
+- Passwords are checked against a short built-in list, not a breached-password service.
+- 2FA covers password sign-in only; there is no WebAuthn/passkey option.
+- Not done: a penetration test, and a review of every token flow beyond its tests.

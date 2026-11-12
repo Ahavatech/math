@@ -1,4 +1,5 @@
 import { redirect, notFound } from "next/navigation";
+import { humanise } from "@/lib/labels";
 import Link from "next/link";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
@@ -41,7 +42,7 @@ export default async function AdminMessageDetailPage({ params }: { params: Promi
         </div>
         <div>
           <dt className="text-muted-foreground">Type</dt>
-          <dd>{message.type}</dd>
+          <dd>{humanise(message.type)}</dd>
         </div>
         <div>
           <dt className="text-muted-foreground">Received</dt>

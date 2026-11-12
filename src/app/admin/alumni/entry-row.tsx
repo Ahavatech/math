@@ -1,5 +1,6 @@
 "use client";
 
+import { humanise } from "@/lib/labels";
 import { useTransition } from "react";
 import Link from "next/link";
 import type { AlumniEntry, AlumniProgramme } from "@prisma/client";
@@ -44,7 +45,7 @@ export function EntryRow({
         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           {primaryProg ? (
             <>
-              <Badge variant="secondary">{primaryProg.level}</Badge>
+              <Badge variant="secondary">{humanise(primaryProg.level)}</Badge>
               <span>{primaryProg.graduationYear}</span>
             </>
           ) : null}

@@ -39,16 +39,16 @@ export function NewsRow({ post, needsReview }: { post: NewsPost & { cover: Media
       </div>
       <div className="flex shrink-0 items-center gap-1">
         {post.status === "ARCHIVED" ? (
-          <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => setStatus("DRAFT")}>
+          <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => setStatus("DRAFT")} aria-label={`Restore: ${post.title}`}>
             Restore
           </Button>
         ) : (
-          <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => setStatus("ARCHIVED")}>
+          <Button type="button" size="sm" variant="outline" disabled={pending} onClick={() => setStatus("ARCHIVED")} aria-label={`Archive: ${post.title}`}>
             Archive
           </Button>
         )}
         {post.status === "PUBLISHED" ? (
-          <a href={`/news/${post.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline">
+          <a href={`/news/${post.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline" aria-label={`View public page: ${post.title}`}>
             View public
           </a>
         ) : null}

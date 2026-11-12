@@ -29,7 +29,18 @@ async function seriousViolations(page: Page): Promise<string[]> {
     .map((v) => `${v.id} (${v.nodes.length})`);
 }
 
-const ADMIN_PAGES = ["/admin", "/admin/site", "/admin/news", "/admin/lecturers", "/admin/media", "/admin/users"];
+const ADMIN_PAGES = [
+  "/admin",
+  "/admin/site",
+  "/admin/news",
+  "/admin/news/new",
+  "/admin/events/new",
+  "/admin/lecturers",
+  "/admin/media",
+  "/admin/users",
+  "/admin/my-profile/security",
+  "/two-factor",
+];
 
 // Sign in once and reuse the session: the login form is rate limited, so
 // signing in before every test would lock the suite out.
@@ -129,5 +140,78 @@ test.describe("admin area", () => {
     await toggle.check();
     await section.getByRole("button", { name: "Save" }).click();
     await expect(section.getByText(/required before the page can be turned on/)).toBeVisible();
+  });
+
+  test("an edit page offers the way back to its list", async ({ page }) => {
+    await page.goto("/admin/news/new");
+    const back = page.getByRole("link", { name: "Back to News" });
+    await expect(back).toBeVisible();
+    await back.click();
+    await expect(page).toHaveURL(/\/admin\/news$/);
+    await expect(page.getByRole("link", { name: /^Back to/ })).toHaveCount(0);
+  });
+
+  test("the news form has a labelled toolbar, titled sections and a Save bar that stays on screen", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 600 });
+    await page.goto("/admin/news/new");
+    const toolbar = page.getByRole("toolbar", { name: "Formatting" });
+    await expect(toolbar).toBeVisible();
+    for (const name of ["Heading", "Bold", "Italic", "Bulleted list", "Link", "Image"]) {
+      await expect(toolbar.getByRole("button", { name, exact: true })).toBeVisible();
+    }
+    // Pressing a formatting button reports its state.
+    await toolbar.getByRole("button", { name: "Bold" }).click();
+    await expect(toolbar.getByRole("button", { name: "Bold" })).toHaveAttribute("aria-pressed", "true");
+
+    await expect(page.getByRole("heading", { name: "About the post" })).toBeVisible();
+    // The Save button is in view even though the form is longer than the window.
+    await expect(page.getByRole("button", { name: "Save", exact: true })).toBeInViewport();
+  });
+
+  test("the security page shows two-factor status and a sign-out-everywhere button", async ({ page }) => {
+    await page.goto("/admin/my-profile/security");
+    await expect(page.getByRole("heading", { name: "Two-factor sign-in" })).toBeVisible();
+    await expect(page.getByRole("link", { name: /two-factor sign-in/i }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: "Sign out on all devices" })).toBeVisible();
+  });
+
+  test("a delete asks first and says what will happen", async ({ page }) => {
+    await page.goto("/admin/calendar");
+    const del = page.getByRole("button", { name: /^Delete:/ }).first();
+    test.skip((await del.count()) === 0, "no calendar entries in this database to try it on");
+    await del.click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByText(/cannot be undone/i)).toBeVisible();
+    await dialog.getByRole("button", { name: "Cancel" }).click();
+    await expect(dialog).toBeHidden();
+  });
+
+  test("signing out ends the session on the server, so a copied cookie stops working", async ({ browser }) => {
+    // Sign in fresh (not the shared session) so signing out does not end the
+    // other tests' session.
+    const first = await browser.newContext({ storageState: undefined });
+    const page = await first.newPage();
+    await signIn(page);
+    await page.goto("/admin");
+    await expect(page.locator("main h1").first()).toBeVisible();
+
+    // Someone copies the session cookie.
+    const stolen = await first.cookies();
+    const thief = await browser.newContext({ storageState: undefined });
+    await thief.addCookies(stolen);
+    const thiefPage = await thief.newPage();
+    await thiefPage.goto("/admin");
+    await expect(thiefPage.locator("main h1").first()).toBeVisible();
+
+    // The owner signs out.
+    await page.getByRole("button", { name: "Sign out" }).click();
+    await page.waitForURL(/\/login/);
+
+    // The copy no longer works, even though the cookie itself is untouched.
+    await thiefPage.goto("/admin");
+    await expect(thiefPage).toHaveURL(/\/login/);
+
+    await first.close();
+    await thief.close();
   });
 });

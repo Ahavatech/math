@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { StatusBadge } from "@/components/admin/status-badge";
 import Link from "next/link";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
@@ -29,7 +30,7 @@ export default async function AdminPagesListPage() {
                 <CardTitle className="flex items-center justify-between gap-2">
                   <span>{page.title}</span>
                   <Badge variant={page.status === "PUBLISHED" ? "default" : "outline"}>
-                    {page.status}
+                    <StatusBadge status={page.status} />
                   </Badge>
                 </CardTitle>
               </CardHeader>

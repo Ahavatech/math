@@ -1,5 +1,6 @@
 "use client";
 
+import { SaveBar } from "@/components/admin/save-bar";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { MediaAsset, ResearchArea } from "@prisma/client";
@@ -159,7 +160,12 @@ export function ResearchAreaForm({
         ) : null}
       </div>
 
-      {result?.error ? (
+      <SaveBar dirty={dirty && !result?.success} actions={
+        <Button onClick={save} disabled={pending || !title.trim()}>
+        {pending ? "Saving..." : "Save"}
+      </Button>
+      }>
+        {result?.error ? (
         <Alert variant="destructive">
           <AlertDescription>{result.error}</AlertDescription>
         </Alert>
@@ -169,13 +175,9 @@ export function ResearchAreaForm({
           <AlertDescription>Saved.</AlertDescription>
         </Alert>
       ) : null}
-      {dirty && !result?.success ? (
-        <p className="text-xs text-muted-foreground">You have unsaved changes.</p>
-      ) : null}
 
-      <Button onClick={save} disabled={pending || !title.trim()}>
-        {pending ? "Saving..." : "Save"}
-      </Button>
+      
+      </SaveBar>
     </div>
   );
 }

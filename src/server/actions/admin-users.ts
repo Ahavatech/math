@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requirePermission, getCurrentUser } from "@/lib/rbac";
+import { disableTwoFactor } from "@/server/services/two-factor";
+import { logAction } from "@/server/services/audit";
 import { contextFromHeaders } from "@/server/services/audit";
 import {
   inviteUser,
@@ -114,5 +116,26 @@ export async function setUserActiveAction(formData: FormData): Promise<void> {
     contextFromHeaders(await headers()),
   );
 
+  revalidatePath("/admin/users");
+}
+
+/** Lets a Super Admin clear someone's two-factor sign-in (lost phone and recovery codes). */
+export async function resetUserTwoFactorAction(formData: FormData): Promise<void> {
+  const actor = await requireUsersManage();
+  const parsed = resendInviteSchema.parse({ userId: formData.get("userId") });
+  if (parsed.userId === actor.id) return;
+
+  await disableTwoFactor(db, parsed.userId);
+  await logAction(
+    db,
+    {
+      actorId: actor.id,
+      action: "user.reset_two_factor",
+      entityType: "User",
+      entityId: parsed.userId,
+      summary: "Reset two-factor sign-in for a user",
+    },
+    contextFromHeaders(await headers()),
+  );
   revalidatePath("/admin/users");
 }

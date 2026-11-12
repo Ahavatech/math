@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { MediaAsset } from "@prisma/client";
 import { CloudImage } from "@/components/ui/cloud-image";
 import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/admin/confirm-button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -59,15 +60,16 @@ function MediaCard({ asset }: { asset: AssetWithUsage }) {
           <Button size="sm" variant="outline" onClick={handleSaveAlt} disabled={saving}>
             Save
           </Button>
-          <Button
-            size="sm"
-            variant="destructive"
-            onClick={handleDelete}
+          <ConfirmButton
+            label="Delete"
+            subject={asset.alt || "image"}
+            title="Delete this image?"
+            description="The image is removed from the media library and cannot be recovered. It is not used anywhere on the site."
+            confirmLabel="Delete image"
             disabled={asset.usageCount > 0}
-            title={asset.usageCount > 0 ? "Still in use elsewhere" : "Delete"}
-          >
-            Delete
-          </Button>
+            disabledTitle="Still in use elsewhere, so it cannot be deleted"
+            onConfirm={handleDelete}
+          />
         </div>
       </div>
       {error ? (

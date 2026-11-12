@@ -1,5 +1,7 @@
 "use client";
 
+import { FormSection } from "@/components/admin/admin-bits";
+import { SaveBar } from "@/components/admin/save-bar";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -128,6 +130,7 @@ export function EventForm({
         </div>
       </div>
 
+      <FormSection title="About the event">
       <div className="space-y-1.5">
         <Label htmlFor="event-title">Title</Label>
         <Input id="event-title" value={title} onChange={(e) => { setTitle(e.target.value); setDirty(true); }} />
@@ -160,6 +163,9 @@ export function EventForm({
         </div>
       </div>
 
+      </FormSection>
+
+      <FormSection title="When and where">
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="event-starts">Starts (WAT)</Label>
@@ -176,6 +182,9 @@ export function EventForm({
         <Input id="event-venue" value={venue} onChange={(e) => { setVenue(e.target.value); setDirty(true); }} />
       </div>
 
+      </FormSection>
+
+      <FormSection title="Speaker">
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="event-speaker">Speaker name</Label>
@@ -187,6 +196,9 @@ export function EventForm({
         </div>
       </div>
 
+      </FormSection>
+
+      <FormSection title="Flyer and description">
       <MediaPicker folder="events" existing={existingMedia} value={flyer} onChange={(m) => { setFlyer(m); setDirty(true); }} label="Flyer" />
 
       <div className="space-y-1.5">
@@ -194,6 +206,9 @@ export function EventForm({
         <RichTextEditor initialHtml={description} existingMedia={existingMedia} onChange={(html) => { setDescription(html); setDirty(true); }} />
       </div>
 
+      </FormSection>
+
+      <FormSection title="Links and series" description="Optional. Addresses must start with https.">
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="space-y-1.5">
           <Label htmlFor="event-registration">Registration URL (https only)</Label>
@@ -219,6 +234,7 @@ export function EventForm({
         </select>
         <Link href="/admin/events/series" className="text-xs text-primary underline">Manage series</Link>
       </div>
+      </FormSection>
 
       {event?.status === "DRAFT" ? (
         <a href={`/events/${event.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline">
@@ -226,13 +242,16 @@ export function EventForm({
         </a>
       ) : null}
 
-      {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
-      {result?.success ? <Alert><AlertDescription>Saved.</AlertDescription></Alert> : null}
-      {dirty && !result?.success ? <p className="text-xs text-muted-foreground">You have unsaved changes.</p> : null}
-
-      <Button onClick={save} disabled={pending || !title.trim() || !slug.trim() || !startsAt}>
+      <SaveBar dirty={dirty && !result?.success} actions={
+        <Button onClick={save} disabled={pending || !title.trim() || !slug.trim() || !startsAt}>
         {pending ? "Saving..." : "Save"}
       </Button>
+      }>
+        {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
+      {result?.success ? <Alert><AlertDescription>Saved.</AlertDescription></Alert> : null}
+
+      
+      </SaveBar>
 
       {event ? (
         <div className="border-t border-border pt-4">

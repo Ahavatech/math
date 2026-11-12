@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import type { AcademicCalendarEntry } from "@prisma/client";
 import { Button } from "@/components/ui/button";
+import { ConfirmButton } from "@/components/admin/confirm-button";
 import { deleteCalendarEntryAction } from "@/server/actions/academic-calendar";
 import { CalendarEntryForm } from "./calendar-entry-form";
 
@@ -11,7 +12,6 @@ export function CalendarEntryRow({ entry }: { entry: AcademicCalendarEntry }) {
   const [pending, startTransition] = useTransition();
 
   function remove() {
-    if (!window.confirm(`Delete "${entry.title}"? This cannot be undone.`)) return;
     startTransition(async () => {
       const fd = new FormData();
       fd.set("id", entry.id);
@@ -34,8 +34,8 @@ export function CalendarEntryRow({ entry }: { entry: AcademicCalendarEntry }) {
         </p>
       </div>
       <div className="flex gap-2">
-        <Button type="button" size="sm" variant="outline" onClick={() => setEditing(true)}>Edit</Button>
-        <Button type="button" size="sm" variant="destructive" disabled={pending} onClick={remove}>Delete</Button>
+        <Button type="button" size="sm" variant="outline" onClick={() => setEditing(true)} aria-label={`Edit: ${entry.title}`}>Edit</Button>
+        <ConfirmButton label="Delete" subject={entry.title} title="Delete this calendar entry?" description={`"${entry.title}" will be removed from the public calendar. This cannot be undone.`} confirmLabel="Delete entry" disabled={pending} onConfirm={remove} />
       </div>
     </li>
   );

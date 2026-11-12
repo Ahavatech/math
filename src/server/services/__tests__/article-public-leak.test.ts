@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 /**
  * DB-backed public leak test for Stage 12c.
  *

@@ -17,20 +17,22 @@ Severity: P1 blocks or seriously slows a task, P2 causes real difficulty or look
 | 7 | Lists were capped at a narrow column, leaving most of a wide screen empty. | P3 | Cap raised to 60rem. |
 | 8 | The Alumni empty state said only "No entries here." | P3 | Says which list is empty and what will appear. |
 | 9 | `/admin/users` listed every user with no pages (about 2,700 test accounts made the page very long and an accessibility scan take minutes). | P1 | 25 per page, a search over name and email, a "Showing 1 to 25 of N" line and Previous/Next (`listUsersPage`, tested). |
+| 10 | The forms (News, Events, Pages, Programmes, Research, Handbook, Courses, Journal pages and issues) were one long column with the Save button at the very end. | P2 | A sticky Save bar (`SaveBar`) stays at the bottom of the screen and shows "You have unsaved changes"; the News and Events forms are split into titled sections (`FormSection`); fields are at least 40 px tall with 15 px labels and larger checkboxes. The forms that already warned on leaving with unsaved edits still do. |
+| 11 | The rich-text editor toolbar was text-only ("H2", "Bold"). | P2 | Grouped icon buttons with accessible names and tooltips (with the Ctrl+B / Ctrl+I hints), a filled state for the formatting at the cursor (`aria-pressed`), and a labelled toolbar landmark. |
+| 12 | Row actions were a bare word repeated on every row ("Archive", "Restore", "View public", "Move up"), so a screen reader heard the same name each time. | P2 | Each now includes the item ("Archive: Open day"), on news, events, downloads, lecturers, staff, research, calendar, users and the media library. The visible word is unchanged. |
+| 13 | Destructive actions had no confirmation, or used the browser's plain `confirm` box. | P2 | `ConfirmButton` dialog that says what will happen and whether it can be undone: media delete, menu item delete, calendar entry delete, user and lecturer deactivation, alumni erase, journal issue archive. Reversible archive/restore buttons deliberately do not ask. |
+| 14 | Most empty lists were a bare "No X yet." | P3 | `AdminEmpty` says what is missing and what to do, on alumni links, calendar, downloads, event series, handbook, manuscripts, reviewers, lecturers, research and staff. |
+| 15 | Some lists still showed raw values ("UNDER_REVIEW", "UNDERGRADUATE", role names). | P3 | Alumni, review form, journal articles, issues, journal pages, pages, manuscripts, messages and the users table now show words or status badges. |
+| 16 | Dashboard counts were plain numbers. | P3 | Each count links to its list (only when the person may open it). |
+| 17 | Deep pages had no way back. | P3 | The shell shows "Back to <list>" above any page that sits under a listed page (edit screens, `my-profile/security`, `alumni/links`). |
 
 ## Still open
 
 | # | Finding | Sev | Suggested fix |
 | --- | --- | --- | --- |
-| B | The forms (News, Events, Pages, Programmes) are one long column of 32 to 36 px fields with small labels and no grouping or sticky save bar, so saving a long form means scrolling to the bottom. | P2 | Sections with headings, 44 px fields, a sticky Save and Cancel bar, and an "unsaved changes" warning. |
-| C | The rich-text editor toolbar is text-only ("H2", "H3", "Bold") with no icons, no grouping and no keyboard hints. | P2 | Icon buttons with accessible names, grouped, with a visible active state. |
-| D | Row actions are tiny repeated words ("Archive", "View public") with no object, so a screen reader hears the same name on every row. | P2 | Add `aria-label` such as "Archive: <title>" and use a "More" menu for rarely used actions. |
-| E | Destructive actions (archive, erase, deactivate) were not reviewed for confirmation and undo. | P2 | Audit each; use a confirm dialog that names what will happen. |
-| F | Empty states on most other lists are still a bare sentence. | P3 | Use the pattern from Alumni: what is empty, why, what to do. |
-| G | Other lists may still show raw enum values (courses, lecturers' invite state, journal manuscripts). | P3 | Route every enum through `humanise()` or a label map. |
-| H | The dashboard counts are not links except the "Waiting for you" rows. | P3 | Link each count to its list. |
-| I | There are no breadcrumbs on deep admin pages (for example `/admin/news/[id]`). | P3 | Add a "Back to News" link at the top of every edit page. |
-| J | Colour is limited to the sidebar and badges; the content area is still white and flat. | P3 | Decide with the HOD whether the admin needs more of the brand; do not add colour that does not carry meaning. |
+| J | Colour is limited to the sidebar and badges; the content area is still white and flat. | P3 | A design decision for the HOD, not a defect: do not add colour that does not carry meaning. Left as is on purpose. |
+| K | The sticky Save bar and sections were applied to the nine long forms above. Other forms (site settings, lecturer admin fields, alumni review, navigation, programme specialisations) were not restructured. | P3 | Apply `SaveBar` and `FormSection` to them in the same way when each is next touched. |
+| L | Row actions that are tiny words rather than a "More" menu: the labels are now unambiguous, but a row with five buttons (lecturers) is still busy. | P3 | A per-row menu for rarely used actions. |
 
 ## Not looked at
 

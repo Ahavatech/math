@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
+import { ArrowLeft, Menu } from "lucide-react";
 import { AdminSidebar, isActiveAdminLink, type AdminNavItem } from "./admin-nav";
 
 const STORAGE_KEY = "oau-admin-menu-hidden";
@@ -68,6 +69,17 @@ export function AdminShell({
   const drawerOpen = drawerAt === pathname;
 
   const here = items.find((item) => isActiveAdminLink(pathname, item.href));
+  // On a page below a listed page (an item's edit screen, say), offer the way
+  // back to that list. A list page itself has no back link.
+  const parent = (() => {
+    const segments = pathname.split("/").filter(Boolean);
+    for (let length = segments.length - 1; length >= 2; length--) {
+      const href = "/" + segments.slice(0, length).join("/");
+      const match = items.find((item) => item.href === href);
+      if (match && href !== pathname) return match;
+    }
+    return null;
+  })();
 
   useEffect(() => {
     if (!drawerOpen) return;
@@ -136,7 +148,15 @@ export function AdminShell({
           </p>
           <div className="flex shrink-0 items-center gap-3 sm:gap-4">{headerRight}</div>
         </header>
-        <main className="admin-main mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">{children}</main>
+        <main className="admin-main mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
+          {parent ? (
+            <Link href={parent.href} className="link-rule mb-4 inline-flex items-center gap-1.5 py-2 font-medium">
+              <ArrowLeft className="size-4" aria-hidden="true" />
+              Back to {parent.label}
+            </Link>
+          ) : null}
+          {children}
+        </main>
       </div>
     </div>
   );

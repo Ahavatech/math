@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { AdminEmpty } from "@/components/admin/admin-bits";
 import Link from "next/link";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
@@ -30,7 +31,7 @@ export default async function AdminEventSeriesPage() {
             <SeriesForm series={s} />
           </li>
         ))}
-        {series.length === 0 ? <p className="text-sm text-muted-foreground">No series yet.</p> : null}
+        {series.length === 0 ? <AdminEmpty title="No event series yet">A series groups recurring events, such as a termly seminar, under one name. Create one, then choose it when you add an event.</AdminEmpty> : null}
       </ul>
     </div>
   );

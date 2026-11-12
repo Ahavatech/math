@@ -1,5 +1,7 @@
 "use client";
 
+import { FormSection } from "@/components/admin/admin-bits";
+import { SaveBar } from "@/components/admin/save-bar";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { MediaAsset, NewsPost } from "@prisma/client";
@@ -83,6 +85,7 @@ export function NewsForm({ post, existingMedia }: { post: ExistingPost | null; e
         ) : null}
       </div>
 
+      <FormSection title="About the post">
       <div className="space-y-1.5">
         <Label htmlFor="news-title">Title</Label>
         <Input id="news-title" value={title} onChange={(e) => { setTitle(e.target.value); setDirty(true); }} />
@@ -123,6 +126,9 @@ export function NewsForm({ post, existingMedia }: { post: ExistingPost | null; e
         </div>
       </div>
 
+      </FormSection>
+
+      <FormSection title="Content" description="What readers see on the news page.">
       <div className="space-y-1.5">
         <Label htmlFor="news-excerpt">Excerpt (max 300 characters)</Label>
         <Input id="news-excerpt" maxLength={300} value={excerpt} onChange={(e) => { setExcerpt(e.target.value); setDirty(true); }} />
@@ -135,6 +141,9 @@ export function NewsForm({ post, existingMedia }: { post: ExistingPost | null; e
         <RichTextEditor initialHtml={body} existingMedia={existingMedia} onChange={(html) => { setBody(html); setDirty(true); }} />
       </div>
 
+      </FormSection>
+
+      <FormSection title="Publishing" description="When the post goes live and whether it stays at the top.">
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="news-published-at">Published date/time (WAT) - leave blank to publish immediately on save</Label>
@@ -146,19 +155,24 @@ export function NewsForm({ post, existingMedia }: { post: ExistingPost | null; e
         </label>
       </div>
 
+      </FormSection>
+
       {post?.status === "DRAFT" ? (
         <a href={`/news/${post.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline">
           View as public (preview)
         </a>
       ) : null}
 
-      {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
-      {result?.success ? <Alert><AlertDescription>Saved.</AlertDescription></Alert> : null}
-      {dirty && !result?.success ? <p className="text-xs text-muted-foreground">You have unsaved changes.</p> : null}
-
-      <Button onClick={save} disabled={pending || !title.trim() || !slug.trim()}>
+      <SaveBar dirty={dirty && !result?.success} actions={
+        <Button onClick={save} disabled={pending || !title.trim() || !slug.trim()}>
         {pending ? "Saving..." : "Save"}
       </Button>
+      }>
+        {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
+      {result?.success ? <Alert><AlertDescription>Saved.</AlertDescription></Alert> : null}
+
+      
+      </SaveBar>
     </div>
   );
 }

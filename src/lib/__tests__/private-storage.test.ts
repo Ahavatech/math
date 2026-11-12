@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import { mkdtempSync, rmSync, statSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";

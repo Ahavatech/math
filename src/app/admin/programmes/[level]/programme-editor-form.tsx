@@ -1,5 +1,6 @@
 "use client";
 
+import { SaveBar } from "@/components/admin/save-bar";
 import { useEffect, useState, useTransition } from "react";
 import type { Programme } from "@prisma/client";
 import { Button } from "@/components/ui/button";
@@ -144,7 +145,12 @@ export function ProgrammeEditorForm({ programme }: { programme: Programme }) {
         </select>
       </div>
 
-      {result?.error ? (
+      <SaveBar dirty={dirty && !result?.success} actions={
+        <Button onClick={save} disabled={pending}>
+        {pending ? "Saving..." : "Save"}
+      </Button>
+      }>
+        {result?.error ? (
         <Alert variant="destructive">
           <AlertDescription>{result.error}</AlertDescription>
         </Alert>
@@ -154,13 +160,9 @@ export function ProgrammeEditorForm({ programme }: { programme: Programme }) {
           <AlertDescription>Saved.</AlertDescription>
         </Alert>
       ) : null}
-      {dirty && !result?.success ? (
-        <p className="text-xs text-muted-foreground">You have unsaved changes.</p>
-      ) : null}
 
-      <Button onClick={save} disabled={pending}>
-        {pending ? "Saving..." : "Save"}
-      </Button>
+      
+      </SaveBar>
     </section>
   );
 }

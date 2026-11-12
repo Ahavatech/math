@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { StatusBadge } from "@/components/admin/status-badge";
 import Link from "next/link";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
 import { listJournalPagesAdmin, isJournalPagePlaceholder } from "@/server/services/journal-pages";
@@ -29,7 +30,7 @@ export default async function JournalPagesPage() {
                 {LABELS[page.slug] ?? page.title}
               </Link>
               <p className="text-muted-foreground">
-                {page.status}
+                <StatusBadge status={page.status} />
                 {isJournalPagePlaceholder(page.body) ? " - needs editor input" : ""}
               </p>
             </div>

@@ -1,6 +1,19 @@
 "use client";
 
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, useEditorState, EditorContent, type Editor } from "@tiptap/react";
+import {
+  Bold,
+  Heading2,
+  Heading3,
+  Image as ImageIcon,
+  Italic,
+  Link as LinkIcon,
+  List,
+  ListOrdered,
+  Quote,
+  Sigma,
+  SquareSigma,
+} from "lucide-react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import TiptapImage from "@tiptap/extension-image";
@@ -44,50 +57,12 @@ export function RichTextEditor({
   if (!editor) return null;
 
   return (
-    <div className="rounded-md border border-border">
-      <div className="flex flex-wrap gap-1 border-b border-border p-2">
-        <Button type="button" size="sm" variant="outline" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
-          H2
-        </Button>
-        <Button type="button" size="sm" variant="outline" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
-          H3
-        </Button>
-        <Button type="button" size="sm" variant="outline" onClick={() => editor.chain().focus().toggleBold().run()}>
-          Bold
-        </Button>
-        <Button type="button" size="sm" variant="outline" onClick={() => editor.chain().focus().toggleItalic().run()}>
-          Italic
-        </Button>
-        <Button type="button" size="sm" variant="outline" onClick={() => editor.chain().focus().toggleBulletList().run()}>
-          Bullet list
-        </Button>
-        <Button type="button" size="sm" variant="outline" onClick={() => editor.chain().focus().toggleOrderedList().run()}>
-          Numbered list
-        </Button>
-        <Button type="button" size="sm" variant="outline" onClick={() => editor.chain().focus().toggleBlockquote().run()}>
-          Quote
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() => {
-            const url = window.prompt("Link URL");
-            if (url) editor.chain().focus().setLink({ href: url }).run();
-          }}
-        >
-          Link
-        </Button>
-        <Button type="button" size="sm" variant="outline" onClick={() => setShowImagePicker(true)}>
-          Image
-        </Button>
-        <Button type="button" size="sm" variant="outline" onClick={() => setShowMathInput("inline")}>
-          Math (inline)
-        </Button>
-        <Button type="button" size="sm" variant="outline" onClick={() => setShowMathInput("display")}>
-          Math (display)
-        </Button>
-      </div>
+    <div className="border border-border">
+      <Toolbar
+        editor={editor}
+        onImage={() => setShowImagePicker(true)}
+        onMath={(mode) => setShowMathInput(mode)}
+      />
 
       <EditorContent editor={editor} className="prose-sm min-h-40 p-3 focus:outline-none" />
 
@@ -132,6 +107,95 @@ export function RichTextEditor({
           />
         </div>
       ) : null}
+    </div>
+  );
+}
+
+type ToolButton = {
+  label: string;
+  hint?: string;
+  icon: typeof Bold;
+  active?: boolean;
+  onClick: () => void;
+};
+
+function Toolbar({
+  editor,
+  onImage,
+  onMath,
+}: {
+  editor: Editor;
+  onImage: () => void;
+  onMath: (mode: "inline" | "display") => void;
+}) {
+  // The toolbar must redraw as the cursor moves so the buttons show which
+  // formatting is active where the cursor is.
+  const active = useEditorState({
+    editor,
+    selector: ({ editor }) => ({
+      h2: editor.isActive("heading", { level: 2 }),
+      h3: editor.isActive("heading", { level: 3 }),
+      bold: editor.isActive("bold"),
+      italic: editor.isActive("italic"),
+      bullet: editor.isActive("bulletList"),
+      ordered: editor.isActive("orderedList"),
+      quote: editor.isActive("blockquote"),
+      link: editor.isActive("link"),
+    }),
+  });
+
+  const groups: ToolButton[][] = [
+    [
+      { label: "Heading", hint: "section heading", icon: Heading2, active: active.h2, onClick: () => editor.chain().focus().toggleHeading({ level: 2 }).run() },
+      { label: "Subheading", hint: "smaller heading", icon: Heading3, active: active.h3, onClick: () => editor.chain().focus().toggleHeading({ level: 3 }).run() },
+    ],
+    [
+      { label: "Bold", hint: "Ctrl+B", icon: Bold, active: active.bold, onClick: () => editor.chain().focus().toggleBold().run() },
+      { label: "Italic", hint: "Ctrl+I", icon: Italic, active: active.italic, onClick: () => editor.chain().focus().toggleItalic().run() },
+    ],
+    [
+      { label: "Bulleted list", icon: List, active: active.bullet, onClick: () => editor.chain().focus().toggleBulletList().run() },
+      { label: "Numbered list", icon: ListOrdered, active: active.ordered, onClick: () => editor.chain().focus().toggleOrderedList().run() },
+      { label: "Quote", icon: Quote, active: active.quote, onClick: () => editor.chain().focus().toggleBlockquote().run() },
+    ],
+    [
+      {
+        label: "Link",
+        icon: LinkIcon,
+        active: active.link,
+        onClick: () => {
+          const url = window.prompt("Link address, for example https://example.com");
+          if (url) editor.chain().focus().setLink({ href: url }).run();
+        },
+      },
+      { label: "Image", icon: ImageIcon, onClick: onImage },
+    ],
+    [
+      { label: "Maths in a line", hint: "inline formula", icon: Sigma, onClick: () => onMath("inline") },
+      { label: "Maths on its own line", hint: "display formula", icon: SquareSigma, onClick: () => onMath("display") },
+    ],
+  ];
+
+  return (
+    <div role="toolbar" aria-label="Formatting" className="flex flex-wrap items-center gap-x-1 gap-y-1 border-b border-border bg-muted/40 p-2">
+      {groups.map((group, index) => (
+        <div key={index} className="flex items-center gap-1 border-border not-first:border-l not-first:pl-2 not-first:ml-1">
+          {group.map(({ label, hint, icon: Icon, active: isActive, onClick }) => (
+            <Button
+              key={label}
+              type="button"
+              size="icon"
+              variant={isActive ? "default" : "outline"}
+              aria-label={label}
+              aria-pressed={isActive === undefined ? undefined : isActive}
+              title={hint ? `${label} (${hint})` : label}
+              onClick={onClick}
+            >
+              <Icon aria-hidden="true" />
+            </Button>
+          ))}
+        </div>
+      ))}
     </div>
   );
 }

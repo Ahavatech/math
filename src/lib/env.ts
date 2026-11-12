@@ -15,6 +15,9 @@ const envSchema = z
     EMAIL_FROM: z.string().email({ message: "EMAIL_FROM is required" }),
     PRIVATE_STORAGE_DIR: z.string().min(1).optional(),
     NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
+    // Admin roles must set up two-factor sign-in before they can use /admin.
+    // "false" is an emergency switch (for example to recover from a lockout).
+    ADMIN_2FA_REQUIRED: z.enum(["true", "false"]).default("true"),
   })
   .superRefine((data, ctx) => {
     if (data.NODE_ENV === "production" && data.AUTH_SECRET.length < 32) {
