@@ -65,10 +65,14 @@ Recomposed with the same grammar (2px ink rule under the title, ruled rows, squa
 
 The journal has its own running head (`src/app/(site)/journal/layout.tsx`, `journal-nav.tsx`): the journal's name, its sections (About, Articles, Archive, Editorial board, Guidelines, Call for papers, Policies), My submissions and, when submissions are open, Submit a manuscript. It scrolls sideways on phones and reads no session, so journal pages stay static. Redone: landing, articles list, article page (title in serif, abstract, keywords, PDF, how to cite, retraction and correction notices as bordered notices), issue archive and issue page, editorial board, the four text pages, and the author dashboard, reviewer dashboard and wizard forms (restyled controls and buttons). Manuscript and review statuses use `StatusTag` (`src/components/journal/status-tag.tsx`): words carry the meaning, red fill means it needs the reader, ink fill means finished, red outline means failed. The rainbow status pills are gone.
 
+## Admin (Stage 15c)
+
+Admin is an Operate surface: denser than the public site, same ink, rules and single red. `src/app/admin/admin-nav.tsx` is a grouped sidebar (Overview, Website, Academics, People, News and events, Journal) with the current page filled in ink; below 1024px it collapses behind a labelled Menu button (the old fixed sidebar made admin unusable on phones). The dashboard leads with "Waiting for you" (alumni to approve, new messages, manuscripts awaiting screening, draft posts), shown only where the user has the permission to act, then the site's counts as ruled lists instead of stat cards. A small unlayered block at the end of `globals.css` styles `.admin-main` titles, section headings, tables and a 13px text floor, so the 100+ existing admin pages share one look without being edited one by one.
+
 ## Layout width
 
 The page container is now 80rem (was 72rem). The primary navigation is inline from 1366 px up; below that the labelled Menu button is used, because ten navigation items do not fit beside the title at 1280 px.
 
 ## Not yet redesigned
 
-The alumni submission form and confirmation page, individual course and handbook pages, the events series page and the 403/404 pages only inherit the new tokens. The journal author and reviewer inner screens (manuscript detail, review form, invitation, verify, register) only had their controls, headings and statuses restyled, not recomposed. The admin area (Stage 15c) is untouched. The old shadcn dark theme block was removed because the site is light only.
+The alumni submission form and confirmation page, individual course and handbook pages, the events series page and the 403/404 pages only inherit the new tokens. The journal author and reviewer inner screens (manuscript detail, review form, invitation, verify, register) only had their controls, headings and statuses restyled, not recomposed. The individual admin pages (forms, lists, dialogs) were not recomposed: they inherit the new tokens, fonts, titles and tables only. The old shadcn dark theme block was removed because the site is light only.

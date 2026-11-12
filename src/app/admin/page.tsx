@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { db } from "@/lib/db";
 import { getCurrentUser, hasPermission, type Permission } from "@/lib/rbac";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { isUpcoming } from "@/lib/time";
 
 const ADMIN_PERMISSIONS: Permission[] = [
@@ -23,7 +23,7 @@ export default async function AdminDashboardPage() {
   // have no dashboard content here - same minimal-shell treatment as a
   // bare LECTURER, redirected to their own profile instead.
   const hasDashboardAccess = !!user && ADMIN_PERMISSIONS.some((permission) => hasPermission(user, permission));
-  if (!hasDashboardAccess) {
+  if (!user || !hasDashboardAccess) {
     redirect("/admin/my-profile");
   }
 
@@ -58,43 +58,94 @@ export default async function AdminDashboardPage() {
   ]);
   const upcomingEventCount = publishedEvents.filter((e) => isUpcoming(e)).length;
 
-  const cards = [
-    { label: "Users", value: userCount, href: null },
-    { label: "Lecturers", value: lecturerCount, href: null },
-    { label: "Published lecturers", value: publishedLecturerCount, href: null },
-    { label: "Non-teaching staff", value: nonTeachingStaffCount, href: null },
-    { label: "Pending alumni", value: pendingAlumniCount, href: "/admin/alumni" },
-    { label: "Upcoming events", value: upcomingEventCount, href: null },
-    { label: "Draft posts", value: draftNewsCount, href: null },
-    { label: "New messages", value: newMessagesCount, href: "/admin/messages" },
-    { label: "Courses", value: courseCount, href: null },
-    { label: "Handbook pages", value: handbookPageCount, href: null },
-    { label: "Journal issues", value: journalIssueCount, href: null },
-    { label: "Journal articles", value: journalArticleCount, href: null },
-    { label: "Awaiting screening", value: awaitingScreeningCount, href: "/admin/journal/manuscripts?status=SUBMITTED" },
+  // What is waiting for a person, shown only where this user can act on it.
+  const waiting = [
+    { label: "alumni entries to approve", value: pendingAlumniCount, href: "/admin/alumni", permission: "alumni.review" as Permission },
+    { label: "new contact messages", value: newMessagesCount, href: "/admin/messages", permission: "contact.manage" as Permission },
+    { label: "manuscripts awaiting screening", value: awaitingScreeningCount, href: "/admin/journal/manuscripts?status=SUBMITTED", permission: "journal.editorial" as Permission },
+    { label: "draft news posts", value: draftNewsCount, href: "/admin/news?status=DRAFT", permission: "news.manage" as Permission },
+  ].filter((item) => item.value > 0 && hasPermission(user, item.permission));
+
+  const overview = [
+    {
+      heading: "People",
+      rows: [
+        { label: "Users", value: userCount },
+        { label: "Lecturer profiles", value: lecturerCount },
+        { label: "Published lecturer profiles", value: publishedLecturerCount },
+        { label: "Non-teaching staff", value: nonTeachingStaffCount },
+      ],
+    },
+    {
+      heading: "Content",
+      rows: [
+        { label: "Upcoming events", value: upcomingEventCount },
+        { label: "Published courses", value: courseCount },
+        { label: "Handbook pages", value: handbookPageCount },
+      ],
+    },
+    {
+      heading: "Journal",
+      rows: [
+        { label: "Published issues", value: journalIssueCount },
+        { label: "Published articles", value: journalArticleCount },
+      ],
+    },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-      {cards.map((card) => {
-        const content = (
-          <Card key={card.label} className={card.href ? "transition-colors hover:border-primary" : undefined}>
-            <CardHeader>
-              <CardTitle className="text-muted-foreground text-sm font-normal">
-                {card.label}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-2xl font-semibold">{card.value}</CardContent>
-          </Card>
-        );
-        return card.href ? (
-          <Link key={card.label} href={card.href}>
-            {content}
-          </Link>
+    <div className="space-y-12">
+      <h1 className="border-b-2 border-foreground pb-3 font-heading text-3xl font-semibold">Dashboard</h1>
+
+      <section aria-labelledby="waiting-heading">
+        <h2 id="waiting-heading" className="font-heading text-xl font-semibold">
+          Waiting for you
+        </h2>
+        {waiting.length > 0 ? (
+          <ul className="mt-2 max-w-3xl border-b border-border">
+            {waiting.map((item) => (
+              <li key={item.href} className="index-row border-t border-border">
+                <Link href={item.href} className="flex min-h-14 items-center justify-between gap-4 py-3">
+                  <span>
+                    <span className="tabular mr-2 font-heading text-2xl font-semibold text-accent">
+                      {item.value}
+                    </span>
+                    {item.label}
+                  </span>
+                  <ArrowRight className="row-arrow size-4 shrink-0 text-accent" aria-hidden="true" />
+                </Link>
+              </li>
+            ))}
+          </ul>
         ) : (
-          content
-        );
-      })}
+          <p className="mt-2 max-w-3xl border-y border-border py-4 text-muted-foreground">
+            Nothing is waiting for you right now.
+          </p>
+        )}
+      </section>
+
+      <section aria-labelledby="overview-heading">
+        <h2 id="overview-heading" className="font-heading text-xl font-semibold">
+          The site in numbers
+        </h2>
+        <div className="mt-2 grid gap-x-12 gap-y-8 md:grid-cols-3">
+          {overview.map((group) => (
+            <div key={group.heading}>
+              <h3 className="border-b-2 border-foreground pb-1.5 font-heading text-base font-semibold">
+                {group.heading}
+              </h3>
+              <dl>
+                {group.rows.map((row) => (
+                  <div key={row.label} className="flex items-baseline justify-between gap-4 border-b border-border py-2.5">
+                    <dt className="text-muted-foreground">{row.label}</dt>
+                    <dd className="tabular font-semibold">{row.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

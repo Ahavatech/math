@@ -281,3 +281,44 @@
     display: none;
   }
 }
+
+/* ---------------------------------------------------------------------
+   Admin (Operate mode): denser than the public site, same ink, rules and
+   single red. These rules are deliberately outside any @layer so they
+   win over the utility classes the 100+ admin pages already carry, which
+   lets every admin page title and section heading share one style.
+   --------------------------------------------------------------------- */
+.admin-main h1 {
+  font-size: 1.875rem;
+  line-height: 1.15;
+  font-weight: 600;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--foreground);
+}
+
+.admin-main h2 {
+  font-size: 1.25rem;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.admin-main table {
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-main th {
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 2px solid var(--foreground);
+}
+
+.admin-main td {
+  border-bottom: 1px solid var(--border);
+}
+
+/* Keep the smallest admin text readable (13px floor). */
+.admin-main .text-xs {
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}

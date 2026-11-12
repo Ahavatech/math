@@ -937,3 +937,18 @@ NOT DONE (move to Stage 14):
 **Not verified:** the article page, issue page, articles list, editorial board, dashboards, the review form, invitation, register and submission steps were not viewed; flows with real sessions (author submission, reviewer invitation and review, editor decisions) were not exercised; Playwright and axe suites, full Vitest and `npm run build` were not run; the 17 pattern-replaced files were not read after the edit, so layout problems from the mechanical changes are possible; no finish review.
 
 **Not done:** manuscript detail and review form were restyled, not recomposed; Stage 15c admin; donations page. Nothing committed.
+
+
+### Entry 056 | 2026-11-12 | Prompt 056: Stage 15c, admin pages
+
+**Asked:** Continue with the admin pages.
+
+**Scope decision:** the admin has 116 page files (about 8,600 lines). I rebuilt the shell and dashboard and gave every page a shared look through one CSS block, rather than rewriting each page.
+
+**Done:** grouped sidebar with the current page marked, collapsing behind a labelled Menu button under 1024px (previously a fixed 224px sidebar, unusable on phones); top bar with "Signed in as", a View public site link and Sign out; duplicate Manuscripts entry shown once; dashboard rebuilt as "Waiting for you" (filtered by permission, with a zero state) plus ruled counts instead of stat cards (permissions for the four action rows are alumni.review, contact.manage, journal.editorial, news.manage); `.admin-main` rules (unlayered, so they beat the utility classes already on each page) for h1, h2, tables and a 13px minimum text size.
+
+**Checks:** tsc 0 errors, eslint clean, detector `[]`, design and component tests 14/14. Viewed signed in on the local dev server: dashboard (1440 px), Lecturers list and New post form (1440 px), Lecturers at 390 px with the Menu open; no horizontal overflow at 390 px. To sign in I set a new password for the existing local dev account admin@maths.oauife.edu.ng with `scripts/set-admin-password.ts` (local database only; the value is in the session scratchpad, not in the repo or any committed file).
+
+**Not verified:** other admin pages (media library, editors, users, journal editorial screens, dialogs and the rich-text editor) were not viewed, so the `.admin-main` h1/h2/table rules may need exceptions where a page used a smaller heading on purpose; the Playwright and axe suites (including admin access tests), the full Vitest suite and `npm run build` were not run; keyboard and screen-reader behaviour of the new sidebar; no finish review.
+
+**Not done:** per-page recomposition of admin forms and lists; the donations page. Nothing committed.
