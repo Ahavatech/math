@@ -19,30 +19,73 @@ export class SelfActionError extends Error {
  * serialized into the page's RSC payload — an `include` here would ship
  * every user's password hash to the browser.
  */
-export async function listUsers(db: PrismaClient) {
-  const users = await db.user.findMany({
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      isActive: true,
-      createdAt: true,
-      updatedAt: true,
-      lastLoginAt: true,
-      passwordHash: true,
-      roles: true,
-    },
-    orderBy: { createdAt: "desc" },
-  });
+const USER_LIST_SELECT = {
+  id: true,
+  email: true,
+  name: true,
+  isActive: true,
+  createdAt: true,
+  updatedAt: true,
+  lastLoginAt: true,
+  passwordHash: true,
+  roles: true,
+} as const;
 
-  // passwordHash is selected only to derive this boolean ("invite still
-  // pending" vs "password set") and is stripped before returning, since
-  // this result is passed to a client component and a Server->Client
-  // Component prop is serialized into the page's RSC payload.
-  return users.map(({ passwordHash, ...user }) => ({
-    ...user,
-    hasPassword: passwordHash !== null,
-  }));
+/**
+ * passwordHash is selected only to derive "invite still pending" vs
+ * "password set" and is stripped here, since the result is passed to a
+ * client component and a Server->Client Component prop is serialized into
+ * the page's RSC payload.
+ */
+function toSafeUser<T extends { passwordHash: string | null }>({ passwordHash, ...user }: T) {
+  return { ...user, hasPassword: passwordHash !== null };
+}
+
+export async function listUsers(db: PrismaClient) {
+  const users = await db.user.findMany({ select: USER_LIST_SELECT, orderBy: { createdAt: "desc" } });
+  return users.map(toSafeUser);
+}
+
+/**
+ * One page of users, optionally filtered by a search over name and email
+ * (case-insensitive). The admin list uses this so it stays fast and readable
+ * however many accounts exist. Same explicit select as listUsers: no hashes.
+ */
+export async function listUsersPage(
+  db: PrismaClient,
+  options: { q?: string; page?: number; perPage?: number } = {},
+) {
+  const perPage = Math.min(100, Math.max(1, Math.floor(options.perPage ?? 25)));
+  const requestedPage = Math.floor(options.page ?? 1);
+  const page = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const q = options.q?.trim();
+  const where = q
+    ? {
+        OR: [
+          { email: { contains: q, mode: "insensitive" as const } },
+          { name: { contains: q, mode: "insensitive" as const } },
+        ],
+      }
+    : {};
+
+  const [total, rows] = await Promise.all([
+    db.user.count({ where }),
+    db.user.findMany({
+      where,
+      select: USER_LIST_SELECT,
+      orderBy: [{ createdAt: "desc" }, { id: "asc" }],
+      skip: (page - 1) * perPage,
+      take: perPage,
+    }),
+  ]);
+
+  return {
+    users: rows.map(toSafeUser),
+    total,
+    page,
+    perPage,
+    totalPages: Math.max(1, Math.ceil(total / perPage)),
+  };
 }
 
 export type SafeUser = Awaited<ReturnType<typeof listUsers>>[number];

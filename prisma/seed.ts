@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PLACEHOLDER_PROSE } from "../src/lib/placeholder";
 import { watLocalInputToUtc } from "../src/lib/time";
+import { PRIVACY_NOTICE_BODY, PRIVACY_NOTICE_TITLE } from "../src/lib/privacy-notice";
 
 /**
  * Nine research areas and three programmes, titled exactly as recorded in
@@ -421,37 +422,9 @@ export async function seed(db: PrismaClient): Promise<void> {
   // separate settings key (pages.legalReviewFlags) rather than
   // ContentStatus DRAFT, since "needs review" and "visible to the
   // public" are not the same question for this page.
-  const PRIVACY_PAGE_BODY =
-    "<p>This notice explains what happens to the information alumni give the department through the " +
-    "alumni directory form.</p>" +
-    "<h2>What we collect and why</h2>" +
-    "<p>When you fill in the alumni form, we collect your name, email address, level of study, " +
-    "graduation year, current organisation, role, city, country, industry, an optional photo and an " +
-    "optional LinkedIn link. We use this to keep the alumni directory up to date and to let the " +
-    "department check your entry before it is shown publicly.</p>" +
-    "<h2>Who sees what</h2>" +
-    "<p>Your email address is never shown publicly. It is used only so the department can reach you " +
-    "about your entry. Once your entry is approved, your name, level, graduation year, organisation, " +
-    "role, city, country, photo and LinkedIn link may appear on the public alumni page.</p>" +
-    "<h2>How long we keep rejected entries</h2>" +
-    "<p>If an entry is not approved, we keep it for 90 days in case you want to correct and resubmit " +
-    "it, then it is permanently deleted along with any photo.</p>" +
-    "<h2>Correcting or removing your entry</h2>" +
-    "<p>You can ask the department to correct or remove your entry at any time, including after it has " +
-    "been approved and published. Use the contact form and mention your entry, or use the link on your " +
-    "entry's card on the public alumni page.</p>" +
-    "<h2>Contact form messages</h2>" +
-    "<p>Messages sent through the contact form, including alumni correction and removal requests, are " +
-    "kept for 12 months after a staff member archives them, then permanently deleted.</p>" +
-    "<h2>Contact</h2>" +
-    "<p>For any question about this notice or your entry, use the contact form and choose Alumni as the " +
-    "type.</p>" +
-    "<p>[PLACEHOLDER - this notice is a plain-language draft, not a reviewed legal document. It needs " +
-    "review by OAU legal or the data protection officer before launch.]</p>";
-
   const privacyPage = await db.page.upsert({
     where: { slug: "privacy" },
-    create: { slug: "privacy", title: "Privacy notice", body: PRIVACY_PAGE_BODY, status: "PUBLISHED" },
+    create: { slug: "privacy", title: PRIVACY_NOTICE_TITLE, body: PRIVACY_NOTICE_BODY, status: "PUBLISHED" },
     update: {},
   });
   // Matches the pages.importFlags upsert above: `update: {}` means this

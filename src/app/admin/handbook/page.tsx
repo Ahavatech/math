@@ -3,9 +3,9 @@ import Link from "next/link";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { listHandbookTreeAdmin } from "@/server/services/handbook";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ReorderButtons } from "./reorder-buttons";
+import { StatusBadge } from "@/components/admin/status-badge";
 
 export default async function AdminHandbookPage() {
   const user = await getCurrentUser();
@@ -32,7 +32,7 @@ export default async function AdminHandbookPage() {
                 {page.title}
               </Link>
               <div className="flex items-center gap-2">
-                <Badge variant="secondary">{page.status}</Badge>
+                <StatusBadge status={page.status} />
                 <ReorderButtons id={page.id} />
               </div>
             </div>
@@ -44,7 +44,7 @@ export default async function AdminHandbookPage() {
                       {child.title}
                     </Link>
                     <div className="flex items-center gap-2">
-                      <Badge variant="secondary">{child.status}</Badge>
+                      <StatusBadge status={child.status} />
                       <ReorderButtons id={child.id} />
                     </div>
                   </li>

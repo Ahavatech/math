@@ -2,9 +2,9 @@
 
 import { useTransition } from "react";
 import type { Download } from "@prisma/client";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { setDownloadStatusAction, reorderDownloadAction } from "@/server/actions/downloads";
+import { StatusBadge } from "@/components/admin/status-badge";
 
 export function DownloadRow({ download }: { download: Download }) {
   const [pending, startTransition] = useTransition();
@@ -36,7 +36,7 @@ export function DownloadRow({ download }: { download: Download }) {
           {download.title}
         </a>
         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <Badge variant="secondary">{download.status}</Badge>
+          <StatusBadge status={download.status} />
           {download.fileSize ? <span>{Math.round(download.fileSize / 1024)} KB</span> : null}
         </div>
       </div>

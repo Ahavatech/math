@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { listCoursesAdmin } from "@/server/services/courses";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { StatusBadge } from "@/components/admin/status-badge";
 
 export default async function AdminCoursesPage({
   searchParams,
@@ -62,7 +63,7 @@ export default async function AdminCoursesPage({
                 {course.code} - {course.title}
               </Link>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <Badge variant="secondary">{course.status}</Badge>
+                <StatusBadge status={course.status} />
                 <span>{course.units} units</span>
                 <span>Level {course.level}</span>
                 <span>{course.semester}</span>

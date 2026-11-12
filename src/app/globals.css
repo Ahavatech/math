@@ -327,3 +327,28 @@
   font-size: 0.8125rem;
   line-height: 1.25rem;
 }
+
+/* Admin: comfortable sizes. Body text 15px, badges and small buttons large
+   enough to read and tap, and list pages that were capped narrow now use more
+   of a wide screen. */
+.admin-main .text-sm {
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
+}
+
+.admin-main .group\/badge {
+  height: 1.5rem;
+  padding-inline: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.admin-main [data-slot="button"] {
+  min-height: 2.25rem;
+}
+
+.admin-main > .max-w-3xl,
+.admin-main > .max-w-2xl,
+.admin-main > .max-w-xl {
+  max-width: 60rem;
+}
+

@@ -6,6 +6,7 @@ import { listProgrammesAdmin } from "@/server/services/programmes";
 import { getSetting } from "@/server/services/site-settings";
 import { enumToLevelSlug } from "@/lib/programme-level";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/admin/status-badge";
 
 export default async function AdminProgrammesPage() {
   const user = await getCurrentUser();
@@ -29,7 +30,7 @@ export default async function AdminProgrammesPage() {
                 {programme.title}
               </Link>
               <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                <Badge variant="secondary">{programme.status}</Badge>
+                <StatusBadge status={programme.status} />
                 {importFlags[programme.slug] ? (
                   <Badge variant="outline">Imported from the old site, needs HOD review</Badge>
                 ) : null}

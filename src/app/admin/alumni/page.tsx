@@ -6,6 +6,7 @@ import { listAlumniEntriesAdmin, findPossibleDuplicates } from "@/server/service
 import { Badge } from "@/components/ui/badge";
 import { EntryRow } from "./entry-row";
 import { BulkApproveBar } from "./bulk-approve-bar";
+import { UnderlineTabs } from "@/components/ui/filter-links";
 
 const TABS = ["pending", "approved", "rejected", "withdrawn"] as const;
 type Tab = (typeof TABS)[number];
@@ -50,17 +51,14 @@ export default async function AdminAlumniPage({
         </Link>
       </div>
 
-      <div className="flex gap-4 text-sm">
-        {TABS.map((t) => (
-          <Link
-            key={t}
-            href={`/admin/alumni?tab=${t}`}
-            className={t === tab ? "font-semibold underline" : "text-muted-foreground"}
-          >
-            {t.charAt(0).toUpperCase() + t.slice(1)}
-          </Link>
-        ))}
-      </div>
+      <UnderlineTabs
+        label="Entry status"
+        items={TABS.map((t) => ({
+          label: t.charAt(0).toUpperCase() + t.slice(1),
+          href: `/admin/alumni?tab=${t}`,
+          active: t === tab,
+        }))}
+      />
 
       {tab === "pending" && entries.length > 0 ? (
         <BulkApproveBar unflaggedIds={entries.filter((e) => !flagged.get(e.id)).map((e) => e.id)} />
@@ -70,7 +68,11 @@ export default async function AdminAlumniPage({
         {entries.map((entry) => (
           <EntryRow key={entry.id} entry={entry} isDuplicateFlagged={Boolean(flagged.get(entry.id))} tab={tab} />
         ))}
-        {entries.length === 0 ? <p className="text-sm text-muted-foreground">No entries here.</p> : null}
+        {entries.length === 0 ? (
+          <li className="border-t border-border py-6 text-muted-foreground">
+            No {tab} entries. {tab === "pending" ? "New submissions from the alumni form will appear here for approval." : ""}
+          </li>
+        ) : null}
       </ul>
 
       {tab === "pending" ? (

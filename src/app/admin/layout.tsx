@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { AdminNav } from "./admin-nav";
+import { AdminShell } from "./admin-shell";
 import { getCurrentUser, hasPermission, type Permission } from "@/lib/rbac";
 import { logoutAction } from "@/server/actions/auth";
 import { db } from "@/lib/db";
@@ -112,28 +112,28 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     .map(({ label, href, group }) => ({ label, href, group }));
 
   return (
-    <div className="admin-shell min-h-screen bg-background lg:flex">
-      <AdminNav items={navItems} />
-      <div className="min-w-0 flex-1">
-        <header className="flex items-center justify-between gap-4 border-b border-border px-4 py-2.5 sm:px-6 lg:px-8">
-          <span className="min-w-0 truncate">
-            <span className="text-sm text-muted-foreground">Signed in as </span>
-            <span className="font-medium">{dbUser?.name ?? "you"}</span>
-          </span>
-          <div className="flex shrink-0 items-center gap-4">
+    <>
+      <AdminShell
+        items={navItems}
+        headerRight={
+          <>
             <Link href="/" className="link-rule hidden py-2 text-[0.9375rem] font-medium sm:inline-block">
               View public site
             </Link>
+            <span className="hidden max-w-40 truncate text-[0.9375rem] text-muted-foreground md:inline" title="Signed in as">
+              {dbUser?.name ?? "you"}
+            </span>
             <form action={logoutAction}>
               <Button type="submit" variant="outline" className="h-10 px-4 text-[0.9375rem]">
                 Sign out
               </Button>
             </form>
-          </div>
-        </header>
-        <main className="admin-main mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">{children}</main>
-      </div>
+          </>
+        }
+      >
+        {children}
+      </AdminShell>
       <Toaster />
-    </div>
+    </>
   );
 }

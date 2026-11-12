@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { rankLabel } from "@/lib/lecturer-rank";
+import { StatusBadge } from "@/components/admin/status-badge";
 import {
   sendLecturerInviteAction,
   publishLecturerAction,
@@ -83,7 +84,7 @@ export function LecturerRow({ lecturer, completeness }: { lecturer: LecturerRowD
           </Link>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <Badge variant="secondary">{rankLabel(lecturer.rank as never)}</Badge>
-            <Badge variant="secondary">{lecturer.status}</Badge>
+            <StatusBadge status={lecturer.status} />
             <Badge variant="outline">{INVITE_LABELS[lecturer.inviteState] ?? lecturer.inviteState}</Badge>
             <span>{completeness}% complete</span>
             {lecturer.publishRequestedAt && lecturer.status !== "PUBLISHED" ? (
