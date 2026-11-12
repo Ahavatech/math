@@ -94,9 +94,12 @@ export function SiteFooter({
         ) : null}
       </div>
       <div className="border-t border-border py-4">
-        <p className="mx-auto max-w-7xl px-(--gutter) text-sm text-muted-foreground">
-          {footerText ?? `© ${year} Department of Mathematics, Obafemi Awolowo University.`}
-        </p>
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-1 px-(--gutter) text-sm text-muted-foreground">
+          <p>{footerText ?? `© ${year} Department of Mathematics, Obafemi Awolowo University.`}</p>
+          <Link href="/privacy" className="link-rule inline-block py-1.5 font-medium text-foreground">
+            Privacy notice
+          </Link>
+        </div>
       </div>
     </footer>
   );

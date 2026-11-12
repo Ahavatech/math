@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPublishedPage } from "@/server/services/site-content";
+import { formatDateWAT } from "@/lib/time";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { PageHeader } from "@/components/ui/page-header";
 import { Prose } from "@/components/ui/prose";
 import { renderRichText } from "@/lib/sanitize-html";
 
@@ -16,9 +19,14 @@ export default async function PrivacyPage() {
 
   return (
     <Section>
-      <Container className="max-w-3xl">
-        <h1 className="font-heading text-3xl font-semibold sm:text-4xl">{page.title}</h1>
-        <Prose className="mt-6" dangerouslySetInnerHTML={{ __html: renderRichText(page.body) }} />
+      <Container>
+        <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Privacy notice" }]} />
+        <PageHeader
+          className="mt-4"
+          title={page.title}
+          description={`Last updated ${formatDateWAT(page.updatedAt)}`}
+        />
+        <Prose className="mt-8" dangerouslySetInnerHTML={{ __html: renderRichText(page.body) }} />
       </Container>
     </Section>
   );
