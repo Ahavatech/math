@@ -5,20 +5,25 @@ import { hasRole } from "@/lib/rbac";
 import { db as prisma } from "@/lib/db";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatusTag, type StatusTone } from "@/components/journal/status-tag";
 import { getAuthorManuscripts } from "@/server/services/author-dashboard";
 
 export function generateMetadata() {
   return { title: "My Submissions" };
 }
 
-const STATUS_BADGE: Record<string, string> = {
-  INCOMPLETE: "bg-muted text-muted-foreground",
-  SUBMITTED: "bg-blue-100 text-blue-800",
-  SCREENING: "bg-yellow-100 text-yellow-800",
-  RETURNED_TO_AUTHOR: "bg-orange-100 text-orange-800",
-  UNDER_REVIEW: "bg-purple-100 text-purple-800",
-  REJECTED: "bg-red-100 text-red-800",
-  WITHDRAWN: "bg-muted text-muted-foreground",
+const STATUS_TONE: Record<string, StatusTone> = {
+  INCOMPLETE: "neutral",
+  SUBMITTED: "neutral",
+  SCREENING: "neutral",
+  RETURNED_TO_AUTHOR: "action",
+  REVISION_REQUESTED: "action",
+  UNDER_REVIEW: "neutral",
+  ACCEPTED: "done",
+  PUBLISHED: "done",
+  REJECTED: "bad",
+  WITHDRAWN: "neutral",
 };
 
 export default async function JournalDashboardPage() {
@@ -36,52 +41,50 @@ export default async function JournalDashboardPage() {
 
   return (
     <Section>
-      <Container className="max-w-3xl">
-        <div className="flex items-center justify-between">
-          <h1 className="font-heading text-2xl font-semibold">My submissions</h1>
-          <Link
-            href="/journal/submit"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium"
-          >
-            New submission
-          </Link>
-        </div>
+      <Container>
+        <PageHeader
+          title="My submissions"
+          actions={
+            <Link
+              href="/journal/submit"
+              className="inline-flex min-h-12 items-center bg-primary px-6 text-base font-medium text-primary-foreground transition-colors hover:bg-foreground"
+            >
+              New submission
+            </Link>
+          }
+        />
 
         {manuscripts.length === 0 ? (
-          <p className="text-muted-foreground mt-6 text-sm">
+          <p className="mt-8 border-t border-border py-5 text-muted-foreground">
             You have no submissions yet.{" "}
-            <Link href="/journal/submit" className="underline">
+            <Link href="/journal/submit" className="link-rule font-medium text-primary">
               Start a new submission
             </Link>
             .
           </p>
         ) : (
-          <ul className="mt-6 space-y-3">
+          <ul className="mt-6 max-w-4xl border-b border-border">
             {manuscripts.map((ms) => (
-              <li key={ms.id} className="flex items-center justify-between rounded-lg border p-4">
+              <li key={ms.id} className="flex items-center justify-between gap-4 border-t border-border py-4">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-sm">{ms.title || "Untitled draft"}</p>
-                  <p className="text-muted-foreground mt-0.5 text-xs">
+                  <p className="font-heading text-lg font-semibold">{ms.title || "Untitled draft"}</p>
+                  <p className="tabular mt-0.5 text-sm text-muted-foreground">
                     {ms.reference ?? "No reference yet"}
                     {ms.submittedAt && ` · Submitted ${new Date(ms.submittedAt).toLocaleDateString()}`}
                   </p>
                 </div>
-                <div className="ml-4 flex items-center gap-3">
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[ms.status] ?? ""}`}
-                  >
-                    {ms.plainLanguageStatus}
-                  </span>
+                <div className="flex flex-wrap items-center justify-end gap-x-5 gap-y-1">
+                  <StatusTag tone={STATUS_TONE[ms.status] ?? "neutral"}>{ms.plainLanguageStatus}</StatusTag>
                   <Link
                     href={`/journal/dashboard/${ms.id}`}
-                    className="text-primary text-sm underline"
+                    className="link-rule py-2 font-medium text-primary"
                   >
                     View
                   </Link>
                   {ms.status === "INCOMPLETE" && (
                     <Link
                       href={`/journal/submit/step1?draft=${ms.id}`}
-                      className="text-primary text-sm underline"
+                      className="link-rule py-2 font-medium text-primary"
                     >
                       Continue
                     </Link>

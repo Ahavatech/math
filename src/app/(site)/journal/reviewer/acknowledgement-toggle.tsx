@@ -21,8 +21,8 @@ export function AcknowledgementToggle({ initialOptIn }: { initialOptIn: boolean 
   }
 
   return (
-    <div className="mt-6 rounded-md border border-border p-4">
-      <h2 className="text-base font-semibold">Reviewer acknowledgement</h2>
+    <div className="mt-8 border-t-2 border-foreground pt-4">
+      <h2 className="font-heading text-xl font-semibold">Reviewer acknowledgement</h2>
       <p className="mt-1 text-sm text-muted-foreground">
         Allow your name to appear on the public yearly list of reviewers for this journal.
         Your identity is never linked to any specific manuscript.
@@ -30,7 +30,7 @@ export function AcknowledgementToggle({ initialOptIn }: { initialOptIn: boolean 
       <label className="mt-3 flex items-center gap-3 cursor-pointer select-none">
         <input
           type="checkbox"
-          className="h-4 w-4 rounded border-border accent-primary"
+          className="size-5 accent-primary"
           checked={optIn}
           disabled={isPending}
           onChange={(e) => handleChange(e.target.checked)}

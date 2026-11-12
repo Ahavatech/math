@@ -924,3 +924,16 @@ NOT DONE (move to Stage 14):
 **Not verified:** any page with real data (no database locally: populated lists, the lecturer profile, news and event detail pages, the alumni cards, search results were not seen), the Playwright and axe suites (headings, link text and some selectors changed; not run), the full Vitest suite, `npm run build`, keyboard and screen-reader behaviour, and the finish review.
 
 **Not done:** alumni submission form and confirmation, course and handbook detail pages, events series, 403 and 404 pages (inherit tokens only); Stage 15b journal and 15c admin. Nothing committed.
+
+
+### Entry 055 | 2026-11-12 | Prompt 055: Stage 15b, journal pages
+
+**Asked:** Continue with the journal pages.
+
+**Done:** a journal running head shared by every journal page (layout plus client nav with active state; it reads no session so static journal pages stay static); landing, articles list (search, type and year filters, PageNav), article page (retraction and correction notices, PDF as a real link instead of a button inside a link, how-to-cite block), issue archive and issue page, editorial board and the four text pages recomposed; author dashboard and reviewer dashboard rebuilt on PageHeader with a `StatusTag` component replacing the multicolour status pills; headings, buttons, fields and notice boxes restyled across dashboard detail, reviewer invitation and review form, register, verify and the five submission steps by pattern replacement (17 files). Layout fix found while verifying: the ten-item primary navigation was clipped at 1280 px, so the container is now 80rem and the inline navigation starts at 1366 px, with the Menu button below that.
+
+**Checks:** tsc 0 errors, eslint clean, impeccable detector `[]` on the journal pages and components, design and component unit tests 14/14 (run with TEST_DATABASE_URL blank). Viewed in the dev server: journal archive at 1280 and 390 px, journal landing at 1440 and 1280 px (this run had local data: two sample articles).
+
+**Not verified:** the article page, issue page, articles list, editorial board, dashboards, the review form, invitation, register and submission steps were not viewed; flows with real sessions (author submission, reviewer invitation and review, editor decisions) were not exercised; Playwright and axe suites, full Vitest and `npm run build` were not run; the 17 pattern-replaced files were not read after the edit, so layout problems from the mechanical changes are possible; no finish review.
+
+**Not done:** manuscript detail and review form were restyled, not recomposed; Stage 15c admin; donations page. Nothing committed.

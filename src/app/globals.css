@@ -93,7 +93,7 @@
 
   /* Page gutter, shared by Container and the margin rule. */
   --gutter: 1.25rem;
-  --sheet-width: 72rem;
+  --sheet-width: 80rem;
 }
 
 @media (min-width: 640px) {

@@ -29,7 +29,7 @@ export default async function ReviewerAcknowledgementPage({ params }: { params: 
             { label: `Reviewers ${year}` },
           ]}
         />
-        <h1 className="mt-4 font-heading text-3xl font-semibold">
+        <h1 className="mt-4 mb-6 border-b-2 border-foreground pb-4 font-heading text-4xl leading-[1.08] font-semibold text-balance">
           Reviewers for {year}
         </h1>
         <p className="mt-2 text-muted-foreground text-sm">

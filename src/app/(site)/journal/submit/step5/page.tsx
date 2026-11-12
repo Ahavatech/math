@@ -57,7 +57,7 @@ export default async function SubmitStep5Page({
     <Section>
       <Container className="max-w-2xl">
         <p className="text-muted-foreground mb-1 text-sm">Step 5 of 5</p>
-        <h1 className="font-heading text-2xl font-semibold">Review and submit</h1>
+        <h1 className="mb-6 border-b-2 border-foreground pb-4 font-heading text-4xl leading-[1.08] font-semibold text-balance">Review and submit</h1>
         <p className="text-muted-foreground mt-1 text-sm">
           Please review your submission before submitting. You cannot make changes after submission.
         </p>

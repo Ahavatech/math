@@ -61,6 +61,14 @@ Recomposed with the same grammar (2px ink rule under the title, ruled rows, squa
 - Details: Lecturer (sticky sidebar with photo, contact and links; publications by year; courses as ruled rows), News post, Event, Programme, Research area, About (HOD address two-column), Contact (department details beside the form).
 - New shared pieces: `src/components/ui/filter-links.tsx` (`FilterLinks`, `UnderlineTabs`, `PageNav`) and `src/components/ui/field-classes.ts`.
 
+## Journal (Stage 15b)
+
+The journal has its own running head (`src/app/(site)/journal/layout.tsx`, `journal-nav.tsx`): the journal's name, its sections (About, Articles, Archive, Editorial board, Guidelines, Call for papers, Policies), My submissions and, when submissions are open, Submit a manuscript. It scrolls sideways on phones and reads no session, so journal pages stay static. Redone: landing, articles list, article page (title in serif, abstract, keywords, PDF, how to cite, retraction and correction notices as bordered notices), issue archive and issue page, editorial board, the four text pages, and the author dashboard, reviewer dashboard and wizard forms (restyled controls and buttons). Manuscript and review statuses use `StatusTag` (`src/components/journal/status-tag.tsx`): words carry the meaning, red fill means it needs the reader, ink fill means finished, red outline means failed. The rainbow status pills are gone.
+
+## Layout width
+
+The page container is now 80rem (was 72rem). The primary navigation is inline from 1366 px up; below that the labelled Menu button is used, because ten navigation items do not fit beside the title at 1280 px.
+
 ## Not yet redesigned
 
-The alumni submission form and confirmation page, individual course and handbook pages, the events series page and the 403/404 pages only inherit the new tokens. The journal (Stage 15b) and the admin area (Stage 15c) are untouched. The old shadcn dark theme block was removed because the site is light only.
+The alumni submission form and confirmation page, individual course and handbook pages, the events series page and the 403/404 pages only inherit the new tokens. The journal author and reviewer inner screens (manuscript detail, review form, invitation, verify, register) only had their controls, headings and statuses restyled, not recomposed. The admin area (Stage 15c) is untouched. The old shadcn dark theme block was removed because the site is light only.

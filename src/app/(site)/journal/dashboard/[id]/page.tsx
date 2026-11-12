@@ -67,7 +67,7 @@ export default async function ManuscriptDetailPage({
         </Link>
 
         <div className="mt-4">
-          <h1 className="font-heading text-2xl font-semibold">{ms.title || "Untitled draft"}</h1>
+          <h1 className="mb-6 border-b-2 border-foreground pb-4 font-heading text-4xl leading-[1.08] font-semibold text-balance">{ms.title || "Untitled draft"}</h1>
           <p className="text-muted-foreground mt-1 text-sm">
             {ms.reference ?? "Not yet submitted"} &middot; {ms.plainLanguageStatus}
           </p>
@@ -76,7 +76,7 @@ export default async function ManuscriptDetailPage({
         {/* Files */}
         {ms.files.length > 0 && (
           <section className="mt-6">
-            <h2 className="font-heading text-base font-semibold">Files</h2>
+            <h2 className="font-heading text-xl font-semibold">Files</h2>
             <ul className="mt-2 space-y-1">
               {ms.files.map((f) => (
                 <li key={f.id} className="flex items-center justify-between text-sm">
@@ -98,7 +98,7 @@ export default async function ManuscriptDetailPage({
         {/* Timeline */}
         {ms.events.length > 0 && (
           <section className="mt-6">
-            <h2 className="font-heading text-base font-semibold">Timeline</h2>
+            <h2 className="font-heading text-xl font-semibold">Timeline</h2>
             <ol className="mt-2 space-y-2">
               {ms.events.map((e) => (
                 <li key={e.id} className="text-sm">
@@ -116,8 +116,8 @@ export default async function ManuscriptDetailPage({
         {/* Rejection letter (desk reject / return) */}
         {ms.rejectionLetter && (
           <section className="mt-6">
-            <h2 className="font-heading text-base font-semibold">Editor message</h2>
-            <div className="bg-muted mt-2 rounded-lg border p-4">
+            <h2 className="font-heading text-xl font-semibold">Editor message</h2>
+            <div className="mt-2 border border-border bg-secondary p-4">
               <p className="whitespace-pre-wrap text-sm">{ms.rejectionLetter}</p>
             </div>
           </section>
@@ -126,11 +126,11 @@ export default async function ManuscriptDetailPage({
         {/* Decision letter (from peer review round) */}
         {latestDecision?.letterHtml && !ms.rejectionLetter && (
           <section className="mt-6">
-            <h2 className="font-heading text-base font-semibold">
+            <h2 className="font-heading text-xl font-semibold">
               Editorial decision: {latestDecision.decision.replace(/_/g, " ").toLowerCase()}
             </h2>
             <div
-              className="bg-muted prose prose-sm mt-2 max-w-none rounded-lg border p-4"
+              className="prose prose-sm mt-2 max-w-none border border-border bg-secondary p-4"
               dangerouslySetInnerHTML={{ __html: latestDecision.letterHtml }}
             />
           </section>
@@ -139,10 +139,10 @@ export default async function ManuscriptDetailPage({
         {/* Reviewer comments (author view: labels only, no reviewer identity) */}
         {authorReviews.length > 0 && (
           <section className="mt-6">
-            <h2 className="font-heading text-base font-semibold">Reviewer comments</h2>
+            <h2 className="font-heading text-xl font-semibold">Reviewer comments</h2>
             <div className="mt-3 space-y-4">
               {authorReviews.map((r) => (
-                <div key={r.label} className="rounded border p-4 text-sm">
+                <div key={r.label} className="border border-border p-4">
                   <p className="font-medium mb-2">
                     {r.label}
                     {r.recommendation && (
@@ -170,7 +170,7 @@ export default async function ManuscriptDetailPage({
           <section className="mt-6">
             <Link
               href={`/journal/submit/step1?draft=${ms.id}`}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-block rounded-md px-4 py-2 text-sm font-medium"
+              className="inline-flex min-h-12 items-center bg-primary px-6 text-base font-medium text-primary-foreground transition-colors hover:bg-foreground disabled:opacity-50"
             >
               Upload corrected files and resubmit
             </Link>
@@ -179,15 +179,15 @@ export default async function ManuscriptDetailPage({
 
         {/* Revision upload for REVISION_REQUESTED */}
         {ms.status === "REVISION_REQUESTED" && (
-          <section className="mt-6 rounded-lg border border-orange-200 bg-orange-50 p-4">
-            <h2 className="font-semibold text-orange-800 mb-1">Revision requested</h2>
-            <p className="text-sm text-orange-700 mb-3">
+          <section className="mt-6 border-2 border-accent bg-secondary p-4">
+            <h2 className="font-heading text-xl font-semibold text-accent mb-1">Revision requested</h2>
+            <p className="mb-3 text-accent">
               Please review the editor decision letter and reviewer comments above, then upload your
               revised manuscript.
             </p>
             <Link
               href={`/journal/submit/step1?draft=${ms.id}&revision=1`}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-block rounded-md px-4 py-2 text-sm font-medium"
+              className="inline-flex min-h-12 items-center bg-primary px-6 text-base font-medium text-primary-foreground transition-colors hover:bg-foreground disabled:opacity-50"
             >
               Upload revised manuscript
             </Link>

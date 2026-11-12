@@ -63,8 +63,8 @@ export function ReviewForm({ assignmentId, initialData, isSubmitted }: ReviewFor
 
   if (isSubmitted) {
     return (
-      <div className="rounded-lg border p-6 bg-muted/30">
-        <p className="font-medium text-green-700">This review has been submitted and is locked.</p>
+      <div className="border border-border bg-secondary p-6">
+        <p className="font-medium text-primary">This review has been submitted and is locked.</p>
         <dl className="mt-4 space-y-3 text-sm">
           <div>
             <dt className="font-medium">Recommendation</dt>
@@ -95,7 +95,7 @@ export function ReviewForm({ assignmentId, initialData, isSubmitted }: ReviewFor
           id="recommendation"
           value={recommendation}
           onChange={(e) => setRecommendation(e.target.value)}
-          className="block w-full border rounded-md px-3 py-2 text-sm"
+          className="block min-h-12 w-full border border-input bg-background px-3 py-2 text-base"
           required
         >
           <option value="">Select a recommendation</option>
@@ -117,7 +117,7 @@ export function ReviewForm({ assignmentId, initialData, isSubmitted }: ReviewFor
           onChange={(e) => setCommentsToAuthor(e.target.value)}
           onBlur={saveDraft}
           rows={10}
-          className="block w-full border rounded-md px-3 py-2 text-sm"
+          className="block min-h-12 w-full border border-input bg-background px-3 py-2 text-base"
           required
           placeholder="Your comments will be shared with the author."
         />
@@ -133,7 +133,7 @@ export function ReviewForm({ assignmentId, initialData, isSubmitted }: ReviewFor
           onChange={(e) => setCommentsToEditor(e.target.value)}
           onBlur={saveDraft}
           rows={4}
-          className="block w-full border rounded-md px-3 py-2 text-sm"
+          className="block min-h-12 w-full border border-input bg-background px-3 py-2 text-base"
           placeholder="These comments will not be shared with the author."
         />
       </div>
@@ -142,7 +142,7 @@ export function ReviewForm({ assignmentId, initialData, isSubmitted }: ReviewFor
         <p className="text-xs text-muted-foreground">Saving draft...</p>
       )}
       {saveStatus === "saved" && (
-        <p className="text-xs text-green-600">Draft saved</p>
+        <p className="text-sm text-primary">Draft saved</p>
       )}
       {saveStatus === "error" && (
         <p className="text-xs text-destructive">Failed to save draft</p>
@@ -157,14 +157,14 @@ export function ReviewForm({ assignmentId, initialData, isSubmitted }: ReviewFor
           type="button"
           onClick={saveDraft}
           disabled={isPending}
-          className="px-4 py-2 border rounded-md text-sm font-medium"
+          className="inline-flex min-h-12 items-center border border-foreground px-6 text-base font-medium transition-colors hover:bg-foreground hover:text-background"
         >
           Save draft
         </button>
         <button
           type="submit"
           disabled={isPending || !recommendation || !commentsToAuthor.trim()}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium disabled:opacity-50"
+          className="inline-flex min-h-12 items-center bg-primary px-6 text-base font-medium text-primary-foreground transition-colors hover:bg-foreground disabled:opacity-50"
         >
           Submit review
         </button>

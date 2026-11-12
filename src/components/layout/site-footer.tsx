@@ -19,7 +19,7 @@ export function SiteFooter({
 
   return (
     <footer data-site-footer className="mt-16 border-t-2 border-foreground bg-background">
-      <div className="mx-auto grid max-w-6xl gap-10 px-(--gutter) py-12 lg:grid-cols-[1.2fr_2fr_1.2fr]">
+      <div className="mx-auto grid max-w-7xl gap-10 px-(--gutter) py-12 lg:grid-cols-[1.2fr_2fr_1.2fr]">
         <div>
           <p className="font-heading text-xl font-semibold">Department of Mathematics</p>
           <p className="mt-1 text-muted-foreground">Obafemi Awolowo University, Ile-Ife</p>
@@ -84,7 +84,7 @@ export function SiteFooter({
         ) : null}
       </div>
       <div className="border-t border-border py-4">
-        <p className="mx-auto max-w-6xl px-(--gutter) text-sm text-muted-foreground">
+        <p className="mx-auto max-w-7xl px-(--gutter) text-sm text-muted-foreground">
           {footerText ?? `© ${year} Department of Mathematics, Obafemi Awolowo University.`}
         </p>
       </div>

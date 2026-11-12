@@ -44,9 +44,9 @@ export default async function SubmitStep3Page({
     <Section>
       <Container className="max-w-2xl">
         <p className="text-muted-foreground mb-1 text-sm">Step 3 of 5</p>
-        <h1 className="font-heading text-2xl font-semibold">Files and cover letter</h1>
+        <h1 className="mb-6 border-b-2 border-foreground pb-4 font-heading text-4xl leading-[1.08] font-semibold text-balance">Files and cover letter</h1>
 
-        <div className="mt-4 rounded-lg border p-4">
+        <div className="mt-4 border-t border-border py-4">
           <p className="font-medium text-sm">Manuscript file (PDF or DOCX)</p>
           {manuscriptFile ? (
             <p className="text-muted-foreground mt-1 text-sm">

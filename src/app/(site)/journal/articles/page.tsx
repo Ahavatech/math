@@ -5,8 +5,10 @@ import { ARTICLE_TYPES } from "@/lib/validators/journal";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
+import { PageNav } from "@/components/ui/filter-links";
+import { fieldControl, fieldButton } from "@/components/ui/field-classes";
+import { humanise } from "@/lib/labels";
 
 export const revalidate = 300;
 
@@ -28,52 +30,76 @@ export default async function JournalArticlesPage({
     page,
   });
   const totalPages = Math.max(1, Math.ceil(total / perPage));
+  const hasFilter = Boolean(params.q || params.year || params.type);
 
   return (
     <Section>
-      <Container className="max-w-3xl">
+      <Container>
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Journal", href: "/journal" }, { label: "Articles" }]} />
-        <h1 className="mt-4 font-heading text-3xl font-semibold">Articles</h1>
+        <PageHeader className="mt-4" title="Articles" />
 
-        <form method="get" className="mt-6 flex flex-wrap gap-2">
-          <Input name="q" defaultValue={params.q} placeholder="Search title or keywords" className="max-w-xs" />
-          <select name="type" defaultValue={params.type ?? ""} className="h-9 rounded-md border border-input bg-background px-2 text-sm">
+        <form method="get" role="search" className="mt-6 grid gap-3 sm:grid-cols-[2fr_1fr_8rem_auto]">
+          <input
+            name="q"
+            type="search"
+            aria-label="Search title or keywords"
+            defaultValue={params.q}
+            placeholder="Search title or keywords"
+            className={fieldControl}
+          />
+          <select name="type" aria-label="Article type" defaultValue={params.type ?? ""} className={fieldControl}>
             <option value="">Any type</option>
             {ARTICLE_TYPES.map((t) => (
-              <option key={t} value={t}>{t.replace(/_/g, " ").toLowerCase()}</option>
+              <option key={t} value={t}>{humanise(t)}</option>
             ))}
           </select>
-          <Input name="year" defaultValue={params.year} placeholder="Year" className="w-24" />
-          <Button type="submit" variant="outline">Filter</Button>
+          <input
+            name="year"
+            inputMode="numeric"
+            aria-label="Year"
+            defaultValue={params.year}
+            placeholder="Year"
+            className={fieldControl}
+          />
+          <div className="flex items-center gap-5">
+            <button type="submit" className={fieldButton}>
+              Filter
+            </button>
+            {hasFilter ? (
+              <Link href="/journal/articles" className="link-rule py-2 font-medium">
+                Clear
+              </Link>
+            ) : null}
+          </div>
         </form>
 
         {articles.length === 0 ? (
-          <p className="mt-6 text-muted-foreground">No articles found.</p>
+          <p className="mt-8 border-t border-border py-5 text-muted-foreground">No articles found.</p>
         ) : (
-          <ul className="mt-6 divide-y divide-border">
+          <ul className="mt-8 max-w-4xl">
             {articles.map((article) => (
-              <li key={article.id} className="py-3">
-                <Link href={`/journal/articles/${article.slug}`} className="font-medium text-primary hover:underline">
-                  {article.title}
+              <li key={article.id} className="index-row border-t border-border">
+                <Link href={`/journal/articles/${article.slug}`} className="block py-5">
+                  <span className="block font-heading text-2xl leading-snug font-semibold">
+                    {article.title}
+                  </span>
+                  <span className="mt-1 block text-muted-foreground">
+                    {article.authors.map((a) => a.name).join(", ")}
+                  </span>
                 </Link>
-                <p className="text-sm text-muted-foreground">{article.authors.map((a) => a.name).join(", ")}</p>
               </li>
             ))}
           </ul>
         )}
 
         {totalPages > 1 ? (
-          <nav className="mt-6 flex gap-2 text-sm" aria-label="Pagination">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <Link
-                key={p}
-                href={`/journal/articles?${new URLSearchParams({ ...params, page: String(p) } as Record<string, string>).toString()}`}
-                className={p === page ? "font-semibold text-primary" : "text-primary hover:underline"}
-              >
-                {p}
-              </Link>
-            ))}
-          </nav>
+          <PageNav
+            page={page}
+            totalPages={totalPages}
+            hrefFor={(target) =>
+              `/journal/articles?${new URLSearchParams({ ...params, page: String(target) } as Record<string, string>).toString()}`
+            }
+          />
         ) : null}
       </Container>
     </Section>

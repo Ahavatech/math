@@ -46,7 +46,7 @@ export default async function ReviewAssignmentPage({ params }: Props) {
           </Link>
         </div>
 
-        <h1 className="text-2xl font-bold mb-2">Review assignment</h1>
+        <h1 className="mb-6 border-b-2 border-foreground pb-4 font-heading text-4xl leading-[1.08] font-semibold text-balance">Review assignment</h1>
         <p className="text-sm text-muted-foreground mb-6">
           Reference: {assignment.manuscript.reference ?? id} &middot; Round{" "}
           {roundNumber}
@@ -54,7 +54,7 @@ export default async function ReviewAssignmentPage({ params }: Props) {
 
         {files.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-lg font-semibold mb-3">Manuscript files</h2>
+            <h2 className="font-heading text-xl font-semibold mb-3">Manuscript files</h2>
             <ul className="space-y-2">
               {files.map((f) => (
                 <li key={f.id}>
@@ -72,7 +72,7 @@ export default async function ReviewAssignmentPage({ params }: Props) {
           </div>
         )}
 
-        <h2 className="text-lg font-semibold mb-4">Your review</h2>
+        <h2 className="font-heading text-xl font-semibold mb-4">Your review</h2>
         <ReviewForm
           assignmentId={id}
           initialData={

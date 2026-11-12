@@ -12,7 +12,6 @@ import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Prose } from "@/components/ui/prose";
-import { Button } from "@/components/ui/button";
 
 export const revalidate = 300;
 
@@ -124,32 +123,32 @@ export default async function JournalArticleDetailPage({ params }: { params: Pro
           ]}
         />
         {article.status === "RETRACTED" ? (
-          <div className="mt-4 rounded-md border border-destructive/50 bg-destructive/5 p-4">
-            <p className="font-semibold text-destructive">This article has been retracted.</p>
+          <div className="mt-4 border-2 border-destructive bg-destructive/5 p-4">
+            <p className="text-lg font-semibold text-destructive">This article has been retracted.</p>
             {article.retractionReason ? (
-              <p className="mt-1 text-sm text-destructive/80">{article.retractionReason}</p>
+              <p className="mt-1 text-destructive">{article.retractionReason}</p>
             ) : null}
           </div>
         ) : null}
 
         {article.status === "CORRECTED" && Array.isArray(article.notices) && (article.notices as string[]).length > 0 ? (
-          <div className="mt-4 rounded-md border border-amber-500/50 bg-amber-50 dark:bg-amber-950/20 p-4 space-y-1">
-            <p className="font-semibold text-amber-800 dark:text-amber-200">Correction notice</p>
+          <div className="mt-4 space-y-1 border-2 border-foreground bg-secondary p-4">
+            <p className="text-lg font-semibold">Correction notice</p>
             {(article.notices as string[]).map((n, i) => (
-              <p key={i} className="text-sm text-amber-700 dark:text-amber-300">{n}</p>
+              <p key={i}>{n}</p>
             ))}
           </div>
         ) : null}
 
-        <h1 className="mt-4 font-heading text-3xl font-semibold">{article.title}</h1>
+        <h1 className="mt-6 font-heading text-4xl leading-[1.1] font-semibold text-balance sm:text-5xl">{article.title}</h1>
 
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-4 text-lg text-foreground">
           {article.authors.map((a, i) => (
             <span key={a.id}>
               {i > 0 ? ", " : ""}
               {a.name}
               {a.orcid ? (
-                <a href={`https://orcid.org/${a.orcid}`} rel="noopener noreferrer" target="_blank" className="ml-1 text-primary hover:underline">
+                <a href={`https://orcid.org/${a.orcid}`} rel="noopener noreferrer" target="_blank" className="link-rule ml-1.5 text-sm font-medium text-primary">
                   ORCID
                 </a>
               ) : null}
@@ -157,63 +156,66 @@ export default async function JournalArticleDetailPage({ params }: { params: Pro
           ))}
         </p>
         {article.authors.some((a) => a.affiliation) ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground">
             {article.authors.filter((a) => a.affiliation).map((a) => a.affiliation).join("; ")}
           </p>
         ) : null}
 
-        <div className="mt-4 flex flex-wrap gap-3 text-sm text-muted-foreground">
+        <div className="tabular mt-5 flex flex-wrap gap-x-6 gap-y-1 border-t border-border pt-4 text-muted-foreground">
           {article.issue ? (
-            <Link href={`/journal/issues/${article.issue.volume}/${article.issue.number}`} className="text-primary hover:underline">
+            <Link href={`/journal/issues/${article.issue.volume}/${article.issue.number}`} className="link-rule font-medium text-primary">
               Vol. {article.issue.volume}, No. {article.issue.number} ({article.issue.year})
             </Link>
           ) : (
             <span>Online first</span>
           )}
           {article.doi ? (
-            <a href={`https://doi.org/${article.doi}`} rel="noopener noreferrer" target="_blank" className="text-primary hover:underline">
+            <a href={`https://doi.org/${article.doi}`} rel="noopener noreferrer" target="_blank" className="link-rule font-medium text-primary">
               https://doi.org/{article.doi}
             </a>
           ) : null}
           {licenseLabel ? <span>{licenseLabel}</span> : null}
         </div>
 
-        <h2 className="mt-6 font-heading text-lg font-semibold">Abstract</h2>
-        <Prose className="mt-2" dangerouslySetInnerHTML={{ __html: renderRichText(article.abstract) }} />
+        <h2 className="mt-10 border-b-2 border-foreground pb-2 font-heading text-2xl font-semibold">Abstract</h2>
+        <Prose className="mt-4" dangerouslySetInnerHTML={{ __html: renderRichText(article.abstract) }} />
 
         {article.keywords.length > 0 ? (
-          <div className="mt-4 flex flex-wrap gap-2 text-sm">
+          <div className="mt-6 flex flex-wrap gap-2">
             {article.keywords.map((kw) => (
-              <Link key={kw} href={`/journal/articles?q=${encodeURIComponent(kw)}`} className="rounded-full border border-border px-2 py-0.5 text-primary hover:underline">
+              <Link key={kw} href={`/journal/articles?q=${encodeURIComponent(kw)}`} className="inline-flex min-h-9 items-center border border-foreground px-3 text-[0.9375rem] font-medium transition-colors hover:bg-secondary">
                 {kw}
               </Link>
             ))}
           </div>
         ) : null}
 
-        <div className="mt-6 flex flex-wrap gap-4 text-sm text-muted-foreground">
+        <div className="tabular mt-6 flex flex-wrap gap-6 text-muted-foreground">
           {article.receivedAt ? <span>Received: {article.receivedAt.toISOString().slice(0, 10)}</span> : null}
           {article.acceptedAt ? <span>Accepted: {article.acceptedAt.toISOString().slice(0, 10)}</span> : null}
         </div>
 
-        <div className="mt-6">
-          <a href={`/journal/articles/${article.slug}/pdf`}>
-            <Button>Download PDF</Button>
+        <div className="mt-8">
+          <a
+            href={`/journal/articles/${article.slug}/pdf`}
+            className="inline-flex h-12 items-center bg-primary px-6 text-base font-medium text-primary-foreground transition-colors hover:bg-foreground"
+          >
+            Download PDF
           </a>
         </div>
 
-        <div className="mt-8 rounded-md border border-border p-4">
-          <h2 className="font-heading text-lg font-semibold">How to cite</h2>
-          <p className="mt-2 text-sm">{apaCitation}</p>
-          <div className="mt-2 flex gap-3 text-sm">
-            <a href={`/journal/articles/${article.slug}/cite.bib`} className="text-primary hover:underline">BibTeX</a>
-            <a href={`/journal/articles/${article.slug}/cite.ris`} className="text-primary hover:underline">RIS</a>
+        <div className="mt-12 border-t-2 border-foreground pt-4">
+          <h2 className="font-heading text-xl font-semibold">How to cite</h2>
+          <p className="mt-2">{apaCitation}</p>
+          <div className="mt-2 flex gap-5">
+            <a href={`/journal/articles/${article.slug}/cite.bib`} className="link-rule py-1.5 font-medium text-primary">BibTeX</a>
+            <a href={`/journal/articles/${article.slug}/cite.ris`} className="link-rule py-1.5 font-medium text-primary">RIS</a>
           </div>
         </div>
 
-        <div className="mt-6 text-sm text-muted-foreground">
+        <div className="mt-6 text-sm break-all text-muted-foreground">
           Share:{" "}
-          <a href={abstractUrl} className="text-primary hover:underline">{abstractUrl}</a>
+          <a href={abstractUrl} className="link-rule text-primary">{abstractUrl}</a>
         </div>
       </Container>
     </Section>

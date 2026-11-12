@@ -43,7 +43,7 @@ export default async function SubmitStep2Page({
     <Section>
       <Container className="max-w-2xl">
         <p className="text-muted-foreground mb-1 text-sm">Step 2 of 5</p>
-        <h1 className="font-heading text-2xl font-semibold">Authors</h1>
+        <h1 className="mb-6 border-b-2 border-foreground pb-4 font-heading text-4xl leading-[1.08] font-semibold text-balance">Authors</h1>
         <p className="text-muted-foreground mt-1 text-sm">
           List all authors. Mark exactly one as corresponding author.
         </p>
@@ -51,7 +51,7 @@ export default async function SubmitStep2Page({
           <input type="hidden" name="draftId" value={ms.id} />
 
           {authors.map((a, i) => (
-            <div key={i} className="space-y-3 rounded-lg border p-4">
+            <div key={i} className="space-y-3 border border-border p-4">
               <p className="font-medium text-sm">Author {i + 1}</p>
               <div className="space-y-1">
                 <Label htmlFor={`author-name-${i}`}>Full name</Label>

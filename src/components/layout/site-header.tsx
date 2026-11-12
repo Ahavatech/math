@@ -41,8 +41,8 @@ export function SiteHeader({ nav }: { nav: NavLink[] }) {
       data-site-header
       className="sticky top-0 z-40 border-b border-foreground bg-background"
     >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-(--gutter)">
-        <Link href="/" className="flex min-w-0 flex-1 items-center gap-3 xl:flex-none">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-(--gutter)">
+        <Link href="/" className="flex min-w-0 flex-1 items-center gap-3 min-[1366px]:flex-none">
           <Image src={oauLogo} alt="" aria-hidden="true" className="h-10 w-auto shrink-0" priority />
           <span className="flex min-w-0 flex-col leading-tight">
             <span className="font-heading text-base leading-tight font-semibold sm:text-[1.0625rem]">
@@ -54,7 +54,7 @@ export function SiteHeader({ nav }: { nav: NavLink[] }) {
           </span>
         </Link>
 
-        <nav aria-label="Primary" className="hidden xl:block">
+        <nav aria-label="Primary" className="hidden min-[1366px]:block">
           <ul className="flex items-center">
             {nav.map((item) => {
               const active = isActive(pathname, item.href);
@@ -106,12 +106,12 @@ export function SiteHeader({ nav }: { nav: NavLink[] }) {
             className="inline-flex h-10 items-center gap-2 px-3 text-[0.9375rem] font-medium hover:text-accent"
           >
             <Search className="size-4" aria-hidden="true" />
-            <span className="hidden sm:inline">Search</span>
-            <span className="sr-only sm:hidden">Search</span>
+            <span className="hidden sm:inline min-[1366px]:hidden min-[1536px]:inline">Search</span>
+            <span className="sr-only sm:hidden min-[1366px]:not-sr-only min-[1366px]:hidden">Search</span>
           </a>
           <button
             type="button"
-            className="inline-flex h-10 items-center gap-2 border border-foreground px-3 text-[0.9375rem] font-medium transition-colors hover:bg-foreground hover:text-background xl:hidden"
+            className="inline-flex h-10 items-center gap-2 border border-foreground px-3 text-[0.9375rem] font-medium transition-colors hover:bg-foreground hover:text-background min-[1366px]:hidden"
             aria-expanded={mobileOpen}
             aria-controls="mobile-nav"
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -129,9 +129,9 @@ export function SiteHeader({ nav }: { nav: NavLink[] }) {
       {mobileOpen ? (
         <div
           id="mobile-nav"
-          className="fixed inset-x-0 top-16 bottom-0 z-30 overflow-y-auto bg-background animate-in fade-in slide-in-from-top-2 duration-200 xl:hidden"
+          className="fixed inset-x-0 top-16 bottom-0 z-30 overflow-y-auto bg-background animate-in fade-in slide-in-from-top-2 duration-200 min-[1366px]:hidden"
         >
-          <div className="mx-auto max-w-6xl px-(--gutter) pt-5 pb-12">
+          <div className="mx-auto max-w-7xl px-(--gutter) pt-5 pb-12">
             <form action="/search" method="get" role="search" className="flex">
               <label htmlFor="mobile-search" className="sr-only">
                 Search the site

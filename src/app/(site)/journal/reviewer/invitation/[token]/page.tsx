@@ -31,7 +31,7 @@ export default async function ReviewerInvitationPage({ params, searchParams }: P
       return (
         <Section>
           <Container>
-            <h1 className="text-2xl font-bold mb-4">Invitation error</h1>
+            <h1 className="mb-6 border-b-2 border-foreground pb-4 font-heading text-4xl leading-[1.08] font-semibold text-balance">Invitation error</h1>
             <p className="text-destructive">{result.error}</p>
           </Container>
         </Section>
@@ -46,7 +46,7 @@ export default async function ReviewerInvitationPage({ params, searchParams }: P
       return (
         <Section>
           <Container>
-            <h1 className="text-2xl font-bold mb-4">Invitation error</h1>
+            <h1 className="mb-6 border-b-2 border-foreground pb-4 font-heading text-4xl leading-[1.08] font-semibold text-balance">Invitation error</h1>
             <p className="text-destructive">{result.error}</p>
           </Container>
         </Section>
@@ -55,7 +55,7 @@ export default async function ReviewerInvitationPage({ params, searchParams }: P
     return (
       <Section>
         <Container>
-          <h1 className="text-2xl font-bold mb-4">Invitation declined</h1>
+          <h1 className="mb-6 border-b-2 border-foreground pb-4 font-heading text-4xl leading-[1.08] font-semibold text-balance">Invitation declined</h1>
           <p>Thank you for letting us know. The editorial team has been notified.</p>
         </Container>
       </Section>
@@ -66,7 +66,7 @@ export default async function ReviewerInvitationPage({ params, searchParams }: P
   return (
     <Section>
       <Container className="max-w-lg">
-        <h1 className="text-2xl font-bold mb-4">Reviewer invitation</h1>
+        <h1 className="mb-6 border-b-2 border-foreground pb-4 font-heading text-4xl leading-[1.08] font-semibold text-balance">Reviewer invitation</h1>
         <p className="mb-6 text-muted-foreground">
           You have been invited to review a manuscript. Please choose whether to accept or decline.
         </p>
@@ -74,7 +74,7 @@ export default async function ReviewerInvitationPage({ params, searchParams }: P
           <form action={`/journal/reviewer/invitation/${token}?action=accept`} method="get">
             <button
               type="submit"
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium"
+              className="inline-flex min-h-12 items-center bg-primary px-6 text-base font-medium text-primary-foreground transition-colors hover:bg-foreground disabled:opacity-50"
             >
               Accept
             </button>
@@ -82,7 +82,7 @@ export default async function ReviewerInvitationPage({ params, searchParams }: P
           <form action={`/journal/reviewer/invitation/${token}?action=decline`} method="get">
             <button
               type="submit"
-              className="px-4 py-2 border rounded-md font-medium"
+              className="inline-flex min-h-12 items-center border border-foreground px-6 text-base font-medium transition-colors hover:bg-foreground hover:text-background"
             >
               Decline
             </button>

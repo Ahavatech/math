@@ -4,9 +4,11 @@ import { db } from "@/lib/db";
 import { getPublicIssueByVolumeNumber } from "@/server/services/journal-issues";
 import { listArticlesByIssuePublic } from "@/server/services/journal-articles";
 import { renderRichText } from "@/lib/sanitize-html";
+import { humanise } from "@/lib/labels";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { PageHeader } from "@/components/ui/page-header";
 import { Prose } from "@/components/ui/prose";
 
 export const revalidate = 300;
@@ -26,7 +28,7 @@ export default async function JournalIssueDetailPage({ params }: { params: Promi
 
   return (
     <Section>
-      <Container className="max-w-3xl">
+      <Container>
         <Breadcrumbs
           items={[
             { label: "Home", href: "/" },
@@ -35,30 +37,45 @@ export default async function JournalIssueDetailPage({ params }: { params: Promi
             { label: `Vol. ${issue.volume}, No. ${issue.number}` },
           ]}
         />
-        <h1 className="mt-4 font-heading text-3xl font-semibold">
-          Vol. {issue.volume}, No. {issue.number} ({issue.year})
-        </h1>
-        {issue.title ? <p className="mt-1 text-lg text-muted-foreground">{issue.title}</p> : null}
+        <PageHeader
+          className="mt-4"
+          title={`Vol. ${issue.volume}, No. ${issue.number} (${issue.year})`}
+          description={issue.title ?? undefined}
+        />
         {issue.description ? (
-          <Prose className="mt-4" dangerouslySetInnerHTML={{ __html: renderRichText(issue.description) }} />
+          <Prose className="mt-6" dangerouslySetInnerHTML={{ __html: renderRichText(issue.description) }} />
         ) : null}
 
-        <h2 className="mt-8 font-heading text-xl font-semibold">Articles</h2>
+        <h2 className="mt-12 max-w-4xl border-b-2 border-foreground pb-2 font-heading text-2xl font-semibold">
+          Articles
+        </h2>
         {articles.length === 0 ? (
-          <p className="mt-2 text-muted-foreground">No articles published in this issue yet.</p>
+          <p className="max-w-4xl border-b border-border py-5 text-muted-foreground">
+            No articles published in this issue yet.
+          </p>
         ) : (
-          <ul className="mt-3 divide-y divide-border">
+          <ul className="max-w-4xl">
             {articles.map((article) => (
-              <li key={article.id} className="py-3">
-                <Link href={`/journal/articles/${article.slug}`} className="font-medium text-primary hover:underline">
+              <li key={article.id} className="border-b border-border py-5">
+                <Link
+                  href={`/journal/articles/${article.slug}`}
+                  className="link-rule font-heading text-xl leading-snug font-semibold"
+                >
                   {article.title}
                 </Link>
-                <p className="text-sm text-muted-foreground">
+                <p className="mt-1 text-muted-foreground">
                   {article.authors.map((a) => a.name).join(", ")}
-                  {article.pageStart ? ` - pp. ${article.pageStart}${article.pageEnd ? `-${article.pageEnd}` : ""}` : ""}
-                  {` - ${article.type.replace(/_/g, " ").toLowerCase()}`}
                 </p>
-                <a href={`/journal/articles/${article.slug}/pdf`} className="text-sm text-primary hover:underline">PDF</a>
+                <p className="tabular mt-0.5 text-sm text-muted-foreground">
+                  {humanise(article.type)}
+                  {article.pageStart ? `, pp. ${article.pageStart}${article.pageEnd ? `-${article.pageEnd}` : ""}` : ""}
+                </p>
+                <a
+                  href={`/journal/articles/${article.slug}/pdf`}
+                  className="link-rule mt-1 inline-block py-1.5 font-medium text-primary"
+                >
+                  PDF
+                </a>
               </li>
             ))}
           </ul>

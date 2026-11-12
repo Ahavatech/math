@@ -5,6 +5,8 @@ import { hasRole } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatusTag, type StatusTone } from "@/components/journal/status-tag";
 import { getReviewerAssignments, getReviewerAcknowledgementOptIn } from "@/server/services/reviewer-dashboard";
 import { AcknowledgementToggle } from "./acknowledgement-toggle";
 
@@ -17,9 +19,9 @@ const STATUS_LABEL: Record<string, string> = {
   SUBMITTED: "Review submitted",
 };
 
-const STATUS_CLASS: Record<string, string> = {
-  ACCEPTED: "bg-yellow-100 text-yellow-800",
-  SUBMITTED: "bg-green-100 text-green-800",
+const STATUS_TONE: Record<string, StatusTone> = {
+  ACCEPTED: "action",
+  SUBMITTED: "done",
 };
 
 export default async function ReviewerDashboardPage() {
@@ -39,20 +41,20 @@ export default async function ReviewerDashboardPage() {
   return (
     <Section>
       <Container>
-        <h1 className="text-2xl font-bold mb-6">Reviewer dashboard</h1>
+        <PageHeader title="Reviewer dashboard" />
         <AcknowledgementToggle initialOptIn={optIn} />
         {assignments.length === 0 ? (
-          <p className="text-muted-foreground">You have no active review assignments.</p>
+          <p className="mt-8 border-t border-border py-5 text-muted-foreground">You have no active review assignments.</p>
         ) : (
-          <div className="space-y-4">
+          <div className="mt-8 max-w-4xl border-b border-border">
             {assignments.map((a) => (
               <div
                 key={a.id}
-                className="border rounded-lg p-4 flex items-center justify-between gap-4"
+                className="flex items-center justify-between gap-4 border-t border-border py-4"
               >
                 <div>
-                  <p className="font-medium">Reference: {a.reference}</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="tabular font-heading text-lg font-semibold">Reference: {a.reference}</p>
+                  <p className="tabular text-muted-foreground">
                     Round {a.roundNumber}
                     {a.dueAt && (
                       <> &middot; Due {new Date(a.dueAt).toLocaleDateString()}</>
@@ -62,16 +64,12 @@ export default async function ReviewerDashboardPage() {
                     )}
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_CLASS[a.status] ?? "bg-muted text-muted-foreground"}`}
-                  >
-                    {STATUS_LABEL[a.status] ?? a.status}
-                  </span>
+                <div className="flex flex-wrap items-center justify-end gap-x-5 gap-y-1">
+                  <StatusTag tone={STATUS_TONE[a.status] ?? "neutral"}>{STATUS_LABEL[a.status] ?? a.status}</StatusTag>
                   {a.status === "ACCEPTED" && (
                     <Link
                       href={`/journal/reviewer/assignments/${a.id}`}
-                      className="text-sm font-medium underline"
+                      className="link-rule py-2 font-medium text-primary"
                     >
                       {a.hasDraft ? "Continue review" : "Start review"}
                     </Link>
@@ -79,7 +77,7 @@ export default async function ReviewerDashboardPage() {
                   {a.status === "SUBMITTED" && (
                     <Link
                       href={`/journal/reviewer/assignments/${a.id}`}
-                      className="text-sm text-muted-foreground underline"
+                      className="link-rule py-2 font-medium text-muted-foreground"
                     >
                       View
                     </Link>

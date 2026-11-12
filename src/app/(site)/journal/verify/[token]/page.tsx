@@ -26,7 +26,7 @@ export default async function JournalVerifyPage({
       <Section>
         <Container className="max-w-md">
           <div className="space-y-3">
-            <h1 className="font-heading text-2xl font-semibold">Verification link expired</h1>
+            <h1 className="mb-6 border-b-2 border-foreground pb-4 font-heading text-4xl leading-[1.08] font-semibold text-balance">Verification link expired</h1>
             <p className="text-muted-foreground text-sm">
               This verification link is invalid or has already been used. Please register
               again or sign in if you have already verified your email.
