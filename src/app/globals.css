@@ -8,9 +8,11 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "IBM Plex Serif", ui-serif, serif;
+  --font-sans: "Hanken Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Source Serif 4 Variable", ui-serif, Georgia, serif;
+  --font-serif: "Source Serif 4 Variable", ui-serif, Georgia, serif;
   --color-success: var(--success);
+  --color-grid: var(--grid);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -50,75 +52,60 @@
 }
 
 :root {
-  /* Chalkboard palette — see docs/DESIGN.md for rationale and contrast table. */
-  --background: #faf9f5;
-  --foreground: #1b1d1a;
-  --card: #f3f1ec;
-  --card-foreground: #1b1d1a;
-  --popover: #faf9f5;
-  --popover-foreground: #1b1d1a;
-  --primary: #1f3d2e;
-  --primary-foreground: #faf9f5;
-  --secondary: #f1efe8;
-  --secondary-foreground: #1b1d1a;
-  --muted: #f1efe8;
-  --muted-foreground: #5c6058;
-  --accent: #74603f;
-  --accent-foreground: #faf9f5;
-  --destructive: #8c3326;
-  --destructive-foreground: #faf9f5;
-  --success: #1f3d2e;
-  --border: #e1ded3;
-  --input: #e1ded3;
-  --ring: #1f3d2e;
-  --chart-1: #1f3d2e;
-  --chart-2: #74603f;
-  --chart-3: #5c6058;
-  --chart-4: #8c3326;
-  --chart-5: #1b1d1a;
-  --radius: 0.375rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Exercise-book palette: squared paper, blue-black ink, one red margin
+     rule. Contrast of every text pair is asserted by
+     tests/unit/design/contrast.test.ts (it reads these hex values). */
+  --background: #fbfcfc;
+  --foreground: #0d1626;
+  --card: #f3f6f8;
+  --card-foreground: #0d1626;
+  --popover: #fbfcfc;
+  --popover-foreground: #0d1626;
+  --primary: #14213d;
+  --primary-foreground: #fbfcfc;
+  --secondary: #eef2f5;
+  --secondary-foreground: #0d1626;
+  --muted: #eef2f5;
+  --muted-foreground: #455264;
+  --accent: #b3261e;
+  --accent-foreground: #fbfcfc;
+  --destructive: #8f1d18;
+  --destructive-foreground: #fbfcfc;
+  --success: #14213d;
+  --border: #d5dde4;
+  --input: #b8c4cf;
+  --ring: #b3261e;
+  --grid: #dce6ec;
+  --chart-1: #14213d;
+  --chart-2: #b3261e;
+  --chart-3: #455264;
+  --chart-4: #8f1d18;
+  --chart-5: #0d1626;
+  --radius: 0.125rem;
+  --sidebar: #f3f6f8;
+  --sidebar-foreground: #0d1626;
+  --sidebar-primary: #14213d;
+  --sidebar-primary-foreground: #fbfcfc;
+  --sidebar-accent: #eef2f5;
+  --sidebar-accent-foreground: #0d1626;
+  --sidebar-border: #d5dde4;
+  --sidebar-ring: #b3261e;
+
+  /* Page gutter, shared by Container and the margin rule. */
+  --gutter: 1.25rem;
+  --sheet-width: 72rem;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+@media (min-width: 640px) {
+  :root {
+    --gutter: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --gutter: 2.5rem;
+  }
 }
 
 @layer base {
@@ -127,9 +114,12 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "kern", "liga";
+    text-rendering: optimizeLegibility;
   }
   html {
     @apply font-sans;
+    scroll-padding-top: 5rem;
   }
   h1,
   h2,
@@ -138,11 +128,132 @@
   h5,
   h6 {
     @apply font-heading;
+    letter-spacing: -0.012em;
+    text-wrap: balance;
   }
   :focus-visible {
     outline: 2px solid var(--ring);
-    outline-offset: 2px;
+    outline-offset: 3px;
   }
+  ::selection {
+    background: #14213d;
+    color: #fbfcfc;
+  }
+  /* Tabular figures wherever numbers line up: tables, dates, codes. */
+  table,
+  time,
+  .tabular {
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--muted-foreground);
+    opacity: 1;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   Signature: the red margin rule. A double rule, like the margin of an
+   exercise book, runs down the left gutter of every public page. It is
+   the only thing on the page that is always red. It draws itself once on
+   load (the single authored motion of the site).
+   --------------------------------------------------------------------- */
+.site-sheet {
+  position: relative;
+  isolation: isolate;
+}
+
+.site-sheet::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  bottom: 0;
+  left: calc(max(0px, (100% - var(--sheet-width)) / 2) + var(--gutter) - 0.875rem);
+  width: 5px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    var(--accent) 0 1px,
+    transparent 1px 4px,
+    var(--accent) 4px 5px
+  );
+  transform-origin: top;
+  animation: rule-draw 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes rule-draw {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* Squared paper. Used only on masthead zones, never behind running text. */
+.grid-paper {
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: -1px -1px;
+}
+
+.grid-fade {
+  mask-image: linear-gradient(to bottom, #000 35%, transparent 100%);
+}
+
+/* Text link with a drawn underline that thickens on hover. */
+@utility link-rule {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 100% 1px;
+  transition: background-size 180ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover,
+  &:focus-visible {
+    background-size: 100% 2px;
+  }
+}
+
+/* A ruled index row: hairline above, a red tick slides in on hover. */
+.index-row {
+  position: relative;
+  transition: padding-left 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.index-row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -1px;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.index-row:hover,
+.index-row:focus-within {
+  padding-left: 0.75rem;
+}
+
+.index-row:hover::before,
+.index-row:focus-within::before {
+  transform: scaleY(1);
+}
+
+.index-row .row-arrow {
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.index-row:hover .row-arrow,
+.index-row:focus-within .row-arrow {
+  transform: translateX(4px);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -165,5 +276,8 @@
   footer[data-site-footer],
   nav[aria-label="Breadcrumb"] {
     display: none !important;
+  }
+  .site-sheet::before {
+    display: none;
   }
 }

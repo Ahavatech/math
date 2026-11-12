@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { formatWAT } from "@/lib/time";
+import { humanise } from "@/lib/labels";
 
 export type EventCardProps = {
   title: string;
@@ -12,32 +11,30 @@ export type EventCardProps = {
   href: string;
 };
 
+/** An event as a ruled list row: the day in red serif, details beside it. */
 export function EventCard({ title, type, startsAt, venue, speakerName, href }: EventCardProps) {
-  const day = new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Lagos", day: "2-digit" }).format(startsAt);
+  const day = new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Lagos", day: "numeric" }).format(startsAt);
   const month = new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Lagos", month: "short" }).format(startsAt);
   const time = formatWAT(startsAt, { hour: "2-digit", minute: "2-digit", hour12: false });
 
   return (
-    <Card className="h-full py-4">
-      <CardContent className="flex gap-4 px-4">
-        <div className="flex w-14 shrink-0 flex-col items-center justify-center rounded-md border border-border bg-muted py-2">
-          <span className="font-heading text-xl font-semibold leading-none">{day}</span>
-          <span className="text-xs tracking-wide text-muted-foreground uppercase">{month}</span>
-        </div>
-        <div className="min-w-0">
-          <Badge variant="secondary" className="mb-1.5 text-xs">
-            {type}
-          </Badge>
-          <h3 className="font-heading text-base leading-snug font-semibold">
-            <Link href={href} className="hover:underline">
-              {title}
-            </Link>
-          </h3>
-          <p className="mt-1 text-sm text-muted-foreground">{time}</p>
-          {venue ? <p className="text-sm text-muted-foreground">{venue}</p> : null}
-          {speakerName ? <p className="text-sm text-muted-foreground">{speakerName}</p> : null}
-        </div>
-      </CardContent>
-    </Card>
+    <article className="index-row grid grid-cols-[4.5rem_1fr] gap-x-4 border-t border-border py-5">
+      <div className="tabular leading-none">
+        <span className="block font-heading text-4xl font-semibold text-accent">{day}</span>
+        <span className="mt-1 block text-sm font-medium text-muted-foreground">{month}</span>
+      </div>
+      <div className="min-w-0">
+        <h3 className="font-heading text-lg leading-snug font-semibold">
+          <Link href={href} className="link-rule after:absolute after:inset-0">
+            {title}
+          </Link>
+        </h3>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          {humanise(type)}, {time}
+          {venue ? `, ${venue}` : ""}
+        </p>
+        {speakerName ? <p className="text-sm text-muted-foreground">{speakerName}</p> : null}
+      </div>
+    </article>
   );
 }

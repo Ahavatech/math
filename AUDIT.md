@@ -894,3 +894,20 @@ NOT DONE (move to Stage 14):
 **Not verified:** nothing was run on the VPS. Only `bash -n update.sh` was checked. Unknowns: how the existing site's Nginx is laid out (guide step 0 inspects it), whether the repo is private (deploy key note), how long a first build takes on one vCPU, and the Resend DNS records.
 
 **Notes:** the user has not yet asked to commit, merge or push these files, and the VPS clones main, so they must be merged before the guide works. DECISIONS.md was not changed (hosting topology still listed as open). Real Resend and Cloudinary credentials must be created by the user.
+
+
+### Entry 053 | 2026-11-12 | Prompt 053: Stage 15 part 1, UI redesign (design system, shell, homepage)
+
+**Asked:** Use the "stageshow" skill to upgrade the UI. No such skill exists (not installed, not in the user's claude.ai skills); the user chose the `impeccable` skill instead. Also asked: create a donations page, and confirm the project is done.
+
+**Critique first.** Two isolated reviewers: a design review (21/32, "acceptable", generic university template, no visual identity, one CTA for four audiences, "0 Alumni" stat, raw enum labels, flat 11-item nav) and the detector (0 findings, no token pair under 4.5:1). The design reviewer's browser pane was only about 800 px wide, so it fully inspected only `/` and `/events`; its other findings were inferred from source.
+
+**Direction chosen by the user:** full redesign, nothing off limits, "The Exercise Book" interpreted as a premium editorial system, usability first, three stages (15 shell and public pages, 15b journal, 15c admin). Docs/DESIGN.md rewritten with the direction contract and tokens.
+
+**Done (this entry covers part 1 only):** new palette (blue-black ink, cool white, one red, token names unchanged so contrast.test.ts still reads them), Source Serif 4 and Hanken Grotesk replacing IBM Plex (two new packages, self-hosted), red double margin rule in the (site) layout, squared-paper hero, authored Riemann-sum SVG figure with KaTeX caption, ruled index rows instead of cards, homepage rebuilt (hero, "Find what you need" grouped by audience, news and events with forward links when empty, HOD address two-column, research index, featured lecturer and alumni), zero-valued stats hidden, event/news categories humanised, header with active-page underline and labelled Menu button, full-screen mobile menu with search, footer and announcement bar restyled, Container/Section/PageHeader/Breadcrumbs/Prose/NewsCard/EventCard/PersonCard restyled with unchanged props.
+
+**Checks:** tsc 0 errors, eslint clean, impeccable detector `[]` on the changed files, vitest tests/unit/design and src/components 14/14 (run with TEST_DATABASE_URL blank because Docker was not running). Viewed in the dev server without a database at 1440 and 390 px: header, margin rule, hero, figure, find-it-fast index, empty states, footer; a header overflow on phones was found and fixed.
+
+**Not verified:** anything with real data (no database locally), the mobile menu with real navigation items, every inner page, the full Vitest suite, `npm run build`, the Playwright and axe suites (selectors and headings may have changed; the header search link now has visible text), real-phone behaviour, keyboard and screen-reader passes, the finish review and the impeccable documenter step.
+
+**Not done:** Stage 15 parts for inner pages, 15b journal, 15c admin; donations page (next stage, bank-details version, branch stage/16-donations); the project-completeness answer is in the chat reply, not a document. Nothing committed.

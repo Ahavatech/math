@@ -1,26 +1,14 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import "@fontsource/ibm-plex-sans/latin-400.css";
-import "@fontsource/ibm-plex-sans/latin-500.css";
-import "@fontsource/ibm-plex-sans/latin-600.css";
-import "@fontsource/ibm-plex-sans/latin-ext-400.css";
-import "@fontsource/ibm-plex-sans/latin-ext-500.css";
-import "@fontsource/ibm-plex-sans/latin-ext-600.css";
-import "@fontsource/ibm-plex-sans/vietnamese-400.css";
-import "@fontsource/ibm-plex-sans/vietnamese-500.css";
-import "@fontsource/ibm-plex-sans/vietnamese-600.css";
-import "@fontsource/ibm-plex-serif/latin-500.css";
-import "@fontsource/ibm-plex-serif/latin-600.css";
-import "@fontsource/ibm-plex-serif/latin-ext-500.css";
-import "@fontsource/ibm-plex-serif/latin-ext-600.css";
-import "@fontsource/ibm-plex-serif/vietnamese-500.css";
-import "@fontsource/ibm-plex-serif/vietnamese-600.css";
+import "@fontsource-variable/hanken-grotesk/wght.css";
+import "@fontsource-variable/source-serif-4/wght.css";
+import "@fontsource-variable/source-serif-4/wght-italic.css";
 import "./globals.css";
 
-// Fonts are self-hosted through @fontsource (no request to Google at build
-// or run time). latin-ext and vietnamese carry the diacritics Yoruba
-// orthography needs (e.g. Ọ, Ẹ, Ṣ); each file has a unicode-range so the
-// browser only downloads the subsets a page uses. The --font-sans and
+// Fonts are self-hosted through @fontsource-variable (no request to Google
+// at build or run time). Each file has a unicode-range, so a page only
+// downloads the subsets it uses; latin-ext and vietnamese carry the
+// diacritics Yoruba orthography needs (e.g. Ọ, Ẹ, Ṣ). The --font-sans and
 // --font-heading variables are defined in globals.css.
 
 export const metadata: Metadata = {
