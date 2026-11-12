@@ -35,12 +35,12 @@ export default async function ManuscriptDetailPage({
 }) {
   const session = await auth();
   if (!session?.user) {
-    redirect("/journal/login?next=/journal/dashboard");
+    redirect("/login?callbackUrl=%2Fjournal%2Fdashboard");
   }
 
   const user = session.user;
   if (!hasRole({ id: user.id, roles: user.roles, isActive: user.isActive ?? true }, "AUTHOR")) {
-    redirect("/journal/login?next=/journal/dashboard");
+    redirect("/login?callbackUrl=%2Fjournal%2Fdashboard");
   }
 
   const { id } = await params;

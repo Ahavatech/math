@@ -41,6 +41,9 @@ const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Frame-Options", value: "DENY" },
+  // Tell browsers to use HTTPS only for the next year. No includeSubDomains
+  // or preload: other sites may share the parent domain or server.
+  { key: "Strict-Transport-Security", value: "max-age=31536000" },
   {
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=()",

@@ -9,7 +9,7 @@
 | Forgot password | `/forgot-password` | Always shows the same message regardless of whether the email exists. Sends a reset link only when the user exists and is active. Rate limited by IP and by email. |
 | Reset password | `/reset-password/[token]` | Sets a new password, consumes the PASSWORD_RESET token. |
 | Sign out | server action `logoutAction` | Clears the session, redirects to `/login`. |
-| Change password | `/admin/my-profile/security` | Requires the current password. Minimum 10 characters. Rate limited (5/min by user, 5/min by IP). Writes an AuditLog entry and stamps `User.passwordChangedAt`, which signs out other active sessions within 5 minutes - see "Session behaviour" below. |
+| Change password | `/admin/my-profile/security` | Requires the current password. Minimum 10 characters. Rate limited (5/min by user, 5/min by IP). Writes an AuditLog entry and stamps `User.passwordChangedAt`, which signs out other active sessions within about a minute - see "Session behaviour" below. |
 
 ## Token rules
 
@@ -67,10 +67,14 @@ Each Cloudinary media folder (`src/lib/media-folders.ts`) requires the permissio
 
 - Strategy: JWT, no database session table (Auth.js `Account`/`Session`/`VerificationToken` tables do not exist — see DECISIONS.md #13).
 - The JWT carries `id`, `roles`, `isActive`, and the `passwordChangedAt` timestamp that was current at login.
-- On every request, the `jwt` callback checks whether more than 5 minutes have passed since the roles/active-status were last read from the database (`rolesCheckedAt`). If so, it re-reads `User.isActive` and `UserRole` fresh from the database. This means a deactivated user, or one whose roles changed, loses access within 5 minutes without needing to sign out and back in.
-- That same recheck also compares the token's stamped `passwordChangedAt` against the database value; a mismatch (the password changed since this token was issued) marks the token inactive, so changing your password signs out other active sessions within 5 minutes (see DECISIONS.md #37 - a JWT strategy with no server-side session store has no way to invalidate a session instantly).
-- `src/proxy.ts` (Next.js's `proxy` convention) gives coarse protection: no session at all on `/admin/*` or `/journal/dashboard/*` redirects to `/login`. This is not where real authorization happens — every page and server action re-checks via `src/lib/rbac.ts`'s `requireRole`/`requirePermission`, because the proxy only knows "signed in or not," never which role or permission a specific action needs.
-- Cookies: `httpOnly`, `sameSite: lax` (Auth.js defaults), `secure` automatically when the app runs with `NODE_ENV=production` over HTTPS.
+- A session lasts 12 hours from sign-in (`SESSION_MAX_AGE_SECONDS` in `src/auth.ts`), then the person signs in again. It is not extended while they work.
+- On every request that reads the session, the `jwt` callback checks whether more than 60 seconds have passed since the roles/active-status were last read from the database (`rolesCheckedAt`, `ROLES_RECHECK_INTERVAL_MS`). If so, it re-reads `User.isActive` and `UserRole` fresh from the database. A deactivated user, or one whose roles changed, loses access within about a minute without needing to sign out and back in.
+- That same recheck also compares the token's stamped `passwordChangedAt` against the database value; a mismatch (the password changed since this token was issued) marks the token inactive, so changing or resetting your password signs out other active sessions within about a minute (see DECISIONS.md #37 - a JWT strategy with no server-side session store has no way to invalidate a session instantly).
+- Known limit: signing out clears the cookie in that browser, but a copy of the session token that someone had already stolen stays valid until it expires (at most 12 hours) or the next recheck finds the account changed. A stateless JWT cannot be revoked on demand. Closing this fully needs a server-side revocation marker (a `sessionsRevokedAt` column checked in the recheck); see "Open items".
+- `src/proxy.ts` (Next.js's `proxy` convention) gives coarse protection: no valid session cookie on `/admin/*` or `/journal/dashboard/*` redirects to `/login?callbackUrl=...`. It reads the cookie with `getToken()` and never re-issues it: wrapping the proxy in Auth.js's `auth()` re-issued the cookie on every request, which let a request still in flight at sign-out put the cookie back (confirmed in Stage 18). This is not where real authorization happens — every page and server action re-checks via `src/lib/rbac.ts`'s `requireRole`/`requirePermission`, because the proxy only knows "signed in or not," never which role or permission a specific action needs.
+- Cookies: `httpOnly`, `sameSite: lax` (Auth.js defaults). Over HTTPS (`AUTH_URL` starting with `https://`) they are also `Secure` and carry the `__Secure-` / `__Host-` prefixes; this was checked against the live site in Stage 18.
+- After sign-in the person is sent to a safe return address if one was given (`callbackUrl`, allowlisted to `/admin`, `/journal/dashboard`, `/journal/reviewer` and `/journal/submit` by `src/lib/safe-redirect.ts`, never to another host), otherwise to the right place for their roles (`defaultLandingPath` in `src/lib/rbac.ts`): staff and editors to `/admin`, reviewers to `/journal/reviewer`, authors to `/journal/dashboard`.
+- The site sends `Strict-Transport-Security: max-age=31536000` (no `includeSubDomains`, no preload).
 
 ## Deployment notes (behind Nginx)
 
@@ -81,4 +85,13 @@ Each Cloudinary media folder (`src/lib/media-folders.ts`) requires the permissio
 ## Rate limiting
 
 - `src/lib/rate-limit.ts`'s `InMemoryRateLimiter` is a single-process, in-memory sliding window. It does **not** share state across multiple Node instances — see DECISIONS.md for the explicit single-instance limitation this creates, and what must change if the app is ever deployed with more than one instance.
-- Applied to: login (5/min by IP, 5/min by email), forgot-password (3/min by IP, 3/min by email), and token consumption on accept-invite/reset-password (10/min by IP).
+- Login is limited inside the Auth.js credentials check itself (`checkLoginAttempt` in `src/lib/login-throttle.ts`, called from `authorize()` in `src/auth.ts`), so the limit covers the login form and the `/api/auth/callback/credentials` endpoint alike: 5/min by IP, 5/min by email (case-insensitive) and 20/hour by email. Before Stage 18 only the form's server action enforced it, and the endpoint could be hit without limit (confirmed: 12 wrong passwords then the right one succeeded).
+- Also applied to: forgot-password (3/min by IP, 3/min by email), and token consumption on accept-invite/reset-password (10/min by IP).
+
+
+## Open items (not done)
+
+- Server-side session revocation (a `sessionsRevokedAt` column, set on sign-out and checked in the recheck) so a stolen token stops working at once. Needs a migration.
+- The rate limiter is in memory for one process: a restart clears it, and a second instance would not share it.
+- Two-factor sign-in for admin accounts.
+- The email sent to the throttled address is not rate limited separately from the page; account lockout notification email does not exist.

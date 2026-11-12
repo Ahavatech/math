@@ -14,10 +14,13 @@ export function RichTextEditor({
   initialHtml,
   onChange,
   existingMedia,
+  label = "Content",
 }: {
   initialHtml: string;
   onChange: (html: string) => void;
   existingMedia: MediaAsset[];
+  /** Accessible name announced for the editing area; name it after the field. */
+  label?: string;
 }) {
   const [showImagePicker, setShowImagePicker] = useState(false);
   const [showMathInput, setShowMathInput] = useState<"inline" | "display" | null>(null);
@@ -32,6 +35,9 @@ export function RichTextEditor({
       MathExtension,
     ],
     content: initialHtml,
+    editorProps: {
+      attributes: { "aria-label": label, "aria-multiline": "true" },
+    },
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
   });
 

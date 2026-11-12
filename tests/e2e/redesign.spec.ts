@@ -19,6 +19,14 @@ const MORE_ROUTES = [
   "/programmes/bsc",
   "/research",
   "/donate",
+  // Standalone screens that sit outside the site header and footer.
+  "/login",
+  "/forgot-password",
+  "/reset-password/not-a-real-token",
+  "/accept-invite/not-a-real-token",
+  "/403",
+  "/alumni/submit/not-a-real-token",
+  "/alumni/confirm/not-a-real-token",
 ];
 
 async function seriousViolations(page: Page): Promise<string[]> {
@@ -53,8 +61,19 @@ test.describe("more pages have no serious accessibility violations", () => {
   });
 });
 
+test.describe("the not-found page", () => {
+  test("returns 404, offers a way forward and has no serious accessibility violations", async ({ page }) => {
+    const response = await page.goto("/this-page-does-not-exist");
+    expect(response?.status()).toBe(404);
+    await expect(page.getByRole("heading", { name: "Page not found" })).toBeVisible();
+    await expect(page.getByRole("searchbox", { name: "Search the site" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Back to the home page" })).toBeVisible();
+    expect(await seriousViolations(page)).toEqual([]);
+  });
+});
+
 test.describe("layout does not overflow", () => {
-  const ROUTES = ["/", "/staff", "/news", "/events", "/students/courses", "/journal", "/contact", "/donate"];
+  const ROUTES = ["/", "/staff", "/news", "/events", "/students/courses", "/journal", "/contact", "/donate", "/login", "/forgot-password"];
   const WIDTHS = [
     { name: "phone", width: 390, height: 844 },
     { name: "small laptop", width: 1280, height: 800 },

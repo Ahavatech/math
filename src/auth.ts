@@ -1,11 +1,30 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { db } from "@/lib/db";
 import { verifyPassword, dummyHash } from "@/lib/password";
 import { loginSchema } from "@/lib/validators/auth";
+import { checkLoginAttempt, clientIpFromHeaders } from "@/lib/login-throttle";
 import type { Role } from "@prisma/client";
 
-export const ROLES_RECHECK_INTERVAL_MS = 5 * 60 * 1000;
+// How often a signed-in user's account state (active, roles, password change)
+// is re-read from the database. A deactivated or demoted account therefore
+// loses access within this long; shorter means faster, at one small query per
+// signed-in user per interval.
+export const ROLES_RECHECK_INTERVAL_MS = 60 * 1000;
+
+// A session lasts 12 hours from sign-in, then the person must sign in again.
+// It is not extended while they work: the proxy only reads the cookie (see
+// src/proxy.ts), so nothing but signing in ever issues one.
+export const SESSION_MAX_AGE_SECONDS = 12 * 60 * 60;
+
+/**
+ * Thrown from the credentials check when a sign-in attempt is over the rate
+ * limit. It is a CredentialsSignin so Auth.js treats it as a failed sign-in
+ * (no session, no detail leaked to the browser except this code).
+ */
+export class RateLimitedSignin extends CredentialsSignin {
+  code = "rate_limited";
+}
 
 type RolesToken = {
   id?: string;
@@ -57,7 +76,7 @@ export async function refreshTokenRoles(
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  session: { strategy: "jwt" },
+  session: { strategy: "jwt", maxAge: SESSION_MAX_AGE_SECONDS },
   trustHost: true,
   pages: {
     signIn: "/login",
@@ -68,11 +87,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         email: {},
         password: {},
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         const parsed = loginSchema.safeParse(credentials);
         if (!parsed.success) return null;
 
         const { email, password } = parsed.data;
+
+        // Throttle here, not only in the login form's server action: the
+        // /api/auth/callback/credentials endpoint reaches this code too, and
+        // a limit that only the form enforces can be walked around.
+        if (!checkLoginAttempt(clientIpFromHeaders(request?.headers), email).allowed) {
+          throw new RateLimitedSignin();
+        }
+
         const user = await db.user.findUnique({
           where: { email },
           include: { roles: true },

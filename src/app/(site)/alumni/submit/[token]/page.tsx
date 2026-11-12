@@ -23,7 +23,7 @@ export default async function AlumniSubmitPage({ params }: { params: Promise<{ t
       <Section>
         <Container className="max-w-xl">
           <PageHeader title="This link is no longer valid" />
-          <p className="mt-4 text-sm text-muted-foreground">
+          <p className="mt-6 text-lg text-muted-foreground">
             Please contact the department if you believe this is a mistake.
           </p>
         </Container>

@@ -1,17 +1,26 @@
+import type { Metadata } from "next";
+import { safeCallbackPath } from "@/lib/safe-redirect";
+import { AuthShell } from "../auth-shell";
 import { LoginForm } from "./login-form";
 
-export default function LoginPage() {
+export const metadata: Metadata = {
+  title: "Sign in",
+  robots: { index: false, follow: false },
+};
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackUrl?: string }>;
+}) {
+  const { callbackUrl } = await searchParams;
+  // Passed to the form only if it is a safe place to send someone after
+  // signing in; the sign-in action checks it again.
+  const returnTo = safeCallbackPath(callbackUrl) ?? "";
+
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="space-y-1 text-center">
-          <h1 className="text-xl font-semibold">Sign in</h1>
-          <p className="text-muted-foreground text-sm">
-            Department of Mathematics admin and journal access.
-          </p>
-        </div>
-        <LoginForm />
-      </div>
-    </div>
+    <AuthShell title="Sign in" description="Admin and journal access for the Department of Mathematics.">
+      <LoginForm callbackUrl={returnTo} />
+    </AuthShell>
   );
 }

@@ -36,7 +36,7 @@ export default async function JournalVerifyPage({
                 Register again
               </Link>{" "}
               or{" "}
-              <Link href="/journal/login" className="underline">
+              <Link href="/login?callbackUrl=%2Fjournal%2Fdashboard" className="underline">
                 sign in
               </Link>
             </p>

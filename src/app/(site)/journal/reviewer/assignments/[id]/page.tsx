@@ -20,7 +20,7 @@ export default async function ReviewAssignmentPage({ params }: Props) {
   const { id } = await params;
 
   const session = await auth();
-  if (!session?.user) redirect(`/journal/login?next=/journal/reviewer/assignments/${id}`);
+  if (!session?.user) redirect(`/login?callbackUrl=${encodeURIComponent(`/journal/reviewer/assignments/${id}`)}`);
 
   const user = session.user;
   if (!hasRole(user, "REVIEWER")) redirect("/journal/dashboard");

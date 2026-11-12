@@ -18,7 +18,7 @@ export default async function SubmitStep2Page({
   searchParams: Promise<{ draft?: string }>;
 }) {
   const session = await auth();
-  if (!session?.user) redirect("/journal/login?next=/journal/submit");
+  if (!session?.user) redirect("/login?callbackUrl=%2Fjournal%2Fsubmit");
 
   const { draft: draftId } = await searchParams;
   if (!draftId) redirect("/journal/submit");

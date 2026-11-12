@@ -17,6 +17,13 @@ const envSchema = z
     NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
   })
   .superRefine((data, ctx) => {
+    if (data.NODE_ENV === "production" && data.AUTH_SECRET.length < 32) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["AUTH_SECRET"],
+        message: "AUTH_SECRET must be at least 32 characters in production (generate one with: openssl rand -base64 32)",
+      });
+    }
     if (data.NODE_ENV === "production" && !data.RESEND_API_KEY) {
       ctx.addIssue({
         code: "custom",

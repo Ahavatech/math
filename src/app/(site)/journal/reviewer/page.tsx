@@ -26,7 +26,7 @@ const STATUS_TONE: Record<string, StatusTone> = {
 
 export default async function ReviewerDashboardPage() {
   const session = await auth();
-  if (!session?.user) redirect("/journal/login?next=/journal/reviewer");
+  if (!session?.user) redirect("/login?callbackUrl=%2Fjournal%2Freviewer");
 
   const user = session.user;
   if (!hasRole(user, "REVIEWER")) {

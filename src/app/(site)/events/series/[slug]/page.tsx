@@ -5,6 +5,7 @@ import { getEventSeriesBySlugPublic } from "@/server/services/events";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { PageHeader } from "@/components/ui/page-header";
 import { EventCard } from "@/components/sections/event-card";
 
 export const revalidate = 300;
@@ -23,13 +24,16 @@ export default async function EventSeriesPage({ params }: { params: Promise<{ sl
 
   return (
     <Section>
-      <Container className="max-w-3xl">
+      <Container>
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Events", href: "/events" }, { label: series.title }]} />
-        <h1 className="mt-4 font-heading text-3xl font-semibold sm:text-4xl">{series.title}</h1>
-        {series.description ? <p className="mt-2 text-muted-foreground">{series.description}</p> : null}
+        <PageHeader
+          className="mt-4"
+          title={series.title}
+          description={series.description ?? undefined}
+        />
 
         {series.events.length > 0 ? (
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          <div className="mt-6 grid gap-x-12 md:grid-cols-2">
             {series.events.map((event) => (
               <EventCard
                 key={event.id}
@@ -42,7 +46,7 @@ export default async function EventSeriesPage({ params }: { params: Promise<{ sl
             ))}
           </div>
         ) : (
-          <p className="mt-8 text-sm text-muted-foreground">No events in this series yet.</p>
+          <p className="mt-8 border-t border-border py-5 text-muted-foreground">No events in this series yet.</p>
         )}
       </Container>
     </Section>

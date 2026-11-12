@@ -73,10 +73,14 @@ Admin is an Operate surface: denser than the public site, same ink, rules and si
 
 `/donate` uses the reading-page grammar: serif introduction, ruled "What gifts support" list, and a sticky "How to give" panel with a red rule under its title, the account number set large and selectable, and a copy button with a spoken confirmation. The footer shows a "Support the department" button only while the page is switched on.
 
+## Standalone screens (Stage 18)
+
+Sign-in, forgot password, reset password and accept invite share `src/app/(auth)/auth-shell.tsx`: the department mark, a serif title with the 2px ink rule, one narrow column on squared paper, 48px fields, and a way back to the website. The 403 and 404 pages use the same frame; the 404 offers six section links and a search box. All of them are `main` landmarks. One-time-link pages are `noindex` with `referrer: no-referrer`.
+
 ## Layout width
 
 The page container is now 80rem (was 72rem). The primary navigation is inline from 1366 px up; below that the labelled Menu button is used, because ten navigation items do not fit beside the title at 1280 px.
 
 ## Not yet redesigned
 
-The alumni submission form and confirmation page, individual course and handbook pages, the events series page and the 403/404 pages only inherit the new tokens. The journal author and reviewer inner screens (manuscript detail, review form, invitation, verify, register) only had their controls, headings and statuses restyled, not recomposed. The individual admin pages (forms, lists, dialogs) were not recomposed: they inherit the new tokens, fonts, titles and tables only. The old shadcn dark theme block was removed because the site is light only.
+The journal author and reviewer inner screens (manuscript detail, review form, invitation, verify, register) only had their controls, headings and statuses restyled, not recomposed. The individual admin pages (forms, lists, dialogs) were not recomposed: they inherit the new tokens, fonts, titles and tables only. The old shadcn dark theme block was removed because the site is light only.

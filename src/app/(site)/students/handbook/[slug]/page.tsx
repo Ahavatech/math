@@ -57,8 +57,8 @@ export default async function HandbookPageDetail({ params }: { params: Promise<{
           ]}
         />
 
-        <details className="mt-6 rounded-md border border-border p-3 text-sm lg:hidden print:hidden">
-          <summary className="cursor-pointer font-medium">Handbook pages</summary>
+        <details className="mt-6 border border-foreground p-3 lg:hidden print:hidden">
+          <summary className="cursor-pointer py-1 font-medium">Handbook pages</summary>
           <div className="mt-3">
             <HandbookSidebarTree tree={tree} currentSlug={page.slug} />
           </div>
@@ -66,18 +66,18 @@ export default async function HandbookPageDetail({ params }: { params: Promise<{
 
         <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_240px]">
           <article className="min-w-0">
-            <h1 className="font-heading text-3xl font-semibold sm:text-4xl">{page.title}</h1>
-            <p className="mt-2 text-sm text-muted-foreground print:hidden">
+            <h1 className="border-b-2 border-foreground pb-4 font-heading text-4xl leading-[1.08] font-semibold text-balance sm:text-5xl">{page.title}</h1>
+            <p className="mt-3 text-sm text-muted-foreground print:hidden">
               Last updated {page.updatedAt.toLocaleDateString()}
             </p>
 
             {toc.length > 0 ? (
-              <nav className="mt-6 rounded-md border border-border bg-muted p-4 text-sm print:hidden" aria-label="Table of contents">
-                <p className="font-medium">On this page</p>
-                <ul className="mt-2 space-y-1">
+              <nav className="mt-6 border-t-2 border-foreground bg-secondary/60 p-4 print:hidden" aria-label="Table of contents">
+                <p className="font-heading text-lg font-semibold">On this page</p>
+                <ul className="mt-2">
                   {toc.map((entry) => (
                     <li key={entry.id} className={entry.level === 3 ? "ml-4" : undefined}>
-                      <a href={`#${entry.id}`} className="text-primary hover:underline">
+                      <a href={`#${entry.id}`} className="link-rule inline-block py-1.5 text-primary">
                         {entry.text}
                       </a>
                     </li>
@@ -88,14 +88,14 @@ export default async function HandbookPageDetail({ params }: { params: Promise<{
 
             <Prose className="mt-6" dangerouslySetInnerHTML={{ __html: renderedBody }} />
 
-            <nav className="mt-10 flex justify-between gap-4 border-t border-border pt-6 text-sm print:hidden" aria-label="Page navigation">
+            <nav className="mt-12 flex justify-between gap-4 border-t-2 border-foreground pt-4 print:hidden" aria-label="Page navigation">
               {previous ? (
-                <Link href={`/students/handbook/${previous.slug}`} className="text-primary hover:underline">
+                <Link href={`/students/handbook/${previous.slug}`} className="link-rule py-2 font-medium text-primary">
                   Previous: {previous.title}
                 </Link>
               ) : <span />}
               {next ? (
-                <Link href={`/students/handbook/${next.slug}`} className="text-primary hover:underline">
+                <Link href={`/students/handbook/${next.slug}`} className="link-rule py-2 font-medium text-primary">
                   Next: {next.title}
                 </Link>
               ) : null}
@@ -116,22 +116,22 @@ function HandbookSidebarTree({ tree, currentSlug }: { tree: Awaited<ReturnType<t
   const childrenOf = (parentId: string) => tree.filter((p) => p.parentId === parentId);
 
   return (
-    <nav className="sticky top-4 space-y-2 text-sm" aria-label="Handbook pages">
+    <nav className="sticky top-24 space-y-1" aria-label="Handbook pages">
       {topLevel.map((page) => (
         <div key={page.id}>
           <Link
             href={`/students/handbook/${page.slug}`}
-            className={page.slug === currentSlug ? "font-semibold text-primary" : "hover:underline"}
+            className={page.slug === currentSlug ? "inline-flex min-h-10 items-center font-semibold text-accent" : "inline-flex min-h-10 items-center hover:text-accent"}
           >
             {page.title}
           </Link>
           {childrenOf(page.id).length > 0 ? (
-            <ul className="ml-3 mt-1 space-y-1 border-l border-border pl-2">
+            <ul className="ml-3 border-l border-border pl-3">
               {childrenOf(page.id).map((child) => (
                 <li key={child.id}>
                   <Link
                     href={`/students/handbook/${child.slug}`}
-                    className={child.slug === currentSlug ? "font-semibold text-primary" : "text-muted-foreground hover:underline"}
+                    className={child.slug === currentSlug ? "inline-flex min-h-9 items-center font-semibold text-accent" : "inline-flex min-h-9 items-center text-muted-foreground hover:text-accent"}
                   >
                     {child.title}
                   </Link>
