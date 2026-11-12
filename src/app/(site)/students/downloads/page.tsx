@@ -4,7 +4,9 @@ import { listDownloadsPublic } from "@/server/services/downloads";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
+import { outlineButton } from "@/components/ui/field-classes";
 import { Download as DownloadIcon } from "lucide-react";
 
 export const revalidate = 300;
@@ -30,36 +32,45 @@ export default async function DownloadsPage() {
 
   return (
     <Section>
-      <Container className="max-w-3xl">
+      <Container>
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Students", href: "/students" }, { label: "Downloads" }]} />
-        <h1 className="mt-4 font-heading text-3xl font-semibold sm:text-4xl">Downloads</h1>
+        <PageHeader
+          className="mt-4"
+          title="Downloads"
+          description="Forms, guidelines, timetables and other documents."
+        />
 
         {downloads.length === 0 ? (
           <EmptyState icon={DownloadIcon} title="No downloads yet" description="Check back soon." className="mt-10" />
         ) : (
-          <div className="mt-8 space-y-8">
+          <div className="mt-10 max-w-4xl space-y-12">
             {[...byCategory.entries()].map(([category, items]) => (
-              <div key={category}>
-                <h2 className="font-heading text-xl font-semibold">{CATEGORY_LABELS[category] ?? category}</h2>
-                <ul className="mt-4 space-y-2">
+              <section key={category}>
+                <h2 className="border-b-2 border-foreground pb-2 font-heading text-2xl font-semibold">
+                  {CATEGORY_LABELS[category] ?? category}
+                </h2>
+                <ul>
                   {items.map((d) => (
-                    <li key={d.id} className="flex items-center justify-between gap-4 rounded-md border border-border p-3">
-                      <div>
-                        <p className="font-medium">{d.title}</p>
-                        {d.description ? <p className="text-sm text-muted-foreground">{d.description}</p> : null}
+                    <li
+                      key={d.id}
+                      className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b border-border py-4"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="font-heading text-lg font-semibold">{d.title}</p>
+                        {d.description ? <p className="text-muted-foreground">{d.description}</p> : null}
                       </div>
                       <a
                         href={d.fileUrl ?? "#"}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="shrink-0 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-muted"
+                        className={`${outlineButton} shrink-0`}
                       >
                         Download{d.fileSize ? ` (${Math.round(d.fileSize / 1024)} KB)` : ""}
                       </a>
                     </li>
                   ))}
                 </ul>
-              </div>
+              </section>
             ))}
           </div>
         )}

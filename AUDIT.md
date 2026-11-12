@@ -911,3 +911,16 @@ NOT DONE (move to Stage 14):
 **Not verified:** anything with real data (no database locally), the mobile menu with real navigation items, every inner page, the full Vitest suite, `npm run build`, the Playwright and axe suites (selectors and headings may have changed; the header search link now has visible text), real-phone behaviour, keyboard and screen-reader passes, the finish review and the impeccable documenter step.
 
 **Not done:** Stage 15 parts for inner pages, 15b journal, 15c admin; donations page (next stage, bank-details version, branch stage/16-donations); the project-completeness answer is in the chat reply, not a document. Nothing committed.
+
+
+### Entry 054 | 2026-11-12 | Prompt 054: Stage 15 part 2, inner pages
+
+**Asked:** Continue redesigning the inner pages.
+
+**Done:** Staff, News, Events, Programmes, Research, Students hub, Courses, Calendar, Downloads, Handbook index, Alumni, Search, Contact, About, Lecturer profile, and the News, Event, Programme and Research detail pages recomposed in the exercise-book system (ruled rows instead of cards and badges, square 48px controls, drawn-underline links, red for dates and active states). New shared pieces: `FilterLinks`, `UnderlineTabs` and `PageNav` (`src/components/ui/filter-links.tsx`) and `field-classes.ts`. `NewsCard` gained optional pinned and cover props; the news list keeps its cover images and pinned marker. Usability changes: filter choices are real links with `aria-current` (the old badge links had no state for assistive tech); the course table collapses to two columns on phones; the empty Upcoming events page links to Past events; the staff search, course search and handbook search have labels; non-teaching staff emails are mailto links; the contact page now shows the department's address, email, phones and office hours (from site settings) beside the form; "Clear filters" added to courses and alumni. Raw enum values (event types, news categories) are shown as words on lists and detail pages.
+
+**Checks:** tsc 0 errors, eslint clean over src/app/(site) and src/components, impeccable detector `[]`. Viewed in the dev server without a database: Staff, Events, Programmes at 1280 px; Contact and Courses at 390 px. All showed the new layout and empty states correctly.
+
+**Not verified:** any page with real data (no database locally: populated lists, the lecturer profile, news and event detail pages, the alumni cards, search results were not seen), the Playwright and axe suites (headings, link text and some selectors changed; not run), the full Vitest suite, `npm run build`, keyboard and screen-reader behaviour, and the finish review.
+
+**Not done:** alumni submission form and confirmation, course and handbook detail pages, events series, 403 and 404 pages (inherit tokens only); Stage 15b journal and 15c admin. Nothing committed.

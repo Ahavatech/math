@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { MediaAsset } from "@prisma/client";
 import { CloudImage } from "@/components/ui/cloud-image";
-import { Card, CardContent } from "@/components/ui/card";
 import { alumniPublicReference } from "@/lib/alumni-reference";
 
 type Programme = { level: "BSC" | "MSC" | "PHD"; graduationYear: number };
@@ -30,10 +29,10 @@ export function AlumniCard({ entry }: { entry: PublicAlumniEntry }) {
   const primaryProg = entry.programmes[0];
 
   return (
-    <Card className="h-full py-4">
-      <CardContent className="space-y-2 px-4">
+    <article className="h-full border-t border-border py-4">
+      <div className="space-y-1.5">
         {entry.photo ? (
-          <div className="relative size-16 overflow-hidden rounded-full">
+          <div className="relative size-16 overflow-hidden border border-border">
             <CloudImage
               src={entry.photo.url}
               alt={`Photo of ${entry.fullName}`}
@@ -43,25 +42,25 @@ export function AlumniCard({ entry }: { entry: PublicAlumniEntry }) {
             />
           </div>
         ) : null}
-        <h3 className="font-heading font-semibold">{entry.fullName}</h3>
+        <h3 className="font-heading text-lg font-semibold">{entry.fullName}</h3>
         {primaryProg ? (
-          <p className="text-xs text-muted-foreground">
+          <p className="tabular text-sm font-medium text-accent">
             {levelLabel(primaryProg.level)}, Class of {primaryProg.graduationYear}
           </p>
         ) : null}
         {entry.roleOrField || entry.organisation ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground">
             {entry.roleOrField ? `${entry.roleOrField}` : ""}
             {entry.roleOrField && entry.organisation ? " at " : ""}
             {entry.organisation ?? ""}
           </p>
         ) : null}
-        {entry.note ? <p className="text-xs text-muted-foreground italic">{entry.note}</p> : null}
-        {location ? <p className="text-xs text-muted-foreground">{location}</p> : null}
-        <Link href={`/contact?type=ALUMNI&ref=${ref}`} className="block text-xs text-muted-foreground underline">
+        {entry.note ? <p className="text-sm text-muted-foreground italic">{entry.note}</p> : null}
+        {location ? <p className="text-sm text-muted-foreground">{location}</p> : null}
+        <Link href={`/contact?type=ALUMNI&ref=${ref}`} className="link-rule inline-block py-1.5 text-sm text-muted-foreground hover:text-foreground">
           Request correction or removal
         </Link>
-      </CardContent>
-    </Card>
+      </div>
+    </article>
   );
 }

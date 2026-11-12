@@ -8,9 +8,9 @@ import { rankLabel } from "@/lib/lecturer-rank";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { PageHeader } from "@/components/ui/page-header";
 import { PersonCard } from "@/components/sections/person-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Users } from "lucide-react";
 
@@ -20,6 +20,8 @@ export const metadata: Metadata = {
 };
 
 type SearchParams = { q?: string; rank?: string; area?: string };
+
+const control = "h-12 w-full border border-input bg-background px-3 text-base";
 
 function isLecturerRank(value: string | undefined): value is LecturerRank {
   return Boolean(value) && Object.values(LecturerRank).includes(value as LecturerRank);
@@ -50,12 +52,13 @@ export default async function StaffPage({
     <Section>
       <Container>
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Staff" }]} />
-        <h1 className="mt-4 font-heading text-3xl font-semibold sm:text-4xl">Staff</h1>
-        <p className="mt-2 text-muted-foreground">
-          Find academic and non-teaching staff in the Department of Mathematics.
-        </p>
+        <PageHeader
+          className="mt-4"
+          title="Staff"
+          description="Find academic and non-teaching staff in the Department of Mathematics."
+        />
 
-        <form method="get" className="mt-8 grid gap-3 rounded-lg border border-border p-4 sm:grid-cols-4">
+        <form method="get" role="search" className="mt-6 grid gap-3 sm:grid-cols-4">
           <div className="sm:col-span-2">
             <label htmlFor="staff-search" className="sr-only">
               Search by name
@@ -66,19 +69,14 @@ export default async function StaffPage({
               name="q"
               defaultValue={search}
               placeholder="Search by name"
-              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              className={control}
             />
           </div>
           <div>
             <label htmlFor="staff-rank" className="sr-only">
               Filter by rank
             </label>
-            <select
-              id="staff-rank"
-              name="rank"
-              defaultValue={rank ?? ""}
-              className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
-            >
+            <select id="staff-rank" name="rank" defaultValue={rank ?? ""} className={control}>
               <option value="">All ranks</option>
               {Object.values(LecturerRank).map((r) => (
                 <option key={r} value={r}>
@@ -95,7 +93,7 @@ export default async function StaffPage({
               id="staff-area"
               name="area"
               defaultValue={researchAreaSlug ?? ""}
-              className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+              className={control}
             >
               <option value="">All research areas</option>
               {researchAreas.map((area) => (
@@ -105,15 +103,15 @@ export default async function StaffPage({
               ))}
             </select>
           </div>
-          <div className="sm:col-span-4">
+          <div className="flex items-center gap-5 sm:col-span-4">
             <button
               type="submit"
-              className="h-9 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              className="h-12 bg-primary px-6 text-base font-medium text-primary-foreground transition-colors hover:bg-foreground"
             >
               Filter
             </button>
             {hasAnyFilter ? (
-              <a href="/staff" className="ml-3 text-sm text-muted-foreground underline">
+              <a href="/staff" className="link-rule py-2 font-medium">
                 Clear filters
               </a>
             ) : null}
@@ -130,74 +128,74 @@ export default async function StaffPage({
         ) : (
           <>
             {academicStaff.length > 0 ? (
-              <div className="mt-10">
-                <h2 className="font-heading text-xl font-semibold">Academic staff</h2>
-                <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {academicStaff.map((lecturer) => (
-                    <PersonCard
-                      key={lecturer.id}
-                      name={[lecturer.honorific, lecturer.fullName].filter(Boolean).join(" ")}
-                      rank={rankLabel(lecturer.rank)}
-                      photoUrl={lecturer.photo?.url}
-                      href={`/lecturer/${lecturer.slug}`}
-                      researchAreas={lecturer.researchAreas.map((a) => a.title)}
-                    />
-                  ))}
-                </div>
-              </div>
+              <StaffGroup title="Academic staff">
+                {academicStaff.map((lecturer) => (
+                  <PersonCard
+                    key={lecturer.id}
+                    name={[lecturer.honorific, lecturer.fullName].filter(Boolean).join(" ")}
+                    rank={rankLabel(lecturer.rank)}
+                    photoUrl={lecturer.photo?.url}
+                    href={`/lecturer/${lecturer.slug}`}
+                    researchAreas={lecturer.researchAreas.map((a) => a.title)}
+                  />
+                ))}
+              </StaffGroup>
             ) : null}
 
             {emeriti.length > 0 ? (
-              <div className="mt-10">
-                <h2 className="font-heading text-xl font-semibold">Emeriti and former staff</h2>
-                <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {emeriti.map((lecturer) => (
-                    <PersonCard
-                      key={lecturer.id}
-                      name={[lecturer.honorific, lecturer.fullName].filter(Boolean).join(" ")}
-                      rank={rankLabel(lecturer.rank)}
-                      photoUrl={lecturer.photo?.url}
-                      href={`/lecturer/${lecturer.slug}`}
-                      researchAreas={lecturer.researchAreas.map((a) => a.title)}
-                    />
-                  ))}
-                </div>
-              </div>
+              <StaffGroup title="Emeriti and former staff">
+                {emeriti.map((lecturer) => (
+                  <PersonCard
+                    key={lecturer.id}
+                    name={[lecturer.honorific, lecturer.fullName].filter(Boolean).join(" ")}
+                    rank={rankLabel(lecturer.rank)}
+                    photoUrl={lecturer.photo?.url}
+                    href={`/lecturer/${lecturer.slug}`}
+                    researchAreas={lecturer.researchAreas.map((a) => a.title)}
+                  />
+                ))}
+              </StaffGroup>
             ) : null}
 
             {nonTeachingStaff.length > 0 && !hasAnyFilter ? (
-              <div className="mt-10">
-                <h2 className="font-heading text-xl font-semibold">Non-teaching and administrative staff</h2>
-                <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {nonTeachingStaff.map((member) => (
-                    <Card key={member.id} className="h-full py-4">
-                      <CardContent className="flex flex-col items-center gap-3 px-4 text-center">
-                        <Avatar className="size-20">
-                          {member.photo ? <AvatarImage src={member.photo.url} alt="" /> : null}
-                          <AvatarFallback className="font-heading text-lg">
-                            {member.name
-                              .split(" ")
-                              .map((p) => p[0])
-                              .slice(0, 2)
-                              .join("")
-                              .toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h3 className="font-heading font-semibold leading-snug">{member.name}</h3>
-                          <p className="text-sm text-muted-foreground">{member.position}</p>
-                        </div>
-                        {member.email || member.phone ? (
-                          <div className="text-xs text-muted-foreground">
-                            {member.email ? <p>{member.email}</p> : null}
-                            {member.phone ? <p>{member.phone}</p> : null}
-                          </div>
-                        ) : null}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
+              <StaffGroup title="Non-teaching and administrative staff">
+                {nonTeachingStaff.map((member) => (
+                  <article
+                    key={member.id}
+                    className="flex h-full gap-4 border-t border-border py-4"
+                  >
+                    <Avatar className="size-16 shrink-0 rounded-none after:rounded-none">
+                      {member.photo ? (
+                        <AvatarImage src={member.photo.url} alt="" className="rounded-none" />
+                      ) : null}
+                      <AvatarFallback className="rounded-none bg-secondary font-heading text-lg">
+                        {member.name
+                          .split(" ")
+                          .map((p) => p[0])
+                          .slice(0, 2)
+                          .join("")
+                          .toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <h3 className="font-heading text-lg leading-snug font-semibold">
+                        {member.name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">{member.position}</p>
+                      {member.email ? (
+                        <p className="mt-1 text-sm">
+                          <a href={`mailto:${member.email}`} className="link-rule">
+                            {member.email}
+                          </a>
+                        </p>
+                      ) : null}
+                      {member.phone ? (
+                        <p className="tabular text-sm text-muted-foreground">{member.phone}</p>
+                      ) : null}
+                    </div>
+                  </article>
+                ))}
+              </StaffGroup>
             ) : null}
 
             {academicStaff.length === 0 && emeriti.length === 0 && hasAnyFilter ? (
@@ -212,5 +210,14 @@ export default async function StaffPage({
         )}
       </Container>
     </Section>
+  );
+}
+
+function StaffGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mt-12">
+      <h2 className="font-heading text-2xl font-semibold">{title}</h2>
+      <div className="mt-3 grid gap-x-10 sm:grid-cols-2 lg:grid-cols-3">{children}</div>
+    </div>
   );
 }

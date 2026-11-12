@@ -14,7 +14,6 @@ import { Section } from "@/components/ui/section";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Prose } from "@/components/ui/prose";
 import { CloudImage } from "@/components/ui/cloud-image";
-import { Badge } from "@/components/ui/badge";
 import { safeJsonLdString, buildPersonJsonLd } from "@/lib/json-ld";
 import { SITE_URL } from "@/lib/seo";
 
@@ -96,150 +95,211 @@ export default async function LecturerPage({ params }: { params: Promise<{ slug:
     siteUrl: SITE_URL,
   });
 
+  const linkClass = "link-rule inline-block py-1 font-medium text-primary";
+  const externalLinks = [
+    lecturer.scholarUrl ? { label: "Google Scholar", href: lecturer.scholarUrl } : null,
+    lecturer.orcid ? { label: "ORCID", href: `https://orcid.org/${lecturer.orcid}` } : null,
+    lecturer.researchGateUrl ? { label: "ResearchGate", href: lecturer.researchGateUrl } : null,
+    lecturer.linkedinUrl ? { label: "LinkedIn", href: lecturer.linkedinUrl } : null,
+  ].filter((item): item is { label: string; href: string } => item !== null);
+
   return (
     <Section>
-      <Container className="max-w-3xl">
-        <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: displayName }]} />
+      <Container>
+        <Breadcrumbs
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Staff", href: "/staff" },
+            { label: displayName },
+          ]}
+        />
 
-        <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-start">
-          {lecturer.photo ? (
-            <CloudImage
-              src={lecturer.photo.url}
-              alt={lecturer.photo.alt ?? displayName}
-              width={160}
-              height={160}
-              priority
-              className="rounded-xl object-cover"
-            />
-          ) : null}
-          <div>
-            <h1 className="font-heading text-2xl font-semibold sm:text-3xl">{displayName}</h1>
-            <p className="mt-1 text-muted-foreground">
+        <div className="mt-6 grid gap-10 lg:grid-cols-[18rem_1fr] lg:gap-16">
+          <aside className="space-y-8 lg:sticky lg:top-24 lg:self-start">
+            {lecturer.photo ? (
+              <CloudImage
+                src={lecturer.photo.url}
+                alt={lecturer.photo.alt ?? displayName}
+                width={288}
+                height={288}
+                priority
+                className="aspect-square w-40 border border-foreground object-cover lg:w-full"
+              />
+            ) : null}
+
+            {hasContact ? (
+              <div>
+                <h2 className="border-b-2 border-foreground pb-2 font-heading text-lg font-semibold">
+                  Contact
+                </h2>
+                <dl className="mt-3 space-y-3">
+                  {lecturer.publicEmail ? (
+                    <div>
+                      <dt className="text-sm text-muted-foreground">Email</dt>
+                      <dd className="break-words">
+                        <a href={`mailto:${lecturer.publicEmail}`} className="link-rule font-medium">
+                          {lecturer.publicEmail}
+                        </a>
+                      </dd>
+                    </div>
+                  ) : null}
+                  {lecturer.phone ? (
+                    <div>
+                      <dt className="text-sm text-muted-foreground">Phone</dt>
+                      <dd className="tabular">{lecturer.phone}</dd>
+                    </div>
+                  ) : null}
+                  {lecturer.officeLocation ? (
+                    <div>
+                      <dt className="text-sm text-muted-foreground">Office</dt>
+                      <dd>{lecturer.officeLocation}</dd>
+                    </div>
+                  ) : null}
+                  {lecturer.officeHours ? (
+                    <div>
+                      <dt className="text-sm text-muted-foreground">Office hours</dt>
+                      <dd>{lecturer.officeHours}</dd>
+                    </div>
+                  ) : null}
+                </dl>
+              </div>
+            ) : null}
+
+            {hasLinks || lecturer.cvDownload?.fileUrl ? (
+              <div>
+                <h2 className="border-b-2 border-foreground pb-2 font-heading text-lg font-semibold">
+                  Elsewhere
+                </h2>
+                <ul className="mt-2">
+                  {externalLinks.map((item) => (
+                    <li key={item.label}>
+                      <a href={item.href} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                        {item.label}
+                      </a>
+                    </li>
+                  ))}
+                  {lecturer.cvDownload?.fileUrl ? (
+                    <li>
+                      <a
+                        href={lecturer.cvDownload.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={linkClass}
+                      >
+                        Download CV
+                      </a>
+                    </li>
+                  ) : null}
+                </ul>
+              </div>
+            ) : null}
+          </aside>
+
+          <div className="min-w-0">
+            <h1 className="font-heading text-4xl leading-[1.08] font-semibold text-balance sm:text-5xl">
+              {displayName}
+            </h1>
+            <p className="mt-3 text-xl text-muted-foreground">
               {rankLabel(lecturer.rank)}
               {lecturer.isEmeritus ? " (Emeritus)" : ""}
             </p>
             {lecturer.researchAreas.length > 0 ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {lecturer.researchAreas.map((area) => (
-                  <Badge key={area.id} render={<a href={`/research/${area.slug}`} />}>
-                    {area.title}
-                  </Badge>
+              <p className="mt-3">
+                {lecturer.researchAreas.map((area, index) => (
+                  <span key={area.id}>
+                    {index > 0 ? ", " : ""}
+                    <a href={`/research/${area.slug}`} className="link-rule font-medium text-primary">
+                      {area.title}
+                    </a>
+                  </span>
                 ))}
-              </div>
+              </p>
             ) : null}
-          </div>
-        </div>
 
-        {lecturer.bio ? (
-          <Prose className="mt-8" dangerouslySetInnerHTML={{ __html: renderRichText(lecturer.bio) }} />
-        ) : null}
+            {lecturer.bio ? (
+              <Prose
+                className="mt-8"
+                dangerouslySetInnerHTML={{ __html: renderRichText(lecturer.bio) }}
+              />
+            ) : null}
 
-        {hasContact ? (
-          <div className="mt-8 space-y-1 text-sm">
-            <h2 className="font-heading text-lg font-semibold">Contact</h2>
-            {lecturer.officeLocation ? <p>Office: {lecturer.officeLocation}</p> : null}
-            {lecturer.officeHours ? <p>Office hours: {lecturer.officeHours}</p> : null}
-            {lecturer.publicEmail ? <p>Email: {lecturer.publicEmail}</p> : null}
-            {lecturer.phone ? <p>Phone: {lecturer.phone}</p> : null}
-          </div>
-        ) : null}
+            {years.length > 0 ? (
+              <section className="mt-12">
+                <h2 className="border-b-2 border-foreground pb-2 font-heading text-2xl font-semibold">
+                  Publications
+                </h2>
+                {years.map((year) => (
+                  <div
+                    key={year}
+                    className="grid gap-x-8 border-b border-border py-5 sm:grid-cols-[5rem_1fr]"
+                  >
+                    <h3 className="tabular font-heading text-lg font-semibold text-accent">{year}</h3>
+                    <ul className="space-y-4">
+                      {(publicationsByYear.get(year) ?? [])
+                        .slice(0, PUBLICATIONS_LIMIT_PER_YEAR)
+                        .map((pub) => (
+                          <li key={pub.id}>
+                            <p className="font-medium">
+                              {pub.url ? (
+                                <a
+                                  href={pub.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="link-rule"
+                                >
+                                  {pub.title}
+                                </a>
+                              ) : (
+                                pub.title
+                              )}
+                            </p>
+                            <p className="text-muted-foreground">
+                              {pub.authorsText}
+                              {pub.venue ? `, ${pub.venue}` : ""}
+                              {pub.doi ? `, doi:${pub.doi}` : ""}
+                            </p>
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                ))}
+              </section>
+            ) : null}
 
-        {hasLinks ? (
-          <div className="mt-6 flex flex-wrap gap-4 text-sm">
-            {lecturer.scholarUrl ? (
-              <a href={lecturer.scholarUrl} target="_blank" rel="noopener noreferrer" className="underline">
-                Google Scholar
-              </a>
-            ) : null}
-            {lecturer.orcid ? (
-              <a
-                href={`https://orcid.org/${lecturer.orcid}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline"
-              >
-                ORCID
-              </a>
-            ) : null}
-            {lecturer.researchGateUrl ? (
-              <a href={lecturer.researchGateUrl} target="_blank" rel="noopener noreferrer" className="underline">
-                ResearchGate
-              </a>
-            ) : null}
-            {lecturer.linkedinUrl ? (
-              <a href={lecturer.linkedinUrl} target="_blank" rel="noopener noreferrer" className="underline">
-                LinkedIn
-              </a>
-            ) : null}
-          </div>
-        ) : null}
-
-        {years.length > 0 ? (
-          <div className="mt-10">
-            <h2 className="font-heading text-xl font-semibold">Publications</h2>
-            {years.map((year) => (
-              <div key={year} className="mt-4">
-                <h3 className="font-heading text-base font-semibold">{year}</h3>
-                <ul className="mt-2 space-y-3">
-                  {(publicationsByYear.get(year) ?? []).slice(0, PUBLICATIONS_LIMIT_PER_YEAR).map((pub) => (
-                    <li key={pub.id} className="text-sm">
-                      <p className="font-medium">
-                        {pub.url ? (
-                          <a href={pub.url} target="_blank" rel="noopener noreferrer" className="underline">
-                            {pub.title}
-                          </a>
-                        ) : (
-                          pub.title
-                        )}
-                      </p>
-                      <p className="text-muted-foreground">
-                        {pub.authorsText}
-                        {pub.venue ? `, ${pub.venue}` : ""}
-                        {pub.doi ? ` - doi:${pub.doi}` : ""}
-                      </p>
+            {lecturer.courses.length > 0 ? (
+              <section className="mt-12">
+                <h2 className="border-b-2 border-foreground pb-2 font-heading text-2xl font-semibold">
+                  Courses taught
+                </h2>
+                <ul className="grid gap-x-10 sm:grid-cols-2">
+                  {lecturer.courses.map((course) => (
+                    <li key={course.id} className="index-row border-b border-border">
+                      <Link
+                        href={`/students/courses/${course.slug}`}
+                        className="flex min-h-14 items-baseline gap-4 py-3"
+                      >
+                        <span className="tabular font-semibold text-primary">{course.code}</span>
+                        <span className="text-muted-foreground">{course.title}</span>
+                      </Link>
                     </li>
                   ))}
                 </ul>
-              </div>
-            ))}
-          </div>
-        ) : null}
+              </section>
+            ) : null}
 
-        {lecturer.courses.length > 0 ? (
-          <div className="mt-10">
-            <h2 className="font-heading text-xl font-semibold">Courses taught</h2>
-            <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-              {lecturer.courses.map((course) => (
-                <li key={course.id} className="rounded-md border border-border p-3">
-                  <Link href={`/students/courses/${course.slug}`} className="font-medium text-primary hover:underline">
-                    {course.code}
-                  </Link>
-                  <p className="text-sm text-muted-foreground">{course.title}</p>
-                </li>
-              ))}
-            </ul>
+            {lecturer.supervisionText ? (
+              <section className="mt-12">
+                <h2 className="border-b-2 border-foreground pb-2 font-heading text-2xl font-semibold">
+                  Students and supervision
+                </h2>
+                <Prose
+                  className="mt-4"
+                  dangerouslySetInnerHTML={{ __html: renderRichText(lecturer.supervisionText) }}
+                />
+              </section>
+            ) : null}
           </div>
-        ) : null}
-
-        {lecturer.supervisionText ? (
-          <div className="mt-10">
-            <h2 className="font-heading text-xl font-semibold">Students and supervision</h2>
-            <Prose className="mt-4" dangerouslySetInnerHTML={{ __html: renderRichText(lecturer.supervisionText) }} />
-          </div>
-        ) : null}
-
-        {lecturer.cvDownload?.fileUrl ? (
-          <div className="mt-10">
-            <a
-              href={lecturer.cvDownload.fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted"
-            >
-              Download CV
-            </a>
-          </div>
-        ) : null}
+        </div>
       </Container>
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLdString(jsonLd) }} />
@@ -251,7 +311,7 @@ function renderDraftPreview(slug: string) {
   return (
     <Section>
       <Container className="max-w-3xl">
-        <p className="rounded-md border border-border bg-muted p-4 text-sm">
+        <p className="border border-foreground bg-secondary p-4">
           This is a preview of an unpublished profile ({slug}). It is not visible to the public.
         </p>
       </Container>

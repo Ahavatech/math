@@ -53,6 +53,14 @@ Self-hosted variable fonts (`@fontsource-variable`), subset by unicode-range so 
 
 One authored moment: the margin rule draws down the page on load. Everything else is a short hover or focus transition (180 to 200 ms, exponential ease-out): the link underline thickening, the ruled-row tick, the arrow nudge, the menu opening. `prefers-reduced-motion` collapses all of it. No animation library.
 
+## Inner pages (Stage 15, part 2)
+
+Recomposed with the same grammar (2px ink rule under the title, ruled rows, square controls 48px tall, links with a drawn underline, red used for dates, active states and labels):
+
+- Listings: Staff (search and filters as a plain bar, staff as flat rows), News and Events (filter choices are real links with `aria-current`, Upcoming/Past as underline tabs, shared `PageNav`), Programmes (one ruled row per level), Research (ruled two-column index), Students hub, Courses (table that collapses to two columns on phones), Calendar (date column, past entries folded), Downloads, Handbook, Alumni, Search.
+- Details: Lecturer (sticky sidebar with photo, contact and links; publications by year; courses as ruled rows), News post, Event, Programme, Research area, About (HOD address two-column), Contact (department details beside the form).
+- New shared pieces: `src/components/ui/filter-links.tsx` (`FilterLinks`, `UnderlineTabs`, `PageNav`) and `src/components/ui/field-classes.ts`.
+
 ## Not yet redesigned
 
-Inner pages inherit the new tokens, fonts and shared components but have not been individually composed or reviewed: About, Programmes, Research, Staff, Lecturer, News, Events, Alumni, Students, Contact. The journal (Stage 15b) and the admin area (Stage 15c) are untouched. The old shadcn dark theme block was removed because the site is light only.
+The alumni submission form and confirmation page, individual course and handbook pages, the events series page and the 403/404 pages only inherit the new tokens. The journal (Stage 15b) and the admin area (Stage 15c) are untouched. The old shadcn dark theme block was removed because the site is light only.

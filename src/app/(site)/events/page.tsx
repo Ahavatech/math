@@ -5,10 +5,12 @@ import { listEventsPublic } from "@/server/services/events";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FilterLinks, UnderlineTabs, PageNav } from "@/components/ui/filter-links";
 import { EventCard } from "@/components/sections/event-card";
-import { Badge } from "@/components/ui/badge";
 import { CalendarDays } from "lucide-react";
+import { humanise } from "@/lib/labels";
 
 export const revalidate = 300;
 
@@ -47,38 +49,54 @@ export default async function EventsPage({
     <Section>
       <Container>
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Events" }]} />
-        <h1 className="mt-4 font-heading text-3xl font-semibold sm:text-4xl">Events</h1>
+        <PageHeader
+          className="mt-4"
+          title="Events"
+          description="Seminars, colloquia and special lectures at the department."
+        />
 
-        <div className="mt-6 flex gap-2 text-sm">
-          <Link href="/events?tab=upcoming" className={tab === "upcoming" ? "font-semibold underline" : "text-muted-foreground"}>
-            Upcoming
-          </Link>
-          <Link href="/events?tab=past" className={tab === "past" ? "font-semibold underline" : "text-muted-foreground"}>
-            Past
-          </Link>
+        <div className="mt-6">
+          <UnderlineTabs
+            label="Event period"
+            items={[
+              { label: "Upcoming", href: "/events?tab=upcoming", active: tab === "upcoming" },
+              { label: "Past", href: "/events?tab=past", active: tab === "past" },
+            ]}
+          />
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Link href={`/events?tab=${tab}`}>
-            <Badge variant={!type ? "default" : "outline"}>All types</Badge>
-          </Link>
-          {TYPES.map((t) => (
-            <Link key={t} href={`/events?tab=${tab}&type=${t}`}>
-              <Badge variant={type === t ? "default" : "outline"}>{t}</Badge>
-            </Link>
-          ))}
+        <div className="mt-5">
+          <FilterLinks
+            label="Event types"
+            items={[
+              { label: "All types", href: `/events?tab=${tab}`, active: !type },
+              ...TYPES.map((t) => ({
+                label: humanise(t),
+                href: `/events?tab=${tab}&type=${t}`,
+                active: type === t,
+              })),
+            ]}
+          />
         </div>
 
         {events.length === 0 ? (
-          <EmptyState
-            icon={CalendarDays}
-            title={tab === "upcoming" ? "No upcoming events" : "No past events"}
-            description="Check back soon."
-            className="mt-10"
-          />
+          <div className="mt-10">
+            <EmptyState
+              icon={CalendarDays}
+              title={tab === "upcoming" ? "No upcoming events" : "No past events"}
+              description="Check back soon."
+            />
+            {tab === "upcoming" ? (
+              <p className="mt-4 text-center">
+                <Link href="/events?tab=past" className="link-rule py-2 font-medium text-primary">
+                  Browse past events
+                </Link>
+              </p>
+            ) : null}
+          </div>
         ) : (
           <>
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            <div className="mt-4 grid gap-x-12 md:grid-cols-2">
               {events.map((event) => (
                 <EventCard
                   key={event.id}
@@ -93,17 +111,15 @@ export default async function EventsPage({
             </div>
 
             {totalPages > 1 ? (
-              <nav className="mt-10 flex justify-center gap-4 text-sm" aria-label="Pagination">
-                {page > 1 ? <Link href={pageHref(page - 1)} className="underline">Previous</Link> : null}
-                <span className="text-muted-foreground">Page {page} of {totalPages}</span>
-                {page < totalPages ? <Link href={pageHref(page + 1)} className="underline">Next</Link> : null}
-              </nav>
+              <PageNav page={page} totalPages={totalPages} hrefFor={pageHref} />
             ) : null}
           </>
         )}
 
-        <p className="mt-10 text-sm text-muted-foreground">
-          <Link href="/events/feed.ics" className="underline">Subscribe to upcoming events (.ics)</Link>
+        <p className="mt-10 border-t border-border pt-4 text-muted-foreground">
+          <Link href="/events/feed.ics" className="link-rule py-2 font-medium text-primary">
+            Subscribe to upcoming events (.ics)
+          </Link>
         </p>
       </Container>
     </Section>

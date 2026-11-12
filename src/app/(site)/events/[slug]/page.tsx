@@ -9,7 +9,7 @@ import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Prose } from "@/components/ui/prose";
-import { Badge } from "@/components/ui/badge";
+import { humanise } from "@/lib/labels";
 import { ZoomableImage } from "@/components/ui/zoomable-image";
 import { safeJsonLdString, buildEventJsonLd } from "@/lib/json-ld";
 import { SITE_URL } from "@/lib/seo";
@@ -60,18 +60,21 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Events", href: "/events" }, { label: event.title }]} />
 
         {event.flyer ? (
-          <div className="relative mt-6 aspect-video overflow-hidden rounded-xl">
+          <div className="relative mt-6 aspect-video overflow-hidden border border-border">
             <ZoomableImage src={event.flyer.url} alt={event.flyer.alt ?? event.title} priority />
           </div>
         ) : null}
 
-        <div className="mt-6 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-          <Badge variant="secondary">{event.type}</Badge>
-          <span>{formatWAT(event.startsAt)}</span>
-          {event.endsAt ? <span>- {formatWAT(event.endsAt, { hour: "2-digit", minute: "2-digit", hour12: false })}</span> : null}
-        </div>
-        <h1 className="mt-2 font-heading text-3xl font-semibold sm:text-4xl">{event.title}</h1>
-        {event.venue ? <p className="mt-1 text-muted-foreground">{event.venue}</p> : null}
+        <p className="tabular mt-6 text-muted-foreground">
+          <span className="font-semibold text-accent">{humanise(event.type)}</span>
+          {", "}
+          {formatWAT(event.startsAt)}
+          {event.endsAt ? ` to ${formatWAT(event.endsAt, { hour: "2-digit", minute: "2-digit", hour12: false })}` : ""}
+        </p>
+        <h1 className="mt-2 border-b-2 border-foreground pb-5 font-heading text-4xl leading-[1.08] font-semibold text-balance sm:text-5xl">
+          {event.title}
+        </h1>
+        {event.venue ? <p className="mt-4 text-lg text-muted-foreground">{event.venue}</p> : null}
         {event.speakerName ? (
           <p className="mt-1 text-muted-foreground">
             {event.speakerName}
@@ -89,37 +92,37 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
               href={event.registrationUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+              className="inline-flex min-h-11 items-center bg-primary px-5 text-[0.9375rem] font-medium text-primary-foreground transition-colors hover:bg-foreground"
             >
               Register
             </a>
           ) : null}
           {event.slidesUrl ? (
-            <a href={event.slidesUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted">
+            <a href={event.slidesUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center border border-foreground px-5 text-[0.9375rem] font-medium transition-colors hover:bg-foreground hover:text-background">
               Slides
             </a>
           ) : null}
           {event.recordingUrl ? (
-            <a href={event.recordingUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted">
+            <a href={event.recordingUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center border border-foreground px-5 text-[0.9375rem] font-medium transition-colors hover:bg-foreground hover:text-background">
               Recording
             </a>
           ) : null}
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-3 border-t border-border pt-6 text-sm">
-          <a href={`/events/${event.slug}/calendar.ics`} className="underline">
+        <div className="mt-8 flex flex-wrap gap-x-6 gap-y-1 border-t border-border pt-5">
+          <a href={`/events/${event.slug}/calendar.ics`} className="link-rule py-2 font-medium text-primary">
             Add to calendar (.ics)
           </a>
-          <a href={googleCalendarUrl} target="_blank" rel="noopener noreferrer" className="underline">
+          <a href={googleCalendarUrl} target="_blank" rel="noopener noreferrer" className="link-rule py-2 font-medium text-primary">
             Add to Google Calendar
           </a>
         </div>
 
         {event.series ? (
           <div className="mt-10 border-t border-border pt-6">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground">
               Part of{" "}
-              <Link href={`/events/series/${event.series.slug}`} className="underline">
+              <Link href={`/events/series/${event.series.slug}`} className="link-rule font-medium text-primary">
                 {event.series.title}
               </Link>
             </p>
@@ -128,10 +131,10 @@ export default async function EventPage({ params }: { params: Promise<{ slug: st
 
         {!upcoming && event.galleryImages.length > 0 ? (
           <div className="mt-10 border-t border-border pt-6">
-            <h2 className="font-heading text-xl font-semibold">Gallery</h2>
+            <h2 className="font-heading text-2xl font-semibold">Gallery</h2>
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
               {event.galleryImages.map((img) => (
-                <ZoomableImage key={img.id} src={img.media.url} alt={img.media.alt ?? ""} caption={img.caption ?? undefined} width={200} height={150} className="rounded-md" />
+                <ZoomableImage key={img.id} src={img.media.url} alt={img.media.alt ?? ""} caption={img.caption ?? undefined} width={200} height={150} className="border border-border" />
               ))}
             </div>
           </div>

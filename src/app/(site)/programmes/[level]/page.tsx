@@ -62,21 +62,23 @@ export default async function ProgrammeLevelPage({ params }: { params: Promise<{
             { label: programme.title },
           ]}
         />
-        <h1 className="mt-4 font-heading text-3xl font-semibold sm:text-4xl">{programme.title}</h1>
-        <p className="mt-2 text-sm text-muted-foreground">{programme.duration}</p>
-        <p className="mt-4 text-base text-muted-foreground">{programme.summary}</p>
+        <h1 className="mt-4 border-b-2 border-foreground pb-5 font-heading text-4xl leading-[1.08] font-semibold text-balance sm:text-5xl">
+          {programme.title}
+        </h1>
+        <p className="tabular mt-4 font-medium text-accent">{programme.duration}</p>
+        <p className="mt-3 max-w-[60ch] text-xl leading-relaxed text-muted-foreground">{programme.summary}</p>
 
         <Prose className="mt-6" dangerouslySetInnerHTML={{ __html: renderRichText(programme.body) }} />
 
         {programme.specialisations.length > 0 ? (
           <div className="mt-10">
-            <h2 className="font-heading text-xl font-semibold">Specialisations</h2>
-            <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+            <h2 className="border-b-2 border-foreground pb-2 font-heading text-2xl font-semibold">Specialisations</h2>
+            <ul className="grid gap-x-10 sm:grid-cols-2">
               {programme.specialisations.map((spec) => (
-                <li key={spec.id} className="rounded-md border border-border p-3">
-                  <p className="font-medium">{spec.title}</p>
+                <li key={spec.id} className="border-b border-border py-3.5">
+                  <p className="font-heading text-lg font-semibold">{spec.title}</p>
                   {!isPlaceholder(spec.description) ? (
-                    <p className="mt-1 text-sm text-muted-foreground">{spec.description}</p>
+                    <p className="mt-1 text-muted-foreground">{spec.description}</p>
                   ) : null}
                 </li>
               ))}
@@ -86,7 +88,7 @@ export default async function ProgrammeLevelPage({ params }: { params: Promise<{
 
         {hasAdmissionRequirements ? (
           <div className="mt-10">
-            <h2 className="font-heading text-xl font-semibold">Admission requirements</h2>
+            <h2 className="border-b-2 border-foreground pb-2 font-heading text-2xl font-semibold">Admission requirements</h2>
             <Prose
               className="mt-4"
               dangerouslySetInnerHTML={{ __html: renderRichText(programme.admissionRequirements) }}
@@ -96,18 +98,18 @@ export default async function ProgrammeLevelPage({ params }: { params: Promise<{
 
         {courses.length > 0 ? (
           <div className="mt-10">
-            <h2 className="font-heading text-xl font-semibold">Courses</h2>
-            <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+            <h2 className="border-b-2 border-foreground pb-2 font-heading text-2xl font-semibold">Courses</h2>
+            <ul className="grid gap-x-10 sm:grid-cols-2">
               {courses.map((course) => (
-                <li key={course.id} className="rounded-md border border-border p-3">
-                  <Link href={`/students/courses/${course.slug}`} className="font-medium text-primary hover:underline">
-                    {course.code}
+                <li key={course.id} className="index-row border-b border-border">
+                  <Link href={`/students/courses/${course.slug}`} className="flex min-h-14 items-baseline gap-4 py-3">
+                    <span className="tabular font-semibold text-primary">{course.code}</span>
+                    <span className="text-muted-foreground">{course.title}</span>
                   </Link>
-                  <p className="text-sm text-muted-foreground">{course.title}</p>
                 </li>
               ))}
             </ul>
-            <Link href="/students/courses" className="mt-3 inline-block text-sm text-primary underline">
+            <Link href="/students/courses" className="link-rule mt-4 inline-block py-2 font-medium text-primary">
               View the full course catalogue
             </Link>
           </div>
