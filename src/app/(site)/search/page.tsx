@@ -82,7 +82,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       <Section>
         <Container>
           <Breadcrumbs items={[{ label: "Search" }]} />
-          <h1 className="text-2xl font-bold mt-4 mb-6">Search</h1>
+          <h1 className="mt-4 mb-6 border-b-2 border-foreground pb-5 font-heading text-4xl leading-[1.08] font-semibold sm:text-5xl">Search</h1>
 
           {/* Search form */}
           <form role="search" action="/search" method="GET" className="mb-8">
@@ -99,12 +99,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 minLength={2}
                 maxLength={100}
                 autoComplete="off"
-                className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="h-12 flex-1 border border-input bg-background px-3 text-base"
                 aria-label="Search query"
               />
               <button
                 type="submit"
-                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                className="inline-flex h-12 items-center gap-2 bg-primary px-5 text-base font-medium text-primary-foreground transition-colors hover:bg-foreground"
               >
                 <Search size={16} aria-hidden="true" />
                 Search
@@ -122,10 +122,10 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             <nav aria-label="Filter by type" className="flex flex-wrap gap-2 mb-6">
               <Link
                 href={buildUrl({ type: undefined, page: 1 })}
-                className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
+                className={`inline-flex min-h-10 items-center border px-3.5 text-[0.9375rem] font-medium transition-colors ${
                   !selectedType
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "border-border hover:bg-muted"
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-foreground hover:bg-secondary"
                 }`}
               >
                 All ({data.total})
@@ -134,10 +134,10 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 <Link
                   key={t}
                   href={buildUrl({ type: t, page: 1 })}
-                  className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
+                  className={`inline-flex min-h-10 items-center border px-3.5 text-[0.9375rem] font-medium transition-colors ${
                     selectedType === t
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "border-border hover:bg-muted"
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-foreground hover:bg-secondary"
                   }`}
                 >
                   {TYPE_LABELS[t]}
@@ -163,27 +163,27 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               </p>
 
               {data.results.length > 0 && (
-                <ul role="list" className="space-y-6" aria-label="Search results">
+                <ul role="list" aria-label="Search results">
                   {data.results.map((result) => (
-                    <li key={`${result.type}-${result.id}`}>
-                      <div className="flex items-start gap-3">
-                        <span className="mt-0.5 rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground shrink-0">
+                    <li key={`${result.type}-${result.id}`} className="border-t border-border py-4">
+                      <div className="flex items-start gap-4">
+                        <span className="mt-1 w-24 shrink-0 text-sm font-semibold text-accent">
                           {TYPE_LABELS[result.type]}
                         </span>
                         <div className="min-w-0">
                           <Link
                             href={result.url}
-                            className="font-medium text-foreground hover:underline line-clamp-1"
+                            className="link-rule line-clamp-1 font-heading text-lg font-semibold text-foreground"
                           >
                             {result.title}
                           </Link>
                           {result.snippet && (
-                            <p className="mt-0.5 text-sm text-muted-foreground line-clamp-2">
+                            <p className="mt-0.5 line-clamp-2 text-muted-foreground">
                               {result.snippet}
                             </p>
                           )}
                           {result.date && (
-                            <p className="mt-0.5 text-xs text-muted-foreground">
+                            <p className="tabular mt-0.5 text-sm text-muted-foreground">
                               {formatDateWAT(result.date)}
                             </p>
                           )}
@@ -196,22 +196,22 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <nav aria-label="Pagination" className="mt-8 flex items-center gap-2">
+                <nav aria-label="Pagination" className="mt-8 flex items-center justify-between gap-4 border-t-2 border-foreground pt-4">
                   {page > 1 && (
                     <Link
                       href={buildUrl({ page: page - 1 })}
-                      className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted"
+                      className="link-rule py-2 font-medium"
                     >
                       Previous
                     </Link>
                   )}
-                  <span className="text-sm text-muted-foreground">
+                  <span className="tabular text-muted-foreground">
                     Page {page} of {totalPages}
                   </span>
                   {page < totalPages && (
                     <Link
                       href={buildUrl({ page: page + 1 })}
-                      className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted"
+                      className="link-rule py-2 font-medium"
                     >
                       Next
                     </Link>

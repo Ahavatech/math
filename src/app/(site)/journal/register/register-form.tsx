@@ -18,7 +18,7 @@ export function RegisterAuthorForm({
 
   if (state?.success) {
     return (
-      <div className="mt-6 space-y-3 rounded-md border p-4">
+      <div className="mt-6 space-y-3 border border-border p-4">
         <p className="font-medium">Check your email</p>
         <p className="text-muted-foreground text-sm">
           We sent a verification link to your email address. Click it to activate your

@@ -35,9 +35,9 @@ export default async function SubmitStep4Page({
     <Section>
       <Container className="max-w-2xl">
         <p className="text-muted-foreground mb-1 text-sm">Step 4 of 5</p>
-        <h1 className="font-heading text-2xl font-semibold">Author agreement</h1>
+        <h1 className="mb-6 border-b-2 border-foreground pb-4 font-heading text-4xl leading-[1.08] font-semibold text-balance">Author agreement</h1>
 
-        <div className="bg-muted mt-4 rounded-lg border p-4">
+        <div className="mt-4 border border-border bg-secondary p-4">
           <pre className="whitespace-pre-wrap text-sm">{JOURNAL_AUTHOR_AGREEMENT_V1_TEXT}</pre>
         </div>
 

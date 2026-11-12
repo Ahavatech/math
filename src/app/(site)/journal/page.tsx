@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { db } from "@/lib/db";
-import { auth } from "@/auth";
 import { getJournalSettingsPublic, journalDisplayName } from "@/server/services/journal-settings";
 import { getJournalPagePublic } from "@/server/services/journal-pages";
 import { getLatestPublicIssue } from "@/server/services/journal-issues";
@@ -10,9 +10,8 @@ import { renderRichText } from "@/lib/sanitize-html";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { PageHeader } from "@/components/ui/page-header";
 import { Prose } from "@/components/ui/prose";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
@@ -26,92 +25,110 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function JournalHomePage() {
-  const [settings, callForPapers, latestIssue, latestArticles, session] = await Promise.all([
+  const [settings, callForPapers, latestIssue, latestArticles] = await Promise.all([
     getJournalSettingsPublic(),
     getJournalPagePublic("journal-call-for-papers"),
     getLatestPublicIssue(),
     getLatestArticlesPublic(db, 6),
-    auth(),
   ]);
-
-  const isLoggedIn = !!session?.user;
 
   const name = journalDisplayName(settings);
 
   return (
     <Section>
-      <Container className="max-w-4xl">
+      <Container>
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Journal" }]} />
-        <h1 className="mt-4 font-heading text-3xl font-semibold sm:text-4xl">{name}</h1>
-        {settings.publisher ? <p className="mt-2 text-muted-foreground">{settings.publisher}</p> : null}
+        <PageHeader
+          className="mt-4"
+          title={name}
+          description={settings.publisher ? settings.publisher : undefined}
+        />
 
-        <nav className="mt-6 flex flex-wrap items-center gap-3 text-sm" aria-label="Journal sections">
-          <Link href="/journal/about" className="text-primary hover:underline">About</Link>
-          <Link href="/journal/guidelines" className="text-primary hover:underline">Guidelines</Link>
-          <Link href="/journal/editorial-board" className="text-primary hover:underline">Editorial board</Link>
-          <Link href="/journal/issues" className="text-primary hover:underline">Archive</Link>
-          <span className="ml-auto flex items-center gap-2">
-            {isLoggedIn ? (
-              <Link href="/journal/dashboard">
-                <Button size="sm" variant="outline">My submissions</Button>
-              </Link>
+        <div className="mt-10 grid gap-12 lg:grid-cols-[2fr_1fr] lg:gap-16">
+          <div>
+            <h2 className="border-b-2 border-foreground pb-2 font-heading text-2xl font-semibold">
+              Latest articles
+            </h2>
+            {latestArticles.length > 0 ? (
+              <ul>
+                {latestArticles.map((article) => (
+                  <li key={article.id} className="index-row border-b border-border">
+                    <Link
+                      href={`/journal/articles/${article.slug}`}
+                      className="flex items-start justify-between gap-4 py-4"
+                    >
+                      <span>
+                        <span className="block font-heading text-xl leading-snug font-semibold">
+                          {article.title}
+                        </span>
+                        <span className="mt-1 block text-muted-foreground">
+                          {article.authors.map((a) => a.name).join(", ")}
+                        </span>
+                      </span>
+                      <ArrowRight
+                        className="row-arrow mt-1.5 size-4 shrink-0 text-accent"
+                        aria-hidden="true"
+                      />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             ) : (
-              <>
-                <Link href="/journal/register">
-                  <Button size="sm" variant="outline">Register</Button>
-                </Link>
-                <Link href="/journal/login">
-                  <Button size="sm">Log in</Button>
-                </Link>
-              </>
+              <p className="border-b border-border py-5 text-muted-foreground">
+                No articles have been published yet.
+              </p>
             )}
-            {settings.submissionsOpen && (
-              <Link href="/journal/submit">
-                <Button size="sm">Submit a manuscript</Button>
+            <p className="mt-4">
+              <Link href="/journal/articles" className="link-rule py-2 font-medium text-primary">
+                All articles
               </Link>
-            )}
-          </span>
-        </nav>
-
-        {callForPapers ? (
-          <div className="mt-8 rounded-md border border-border bg-muted p-4">
-            <h2 className="font-heading text-lg font-semibold">Call for papers</h2>
-            <Prose className="mt-2" dangerouslySetInnerHTML={{ __html: renderRichText(callForPapers.body) }} />
-            <Link href="/journal/call-for-papers" className="mt-2 inline-block text-sm text-primary hover:underline">Read more</Link>
+            </p>
           </div>
-        ) : null}
 
-        {latestIssue ? (
-          <div className="mt-8">
-            <h2 className="font-heading text-xl font-semibold">Latest issue</h2>
-            <Link href={`/journal/issues/${latestIssue.volume}/${latestIssue.number}`} className="mt-2 block text-primary hover:underline">
-              Vol. {latestIssue.volume}, No. {latestIssue.number} ({latestIssue.year}){latestIssue.title ? ` - ${latestIssue.title}` : ""}
-            </Link>
-          </div>
-        ) : null}
-
-        {latestArticles.length > 0 ? (
-          <div className="mt-8">
-            <h2 className="font-heading text-xl font-semibold">Latest articles</h2>
-            <div className="mt-3 grid gap-4 sm:grid-cols-2">
-              {latestArticles.map((article) => (
-                <Link key={article.id} href={`/journal/articles/${article.slug}`}>
-                  <Card className="h-full transition-colors hover:border-primary">
-                    <CardHeader>
-                      <CardTitle className="text-base">{article.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="text-sm text-muted-foreground">
-                      {article.authors.map((a) => a.name).join(", ")}
-                    </CardContent>
-                  </Card>
+          <aside className="space-y-10">
+            {latestIssue ? (
+              <div>
+                <h2 className="border-b-2 border-foreground pb-2 font-heading text-2xl font-semibold">
+                  Latest issue
+                </h2>
+                <Link
+                  href={`/journal/issues/${latestIssue.volume}/${latestIssue.number}`}
+                  className="index-row mt-1 block border-b border-border py-4"
+                >
+                  <span className="tabular block font-heading text-xl font-semibold">
+                    Vol. {latestIssue.volume}, No. {latestIssue.number}
+                  </span>
+                  <span className="block text-muted-foreground">
+                    {latestIssue.year}
+                    {latestIssue.title ? `, ${latestIssue.title}` : ""}
+                  </span>
                 </Link>
-              ))}
-            </div>
-          </div>
-        ) : null}
+                <p className="mt-2">
+                  <Link href="/journal/issues" className="link-rule py-2 font-medium text-primary">
+                    Browse the archive
+                  </Link>
+                </p>
+              </div>
+            ) : null}
 
-        <div className="mt-10">
-          <Link href="/journal/issues"><Button variant="outline">Browse the archive</Button></Link>
+            {callForPapers ? (
+              <div>
+                <h2 className="border-b-2 border-accent pb-2 font-heading text-2xl font-semibold">
+                  Call for papers
+                </h2>
+                <Prose
+                  className="mt-3 line-clamp-6 text-base"
+                  dangerouslySetInnerHTML={{ __html: renderRichText(callForPapers.body) }}
+                />
+                <Link
+                  href="/journal/call-for-papers"
+                  className="link-rule mt-2 inline-block py-2 font-medium text-primary"
+                >
+                  Read more
+                </Link>
+              </div>
+            ) : null}
+          </aside>
         </div>
       </Container>
     </Section>

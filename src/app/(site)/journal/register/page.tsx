@@ -23,7 +23,7 @@ export default function JournalRegisterPage() {
           ]}
         />
         <div className="mt-6 space-y-1">
-          <h1 className="font-heading text-2xl font-semibold">Create a submission account</h1>
+          <h1 className="mb-6 border-b-2 border-foreground pb-4 font-heading text-4xl leading-[1.08] font-semibold text-balance">Create a submission account</h1>
           <p className="text-muted-foreground text-sm">
             Register to submit articles to the OAU Journal of Mathematics. You will receive a
             verification email before you can submit.

@@ -1,7 +1,5 @@
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 export type PersonCardProps = {
   name: string;
@@ -20,30 +18,32 @@ function initials(name: string): string {
     .toUpperCase();
 }
 
+/**
+ * A staff entry as a flat index entry: portrait square, name, rank and
+ * research areas, with the whole row a single link named by the person.
+ */
 export function PersonCard({ name, rank, photoUrl, href, researchAreas }: PersonCardProps) {
   return (
-    <Link href={href} className="block">
-      <Card className="h-full py-4 transition-colors hover:border-primary/40">
-        <CardContent className="flex flex-col items-center gap-3 px-4 text-center">
-          <Avatar className="size-20">
-            {photoUrl ? <AvatarImage src={photoUrl} alt="" /> : null}
-            <AvatarFallback className="font-heading text-lg">{initials(name)}</AvatarFallback>
-          </Avatar>
-          <div>
-            <h3 className="font-heading font-semibold leading-snug">{name}</h3>
-            <p className="text-sm text-muted-foreground">{rank}</p>
-          </div>
-          {researchAreas && researchAreas.length > 0 ? (
-            <div className="flex flex-wrap justify-center gap-1">
-              {researchAreas.slice(0, 3).map((area) => (
-                <Badge key={area} variant="secondary">
-                  {area}
-                </Badge>
-              ))}
-            </div>
-          ) : null}
-        </CardContent>
-      </Card>
-    </Link>
+    <article className="index-row relative flex h-full gap-4 border-t border-border py-4">
+      <Avatar className="size-16 shrink-0 rounded-none after:rounded-none">
+        {photoUrl ? <AvatarImage src={photoUrl} alt="" className="rounded-none" /> : null}
+        <AvatarFallback className="rounded-none bg-secondary font-heading text-lg">
+          {initials(name)}
+        </AvatarFallback>
+      </Avatar>
+      <div className="min-w-0">
+        <h3 className="font-heading text-lg leading-snug font-semibold">
+          <Link href={href} className="link-rule after:absolute after:inset-0">
+            {name}
+          </Link>
+        </h3>
+        <p className="text-sm text-muted-foreground">{rank}</p>
+        {researchAreas && researchAreas.length > 0 ? (
+          <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
+            {researchAreas.slice(0, 3).join(", ")}
+          </p>
+        ) : null}
+      </div>
+    </article>
   );
 }

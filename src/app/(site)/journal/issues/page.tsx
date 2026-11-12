@@ -3,6 +3,7 @@ import { listIssuesPublic } from "@/server/services/journal-issues";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { PageHeader } from "@/components/ui/page-header";
 
 export const revalidate = 300;
 
@@ -22,35 +23,52 @@ export default async function JournalIssuesPage() {
 
   return (
     <Section>
-      <Container className="max-w-3xl">
+      <Container>
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Journal", href: "/journal" }, { label: "Archive" }]} />
-        <h1 className="mt-4 font-heading text-3xl font-semibold">Issue archive</h1>
+        <PageHeader className="mt-4" title="Issue archive" />
 
-        {years.length === 0 ? <p className="mt-4 text-muted-foreground">No issues have been published yet.</p> : null}
+        {years.length === 0 ? (
+          <p className="mt-8 border-t border-border py-5 text-muted-foreground">
+            No issues have been published yet.
+          </p>
+        ) : null}
 
         {years.map((year) => (
-          <div key={year} className="mt-8">
-            <h2 className="font-heading text-xl font-semibold">{year}</h2>
-            <div className="mt-3 grid gap-4 sm:grid-cols-2">
+          <section key={year} className="mt-10 max-w-4xl">
+            <h2 className="tabular border-b-2 border-foreground pb-2 font-heading text-2xl font-semibold text-accent">
+              {year}
+            </h2>
+            <ul>
               {byYear.get(year)!.map((issue) => (
-                <Link
-                  key={issue.id}
-                  href={`/journal/issues/${issue.volume}/${issue.number}`}
-                  className="flex items-center gap-3 rounded-md border border-border p-3 transition-colors hover:border-primary"
-                >
-                  {issue.cover ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={issue.cover.url} alt={issue.cover.alt ?? ""} className="h-20 w-16 rounded object-cover" />
-                  ) : null}
-                  <div>
-                    <p className="font-medium">Vol. {issue.volume}, No. {issue.number}</p>
-                    {issue.title ? <p className="text-sm text-muted-foreground">{issue.title}</p> : null}
-                    <p className="text-sm text-muted-foreground">{issue.articleCount} article(s)</p>
-                  </div>
-                </Link>
+                <li key={issue.id} className="index-row border-b border-border">
+                  <Link
+                    href={`/journal/issues/${issue.volume}/${issue.number}`}
+                    className="flex items-center gap-5 py-4"
+                  >
+                    {issue.cover ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={issue.cover.url}
+                        alt={issue.cover.alt ?? ""}
+                        className="h-20 w-16 shrink-0 border border-border object-cover"
+                      />
+                    ) : null}
+                    <span>
+                      <span className="tabular block font-heading text-xl font-semibold">
+                        Vol. {issue.volume}, No. {issue.number}
+                      </span>
+                      {issue.title ? (
+                        <span className="block text-muted-foreground">{issue.title}</span>
+                      ) : null}
+                      <span className="tabular block text-sm text-muted-foreground">
+                        {issue.articleCount} {issue.articleCount === 1 ? "article" : "articles"}
+                      </span>
+                    </span>
+                  </Link>
+                </li>
               ))}
-            </div>
-          </div>
+            </ul>
+          </section>
         ))}
       </Container>
     </Section>

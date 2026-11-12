@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { Prisma, PrismaClient } from "@prisma/client";
 import { logAction, type AuditRequestContext } from "@/server/services/audit";
 import { journalSettingsSchema } from "@/lib/validators/journal";
+import { donationsSettingsSchema, DONATIONS_DEFAULT } from "@/lib/validators/donations";
 
 const identitySchema = z.object({
   name: z.string().min(1),
@@ -122,6 +123,15 @@ export const SETTINGS_REGISTRY = {
     label: "Social links",
     section: "Social links",
   },
+  // Bank details for the /donate page. Off by default and empty: nothing
+  // is shown to the public until an admin enters real details and turns
+  // the page on. Every save is audited and versioned like any setting.
+  "donations.details": {
+    schema: donationsSettingsSchema,
+    default: DONATIONS_DEFAULT,
+    label: "Donations",
+    section: "Donations",
+  },
   "footer.text": {
     schema: footerSchema,
     default: { text: "" },
@@ -216,6 +226,7 @@ const PUBLIC_REVALIDATE_PATHS: Partial<Record<SettingsKey, string[]>> = {
   "contact.details": ["/", "/contact"],
   "social.links": ["/"],
   "footer.text": ["/"],
+  "donations.details": ["/donate"],
   "journal.settings": ["/journal", "/journal/rss.xml"],
 };
 

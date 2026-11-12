@@ -137,16 +137,12 @@ seed and import must come first. The first build takes several minutes on one
 vCPU and slows the existing site a little while it runs.
 
 ```bash
-sudo -u maths -i
-export PATH=/opt/node24/bin:$PATH
-cd /opt/oaumaths/repo
-set -a; . /etc/oaumaths/env; set +a
-npm ci --include=dev
-npx prisma migrate deploy
-SEED_MODE=production npx prisma db seed
-npm run db:import-legacy
-exit
+sudo -u maths bash -c 'export PATH=/opt/node24/bin:$PATH; cd /opt/oaumaths/repo; set -a; . /etc/oaumaths/env; set +a; npm ci --include=dev && npx prisma migrate deploy && SEED_MODE=production npx prisma db seed && npm run db:import-legacy'
 ```
+
+This is one non-interactive command on purpose. Do not use `sudo -u maths -i`
+and paste more lines after it: that opens a shell as `maths`, and every later
+line (including the root-only steps) then runs as `maths` and fails.
 
 `--include=dev` is needed because the build uses dev dependencies and
 `NODE_ENV=production` is set in the environment file.
@@ -198,13 +194,7 @@ The seed created your `SEED_ADMIN_EMAIL` user without a password. Once Resend
 works (step 11) use "Forgot password". Until then, set one directly:
 
 ```bash
-sudo -u maths -i
-export PATH=/opt/node24/bin:$PATH
-cd /opt/oaumaths/repo
-set -a; . /etc/oaumaths/env; set +a
-unset NODE_ENV
-npx tsx scripts/set-admin-password.ts YOUR_EMAIL 'a-long-password-of-10-plus-characters'
-exit
+sudo -u maths bash -c 'export PATH=/opt/node24/bin:$PATH; cd /opt/oaumaths/repo; set -a; . /etc/oaumaths/env; set +a; unset NODE_ENV; npx tsx scripts/set-admin-password.ts YOUR_EMAIL "a-long-password-of-10-plus-characters"'
 ```
 
 ## 10. Cron jobs and backups

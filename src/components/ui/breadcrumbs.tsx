@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 
 export type BreadcrumbItem = {
   label: string;
@@ -9,21 +8,28 @@ export type BreadcrumbItem = {
 export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
   return (
     <nav aria-label="Breadcrumb">
-      <ol className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
+      <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
           return (
-            <li key={`${item.label}-${index}`} className="flex items-center gap-1">
+            <li key={`${item.label}-${index}`} className="flex items-center gap-2">
               {item.href && !isLast ? (
-                <Link href={item.href} className="hover:text-foreground hover:underline">
+                <Link
+                  href={item.href}
+                  className="link-rule inline-block py-1 hover:text-foreground"
+                >
                   {item.label}
                 </Link>
               ) : (
-                <span aria-current={isLast ? "page" : undefined} className="text-foreground">
+                <span aria-current={isLast ? "page" : undefined} className="py-1 text-foreground">
                   {item.label}
                 </span>
               )}
-              {!isLast ? <ChevronRight className="size-3.5" aria-hidden="true" /> : null}
+              {!isLast ? (
+                <span aria-hidden="true" className="text-accent">
+                  /
+                </span>
+              ) : null}
             </li>
           );
         })}

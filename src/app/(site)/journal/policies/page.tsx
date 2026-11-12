@@ -20,8 +20,8 @@ export default async function JournalPoliciesPage() {
     <Section>
       <Container className="max-w-3xl">
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Journal", href: "/journal" }, { label: "Policies" }]} />
-        <h1 className="mt-4 font-heading text-3xl font-semibold">{page.title}</h1>
-        <Prose className="mt-4" dangerouslySetInnerHTML={{ __html: renderRichText(page.body) }} />
+        <h1 className="mt-4 border-b-2 border-foreground pb-5 font-heading text-4xl leading-[1.08] font-semibold text-balance sm:text-5xl">{page.title}</h1>
+        <Prose className="mt-8" dangerouslySetInnerHTML={{ __html: renderRichText(page.body) }} />
       </Container>
     </Section>
   );

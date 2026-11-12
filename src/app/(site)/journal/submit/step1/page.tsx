@@ -52,7 +52,7 @@ export default async function SubmitStep1Page({
     <Section>
       <Container className="max-w-2xl">
         <p className="text-muted-foreground mb-1 text-sm">Step 1 of 5</p>
-        <h1 className="font-heading text-2xl font-semibold">Article details</h1>
+        <h1 className="mb-6 border-b-2 border-foreground pb-4 font-heading text-4xl leading-[1.08] font-semibold text-balance">Article details</h1>
         <form action={saveStep1Action} className="mt-6 space-y-5">
           <input type="hidden" name="draftId" value={ms.id} />
 
@@ -62,7 +62,7 @@ export default async function SubmitStep1Page({
               id="articleType"
               name="articleType"
               defaultValue={ms.articleType ?? "RESEARCH_ARTICLE"}
-              className="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+              className="block min-h-12 w-full border border-input bg-background px-3 py-2 text-base"
               required
             >
               {ARTICLE_TYPES.map((t) => (

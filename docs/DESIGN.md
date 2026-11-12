@@ -1,99 +1,82 @@
 # Design system
 
-**Status: proposed.** The palette and type choices below are a considered starting point, not a locked identity — the HOD/department should confirm or redirect before Stage 05 builds real pages on top of them. Nothing here assumes OAU's institutional navy-and-gold; see "Why not OAU's colours" below.
+**Status: Stage 15, part 1 (replaces the Stage 04 chalkboard system).** The HOD has not yet seen this direction. Treat it as proposed until they confirm it.
 
-## Principles
+## Direction: the exercise book, read as a Swiss editorial journal
 
-1. **Read mode, not persuade mode.** Visitors come to find a programme, a staff member, a paper, a date. The job of this design is to get out of the way of dense, structured information, not to sell anything. Clarity and scanability outrank visual drama.
-2. **Scholarly but welcoming** (per PRODUCT.md). Scholarly means precise, unornamented, confident in whitespace and type rather than decoration. Welcoming means legible at a glance, generous touch targets, never cold or bureaucratic.
-3. **Built for slow connections.** Every design decision is also a performance decision: two font families, no client-side animation library, no decorative imagery that isn't load-bearing.
-4. **Nothing hard-coded.** The design system is tokens and components; the content behind header, footer, and every page comes from the database (Stage 04 builds the shell with safe fallbacks; Stage 05+ fills it in).
+The site reads like a beautifully typeset mathematics journal set on squared paper, not like a notebook and not like a university template.
 
-## Audience and tone
+- **Signature:** a red double margin rule runs down the left gutter of every public page, like the margin of an exercise book. It draws itself once on load. It is the only thing that is always red.
+- **Squared paper** appears only in masthead zones (the homepage hero), faded out downward. It is never behind running text.
+- **Figures:** mathematical illustrations are authored SVG with real notation (`src/components/sections/riemann-figure.tsx`). They cost no image download.
+- **No cards** as page structure. Content is set as ruled index rows (hairline above, a red tick slides in on hover), the way a table of contents or an index is set.
+- **Corners are square** (`--radius: 0.125rem`). No gradients, no glass, no shadows except the dropdown menu.
 
-Four audiences share these pages: prospective/current students (need facts, fast), academic peers and journal readers (expect a credible, citation-literate surface), alumni (coming back to something familiar), and the general public/press. None of them are being sold to. The tone is a well-kept departmental noticeboard and journal front page, not a product landing page: confident typography, real structure, no filler copy.
+## Direction contract
 
-## Why not OAU's colours
+- THESIS: one department site that is unmistakably mathematical because its frame is squared paper, a red margin rule and typeset notation, while the reading column stays calm. Refuses the university template (hero, stats band, card grid).
+- OWN-WORLD: cool white paper, blue-black ink, one red. Source Serif 4 for headings and long reading, Hanken Grotesk for interface and body. Ruled rows, 2px ink rules under section heads.
+- STORY: a visitor sees what the department is, then finds courses, calendar, news, staff or the journal within two taps.
+- FIRST VIEWPORT: the department title and standfirst on squared paper, one primary action, the department's figures in one quiet line, and an authored integral figure. Header with a labelled Menu button on phones.
+- FORM: the squared exercise book (assigned direction, seed key 48560c91), interpreted as an editorial system.
 
-The department crest (navy and gold) exists in `design-assets/oau-logo.png` and will likely appear in the header as the actual university mark. But the *site's own* working palette is proposed independently here, for two reasons: the brief explicitly asks not to assume it, and reusing crest navy/gold as UI color (link color, button color, focus rings) risks fighting the crest itself for attention when both appear in the header. The logo stays exactly as supplied; the surrounding system is its own decision, below.
+## Colour
 
-## Colour strategy: Restrained
-
-This is a Read-mode surface: neutrals carry nearly everything, with one working accent doing real jobs (links, primary actions, focus states) rather than scattered decoration. The source material is the department's own tool: the chalkboard. Historically chalkboards are a dark, desaturated green, not black — "blackboard" is a misnomer kept by habit. That gives a mathematics department an accent that is genuinely its own material (not a generic brand-blue, not the AI-default purple/terracotta pairing) while staying restrained enough for a dense, reading-first site.
+Light only. Every pair is asserted by `tests/unit/design/contrast.test.ts`, which reads these hex values from `src/app/globals.css`.
 
 | Token | Hex | Role |
 | --- | --- | --- |
-| `--color-background` | `#FAF9F5` | Page background. Warm off-white (paper), not stark white — reduces glare for long reading sessions. |
-| `--color-foreground` | `#1B1D1A` | Primary text. Warm near-black, not pure black. |
-| `--color-muted` | `#F1EFE8` | Subtle surface fill (cards, table stripes, code/math blocks). |
-| `--color-muted-foreground` | `#5C6058` | Secondary text (captions, metadata, timestamps). |
-| `--color-border` | `#E1DED3` | Hairlines, dividers, input borders. |
-| `--color-primary` (chalkboard) | `#1F3D2E` | Links, primary buttons, active nav, focus rings. The one accent. |
-| `--color-primary-foreground` | `#FAF9F5` | Text/icons on a primary-filled surface. |
-| `--color-accent` (chalk dust) | `#74603F` | Sparing secondary accent: badges, small highlights, the "pinned" marker. Never a CTA colour. |
-| `--color-accent-foreground` | `#FAF9F5` | Text on an accent-filled surface. |
-| `--color-destructive` | `#8C3326` | Errors, destructive actions. A muted brick red, not alarm red — stays inside the same restrained family. |
-| `--color-destructive-foreground` | `#FAF9F5` | Text on a destructive-filled surface. |
-| `--color-success` | `#1F3D2E` | Reuses primary; a department site has few "success" moments (form submitted, saved) and doesn't need a second green. |
-
-### Contrast (WCAG — verified by `tests/unit/design/contrast.test.ts`, computed from these exact hex values, not asserted by hand)
-
-| Pair | Ratio | Needs | Use |
-| --- | --- | --- | --- |
-| foreground on background | ≈15.3:1 | 4.5:1 (body) | Body text |
-| muted-foreground on background | ≈6.1:1 | 4.5:1 (body) | Captions, metadata |
-| primary-foreground on primary | ≈11.2:1 | 4.5:1 (body) | Button/link text on filled primary |
-| accent-foreground on accent | ≈5.7:1 | 4.5:1 (body) | Badge text on filled accent |
-| destructive-foreground on destructive | ≈7.9:1 | 4.5:1 (body) | Error button/alert text |
-| primary on background | ≈8.4:1 | 4.5:1 (body) | Link text directly on the page |
-| border on background | ≈1.3:1 | 3:1 (UI non-text) | n/a — borders are decorative, not held to text contrast |
-
-(Ratios above are computed values from the automated test; if a future token edit drops one below its row's "needs" threshold, that test fails the build.)
+| `--background` | `#fbfcfc` | Page (cool white paper) |
+| `--foreground` | `#0d1626` | Text and rules (blue-black ink) |
+| `--primary` | `#14213d` | Buttons, links |
+| `--accent` | `#b3261e` | The red: margin rule, active nav, dates, focus ring, link hover |
+| `--destructive` | `#8f1d18` | Errors and destructive actions |
+| `--muted`, `--secondary` | `#eef2f5` | Quiet surfaces |
+| `--muted-foreground` | `#455264` | Secondary text |
+| `--border` | `#d5dde4` | Hairlines |
+| `--input` | `#b8c4cf` | Form field borders |
+| `--grid` | `#dce6ec` | Squared-paper lines (decorative only) |
 
 ## Typography
 
-Two families, self-hosted via `next/font/google` (downloaded at build time into the app's own origin — no runtime request to Google Fonts' CDN, satisfying the "no external font requests" rule while still using next/font's pipeline).
+Self-hosted variable fonts (`@fontsource-variable`), subset by unicode-range so a page downloads only what it uses. Latin-ext and Vietnamese carry the Yoruba diacritics.
 
-- **IBM Plex Serif** — headings. A text-driven, slightly technical serif designed for sustained reading and data-dense contexts (IBM commissioned Plex partly for technical/engineering documentation), giving headings an academic-journal character without reaching for a Persuade-mode display serif (Fraunces/Playfair/Cormorant) that would overstate a department noticeboard's drama.
-- **IBM Plex Sans** — body and UI. Same family as the heading face (shared design DNA avoids an awkward pairing), highly legible at small sizes, neutral enough to disappear into long paragraphs and dense tables/forms.
-- Weights used: Serif 500, 600. Sans 400, 500, 600. Five total — few, as asked.
+- **Source Serif 4:** headings (600), the `Prose` reading style (about 17px, 1.75 line height, 68ch measure) and italics.
+- **Hanken Grotesk:** navigation, labels, body text in lists, forms.
+- Headings use `text-wrap: balance`, tracking -0.012em. Tables and dates use tabular lining numerals. Display size tops out at `text-6xl`.
 
-### Type scale (1.2 modular ratio from a 16px base)
+## Components changed in this stage
 
-| Token | Size / line-height | Use |
-| --- | --- | --- |
-| `--text-xs` | 12px / 16px | Fine print, timestamps |
-| `--text-sm` | 14px / 20px | Captions, metadata, form labels |
-| `--text-base` | 16px / 26px | Body text (measure capped at 70ch via `.prose`) |
-| `--text-lg` | 18px / 28px | Lead paragraphs |
-| `--text-xl` | 20px / 30px | Card titles |
-| `--text-2xl` | 24px / 32px | Section headings |
-| `--text-3xl` | 30px / 38px | Page subheadings |
-| `--text-4xl` | 36px / 44px | Page titles |
-| `--text-5xl` | 48px / 56px | Homepage hero only (ceiling — this is a Read surface, not a Persuade hero; no 6rem display type here) |
-
-## Spacing, radii, elevation
-
-- Spacing: Tailwind's default 4px scale, used on an 8px rhythm for section/component spacing (more space above a heading than below it).
-- Radii: modest — `--radius: 0.375rem` (6px) as the shadcn base; nothing pill-shaped. An academic noticeboard reads as crisp rectangles, not a bubbly SaaS surface.
-- Elevation: flat by default. One soft shadow level for popovers/dropdowns/dialogs (`0 4px 16px -4px rgb(0 0 0 / 0.12)`, offset + blur, never a zero-offset colour halo). No glass, no backdrop-blur-as-decoration.
+`globals.css` tokens and utilities (`.site-sheet`, `.grid-paper`, `.grid-fade`, `link-rule`, `.index-row`), `Container` (uses `--gutter`), `Section`, `PageHeader` (2px ink rule), `Breadcrumbs` (red slash separators), `Prose`, `NewsCard`, `EventCard`, `PersonCard` (now ruled rows, same props), site header (active-page underline, labelled Menu button, full-screen mobile menu with search), footer, announcement bar, homepage. Event categories are shown as words ("Special lecture") through `src/lib/labels.ts`.
 
 ## Motion
 
-- `prefers-reduced-motion` is respected everywhere — when set, transitions and the mobile-menu animation collapse to instant.
-- Transitions: 150–200ms, ease-out, on opacity/transform only (hover states, menu open/close, focus rings). No scroll-triggered reveal animation, no client-side animation library (explicit requirement — keeps public-route JS light).
-- The one deliberate motion moment: the mobile nav drawer slides in with a matching backdrop fade; everything else is instant or CSS-only (`:hover`, `:focus-visible`).
+One authored moment: the margin rule draws down the page on load. Everything else is a short hover or focus transition (180 to 200 ms, exponential ease-out): the link underline thickening, the ruled-row tick, the arrow nudge, the menu opening. `prefers-reduced-motion` collapses all of it. No animation library.
 
-## Dark mode
+## Inner pages (Stage 15, part 2)
 
-Light theme only for this stage. Tokens are structured as CSS custom properties so a `prefers-color-scheme: dark` or `[data-theme="dark"]` block can be added later without restructuring components, but no dark values are authored now.
+Recomposed with the same grammar (2px ink rule under the title, ruled rows, square controls 48px tall, links with a drawn underline, red used for dates, active states and labels):
 
-## Component inventory (Stage 04 scope)
+- Listings: Staff (search and filters as a plain bar, staff as flat rows), News and Events (filter choices are real links with `aria-current`, Upcoming/Past as underline tabs, shared `PageNav`), Programmes (one ruled row per level), Research (ruled two-column index), Students hub, Courses (table that collapses to two columns on phones), Calendar (date column, past entries folded), Downloads, Handbook, Alumni, Search.
+- Details: Lecturer (sticky sidebar with photo, contact and links; publications by year; courses as ruled rows), News post, Event, Programme, Research area, About (HOD address two-column), Contact (department details beside the form).
+- New shared pieces: `src/components/ui/filter-links.tsx` (`FilterLinks`, `UnderlineTabs`, `PageNav`) and `src/components/ui/field-classes.ts`.
 
-`Container`, `Section`, `PageHeader`, `Breadcrumbs`, `Button` (shadcn, restyled to tokens), `Badge` (shadcn, restyled), `Card` (base), `NewsCard`, `EventCard`, `PersonCard` (these three take placeholder props only — no data wiring until their stages), `Prose` (rich-text typography wrapper), `EmptyState`, `Pagination`, `Alert`, `Skeleton`, `Math` (server-rendered KaTeX, inline and display).
+## Journal (Stage 15b)
 
-## What I need you to confirm
+The journal has its own running head (`src/app/(site)/journal/layout.tsx`, `journal-nav.tsx`): the journal's name, its sections (About, Articles, Archive, Editorial board, Guidelines, Call for papers, Policies), My submissions and, when submissions are open, Submit a manuscript. It scrolls sideways on phones and reads no session, so journal pages stay static. Redone: landing, articles list, article page (title in serif, abstract, keywords, PDF, how to cite, retraction and correction notices as bordered notices), issue archive and issue page, editorial board, the four text pages, and the author dashboard, reviewer dashboard and wizard forms (restyled controls and buttons). Manuscript and review statuses use `StatusTag` (`src/components/journal/status-tag.tsx`): words carry the meaning, red fill means it needs the reader, ink fill means finished, red outline means failed. The rainbow status pills are gone.
 
-1. **The chalkboard-green / chalk-dust palette above** — or redirect me toward something else (including, if you want it, working the OAU crest navy/gold into the UI itself rather than keeping them separate).
-2. **IBM Plex Serif + IBM Plex Sans** as the two type families — or a different pairing if you have a preference.
-3. Whether the OAU crest (`design-assets/oau-logo.png`) should sit in the header wordmark area now, or wait until Stage 05's media pipeline.
+## Admin (Stage 15c)
+
+Admin is an Operate surface: denser than the public site, same ink, rules and single red. `src/app/admin/admin-nav.tsx` is a grouped sidebar (Overview, Website, Academics, People, News and events, Journal) with the current page filled in ink; below 1024px it collapses behind a labelled Menu button (the old fixed sidebar made admin unusable on phones). The dashboard leads with "Waiting for you" (alumni to approve, new messages, manuscripts awaiting screening, draft posts), shown only where the user has the permission to act, then the site's counts as ruled lists instead of stat cards. A small unlayered block at the end of `globals.css` styles `.admin-main` titles, section headings, tables and a 13px text floor, so the 100+ existing admin pages share one look without being edited one by one.
+
+## Donations page (Stage 16)
+
+`/donate` uses the reading-page grammar: serif introduction, ruled "What gifts support" list, and a sticky "How to give" panel with a red rule under its title, the account number set large and selectable, and a copy button with a spoken confirmation. The footer shows a "Support the department" button only while the page is switched on.
+
+## Layout width
+
+The page container is now 80rem (was 72rem). The primary navigation is inline from 1366 px up; below that the labelled Menu button is used, because ten navigation items do not fit beside the title at 1280 px.
+
+## Not yet redesigned
+
+The alumni submission form and confirmation page, individual course and handbook pages, the events series page and the 403/404 pages only inherit the new tokens. The journal author and reviewer inner screens (manuscript detail, review form, invitation, verify, register) only had their controls, headings and statuses restyled, not recomposed. The individual admin pages (forms, lists, dialogs) were not recomposed: they inherit the new tokens, fonts, titles and tables only. The old shadcn dark theme block was removed because the site is light only.

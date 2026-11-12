@@ -4,7 +4,9 @@ import { listCalendarEntriesPublic } from "@/server/services/academic-calendar";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
+import { outlineButton } from "@/components/ui/field-classes";
 import { CalendarDays } from "lucide-react";
 
 export const revalidate = 300;
@@ -30,57 +32,77 @@ export default async function CalendarPage() {
 
   return (
     <Section>
-      <Container className="max-w-3xl">
+      <Container>
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Students", href: "/students" }, { label: "Calendar" }]} />
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
-          <h1 className="font-heading text-3xl font-semibold sm:text-4xl">Academic Calendar</h1>
-          <div className="flex gap-2 text-sm">
-            <a href="/students/calendar/feed.ics" className="rounded-md border border-input px-3 py-1.5 hover:bg-muted">
-              Subscribe
-            </a>
-            <a href="/students/calendar/feed.ics" download className="rounded-md border border-input px-3 py-1.5 hover:bg-muted">
-              Download .ics
-            </a>
-          </div>
-        </div>
+        <PageHeader
+          className="mt-4"
+          title="Academic Calendar"
+          description="Key dates for each academic session. Add them to your phone's calendar."
+          actions={
+            <>
+              <a href="/students/calendar/feed.ics" className={outlineButton}>
+                Subscribe
+              </a>
+              <a href="/students/calendar/feed.ics" download className={outlineButton}>
+                Download .ics
+              </a>
+            </>
+          }
+        />
 
         {entries.length === 0 ? (
           <EmptyState icon={CalendarDays} title="No calendar entries yet" description="Check back soon." className="mt-10" />
         ) : (
-          <div className="mt-8 space-y-8">
+          <div className="mt-10 max-w-4xl space-y-12">
             {[...bySession.entries()].map(([session, sessionEntries]) => {
               const current = sessionEntries.filter((e) => !isPast(e));
               const past = sessionEntries.filter(isPast);
               return (
-                <div key={session}>
-                  <h2 className="font-heading text-xl font-semibold">{session}</h2>
+                <section key={session}>
+                  <h2 className="border-b-2 border-foreground pb-2 font-heading text-2xl font-semibold">
+                    {session}
+                  </h2>
                   {current.length > 0 ? (
-                    <ul className="mt-3 space-y-2">
+                    <ul>
                       {current.map((e) => (
-                        <li key={e.id} className="rounded-md border border-border p-3">
-                          <p className="font-medium">{e.title}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {formatDate(e.startDate)}{e.endDate ? ` to ${formatDate(e.endDate)}` : ""}
+                        <li
+                          key={e.id}
+                          className="grid gap-x-8 gap-y-1 border-b border-border py-4 sm:grid-cols-[15rem_1fr]"
+                        >
+                          <p className="tabular font-medium text-accent">
+                            {formatDate(e.startDate)}
+                            {e.endDate ? ` to ${formatDate(e.endDate)}` : ""}
                           </p>
-                          {e.description ? <p className="mt-1 text-sm text-muted-foreground">{e.description}</p> : null}
+                          <div>
+                            <p className="font-heading text-lg font-semibold">{e.title}</p>
+                            {e.description ? <p className="text-muted-foreground">{e.description}</p> : null}
+                          </div>
                         </li>
                       ))}
                     </ul>
                   ) : null}
                   {past.length > 0 ? (
                     <details className="mt-3">
-                      <summary className="cursor-pointer text-sm text-muted-foreground">Past entries ({past.length})</summary>
-                      <ul className="mt-2 space-y-2">
+                      <summary className="cursor-pointer py-2 font-medium text-muted-foreground hover:text-foreground">
+                        Past entries ({past.length})
+                      </summary>
+                      <ul>
                         {past.map((e) => (
-                          <li key={e.id} className="rounded-md border border-border p-3 text-muted-foreground">
-                            <p className="font-medium">{e.title}</p>
-                            <p className="text-sm">{formatDate(e.startDate)}{e.endDate ? ` to ${formatDate(e.endDate)}` : ""}</p>
+                          <li
+                            key={e.id}
+                            className="grid gap-x-8 gap-y-1 border-b border-border py-3 text-muted-foreground sm:grid-cols-[15rem_1fr]"
+                          >
+                            <p className="tabular">
+                              {formatDate(e.startDate)}
+                              {e.endDate ? ` to ${formatDate(e.endDate)}` : ""}
+                            </p>
+                            <p>{e.title}</p>
                           </li>
                         ))}
                       </ul>
                     </details>
                   ) : null}
-                </div>
+                </section>
               );
             })}
           </div>

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { db } from "@/lib/db";
 import { SITE_URL } from "@/lib/seo";
+import { getDonationsPublic } from "@/server/services/donations";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 3600;
@@ -43,6 +44,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url("/journal/issues"),
     url("/journal/articles"),
   );
+
+  // The donations page exists only while an admin has switched it on.
+  try {
+    if (await getDonationsPublic(db)) entries.push(url("/donate"));
+  } catch {
+    /* skip */
+  }
 
   // Dynamic: news posts
   try {

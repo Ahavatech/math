@@ -77,10 +77,10 @@ export default async function ResearchAreaPage({ params }: { params: Promise<{ s
             { label: area.title },
           ]}
         />
-        <h1 className="mt-4 font-heading text-3xl font-semibold sm:text-4xl">{area.title}</h1>
+        <h1 className="mt-4 border-b-2 border-foreground pb-5 font-heading text-4xl leading-[1.08] font-semibold text-balance sm:text-5xl">{area.title}</h1>
 
         {area.image ? (
-          <div className="relative mt-6 aspect-video overflow-hidden rounded-xl">
+          <div className="relative mt-6 aspect-video overflow-hidden border border-border">
             <CloudImage
               src={area.image.url}
               alt={area.image.alt ?? area.title}
@@ -92,13 +92,13 @@ export default async function ResearchAreaPage({ params }: { params: Promise<{ s
           </div>
         ) : null}
 
-        <p className="mt-6 text-base text-muted-foreground">{area.summary}</p>
+        <p className="mt-6 max-w-[60ch] text-xl leading-relaxed text-muted-foreground">{area.summary}</p>
         <Prose className="mt-4" dangerouslySetInnerHTML={{ __html: renderRichText(area.body) }} />
 
         {area.lecturers.length > 0 ? (
           <div className="mt-10">
-            <h2 className="font-heading text-xl font-semibold">Lecturers in this area</h2>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <h2 className="border-b-2 border-foreground pb-2 font-heading text-2xl font-semibold">Lecturers in this area</h2>
+            <div className="grid gap-x-10 sm:grid-cols-2">
               {area.lecturers.map((lecturer) => (
                 <PersonCard
                   key={lecturer.id}
@@ -114,15 +114,15 @@ export default async function ResearchAreaPage({ params }: { params: Promise<{ s
 
         {publications.length > 0 ? (
           <div className="mt-10">
-            <h2 className="font-heading text-xl font-semibold">Selected publications</h2>
-            <ul className="mt-4 space-y-3">
+            <h2 className="border-b-2 border-foreground pb-2 font-heading text-2xl font-semibold">Selected publications</h2>
+            <ul>
               {publications.map((pub) => (
-                <li key={pub.id} className="text-sm">
+                <li key={pub.id} className="border-b border-border py-4">
                   <p className="font-medium">{pub.title}</p>
                   <p className="text-muted-foreground">
                     {pub.authorsText}
                     {pub.venue ? `, ${pub.venue}` : ""} ({pub.year}) -{" "}
-                    <a href={`/lecturer/${pub.lecturer.slug}`} className="underline">
+                    <a href={`/lecturer/${pub.lecturer.slug}`} className="link-rule text-primary">
                       {pub.lecturer.fullName}
                     </a>
                   </p>

@@ -9,7 +9,7 @@ import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { Prose } from "@/components/ui/prose";
-import { Badge } from "@/components/ui/badge";
+import { humanise } from "@/lib/labels";
 import { ZoomableImage } from "@/components/ui/zoomable-image";
 import { safeJsonLdString, buildNewsArticleJsonLd } from "@/lib/json-ld";
 import { SITE_URL } from "@/lib/seo";
@@ -55,14 +55,16 @@ export default async function NewsPostPage({ params }: { params: Promise<{ slug:
       <Container className="max-w-3xl">
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "News", href: "/news" }, { label: post.title }]} />
 
-        <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-          <Badge variant="secondary">{post.category}</Badge>
-          {post.publishedAt ? <span>{formatDateWAT(post.publishedAt)}</span> : null}
-        </div>
-        <h1 className="mt-2 font-heading text-3xl font-semibold sm:text-4xl">{post.title}</h1>
+        <p className="tabular mt-6 text-muted-foreground">
+          <span className="font-semibold text-accent">{humanise(post.category)}</span>
+          {post.publishedAt ? `, ${formatDateWAT(post.publishedAt)}` : ""}
+        </p>
+        <h1 className="mt-2 border-b-2 border-foreground pb-6 font-heading text-4xl leading-[1.08] font-semibold text-balance sm:text-5xl">
+          {post.title}
+        </h1>
 
         {post.cover ? (
-          <div className="relative mt-6 aspect-video overflow-hidden rounded-xl">
+          <div className="relative mt-6 aspect-video overflow-hidden border border-border">
             <ZoomableImage src={post.cover.url} alt={post.cover.alt ?? post.title} priority />
           </div>
         ) : null}
@@ -70,12 +72,14 @@ export default async function NewsPostPage({ params }: { params: Promise<{ slug:
         <Prose className="mt-6" dangerouslySetInnerHTML={{ __html: renderRichText(post.body) }} />
 
         {others.length > 0 ? (
-          <div className="mt-12 border-t border-border pt-8">
-            <h2 className="font-heading text-xl font-semibold">More news</h2>
-            <ul className="mt-4 space-y-3">
+          <div className="mt-16">
+            <h2 className="border-b-2 border-foreground pb-2 font-heading text-2xl font-semibold">
+              More news
+            </h2>
+            <ul>
               {others.map((other) => (
-                <li key={other.id}>
-                  <Link href={`/news/${other.slug}`} className="font-medium underline">
+                <li key={other.id} className="index-row border-b border-border">
+                  <Link href={`/news/${other.slug}`} className="block py-4 font-heading text-lg font-semibold">
                     {other.title}
                   </Link>
                 </li>

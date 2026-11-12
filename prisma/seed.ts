@@ -145,6 +145,26 @@ const SITE_SETTINGS: Array<{ key: string; value: unknown }> = [
       text: "[SAMPLE] Department of Mathematics, Obafemi Awolowo University.",
     },
   },
+  // Sample only (development seeds; SEED_MODE=production skips every entry
+  // in this list). The account details are obviously fake. A real
+  // deployment starts with the page switched off until an admin enters the
+  // department's own details at /admin/site.
+  {
+    key: "donations.details",
+    value: {
+      enabled: true,
+      heading: "[SAMPLE] Support the department",
+      intro: "[SAMPLE] Gifts help students and research. This text is a placeholder.",
+      purposes: [{ title: "[SAMPLE] Student support", description: "[SAMPLE] Placeholder description." }],
+      accountName: "[SAMPLE] Account name",
+      bankName: "[SAMPLE] Bank name",
+      accountNumber: "0000000000",
+      swiftCode: "",
+      reference: "[SAMPLE] Your name",
+      receiptsNote: "",
+      contactEmail: "",
+    },
+  },
 ];
 
 /**

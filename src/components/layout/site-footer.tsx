@@ -6,11 +6,13 @@ export function SiteFooter({
   contact,
   social,
   footerText,
+  showDonate = false,
 }: {
   nav: NavLink[];
   contact: ContactDetails;
   social: SocialLinks;
   footerText: string | null;
+  showDonate?: boolean;
 }) {
   const year = new Date().getFullYear();
   const hasContact =
@@ -18,53 +20,59 @@ export function SiteFooter({
   const socialEntries = Object.entries(social);
 
   return (
-    <footer data-site-footer className="border-t border-border bg-muted/40">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-4 lg:px-8">
-        <div className="space-y-2 lg:col-span-1">
-          <p className="font-heading text-sm font-semibold">Department of Mathematics</p>
-          <p className="text-sm text-muted-foreground">Obafemi Awolowo University, Ile-Ife</p>
+    <footer data-site-footer className="mt-16 border-t-2 border-foreground bg-background">
+      <div className="mx-auto grid max-w-7xl gap-10 px-(--gutter) py-12 lg:grid-cols-[1.2fr_2fr_1.2fr]">
+        <div>
+          <p className="font-heading text-xl font-semibold">Department of Mathematics</p>
+          <p className="mt-1 text-muted-foreground">Obafemi Awolowo University, Ile-Ife</p>
+          {showDonate ? (
+            <Link
+              href="/donate"
+              className="mt-4 inline-flex min-h-11 items-center border border-foreground px-4 text-[0.9375rem] font-medium transition-colors hover:bg-foreground hover:text-background"
+            >
+              Support the department
+            </Link>
+          ) : null}
         </div>
 
-        {nav.map((column) =>
-          column.children.length > 0 ? (
-            <div key={column.id}>
-              <p className="font-heading text-sm font-semibold">{column.label}</p>
-              <ul className="mt-3 space-y-2">
-                {column.children.map((child) => (
-                  <li key={child.id}>
-                    <Link
-                      href={child.href}
-                      className="text-sm text-muted-foreground hover:text-foreground hover:underline"
-                    >
-                      {child.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : (
+        <nav aria-label="Footer" className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3">
+          {nav.map((column) => (
             <div key={column.id}>
               <Link
                 href={column.href}
-                className="font-heading text-sm font-semibold hover:underline"
+                className="link-rule inline-block font-heading text-base font-semibold"
               >
                 {column.label}
               </Link>
+              {column.children.length > 0 ? (
+                <ul className="mt-2">
+                  {column.children.map((child) => (
+                    <li key={child.id}>
+                      <Link
+                        href={child.href}
+                        className="inline-flex min-h-9 items-center text-[0.9375rem] text-muted-foreground hover:text-accent"
+                      >
+                        {child.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
-          ),
-        )}
+          ))}
+        </nav>
 
         {hasContact ? (
           <div>
-            <p className="font-heading text-sm font-semibold">Contact</p>
-            <ul className="mt-3 space-y-1.5 text-sm text-muted-foreground">
+            <p className="font-heading text-base font-semibold">Contact</p>
+            <ul className="mt-2 space-y-1.5 text-[0.9375rem] text-muted-foreground">
               {contact.address ? <li>{contact.address}</li> : null}
               {contact.phones.map((phone) => (
                 <li key={phone}>{phone}</li>
               ))}
               {contact.email ? (
                 <li>
-                  <a href={`mailto:${contact.email}`} className="hover:text-foreground hover:underline">
+                  <a href={`mailto:${contact.email}`} className="link-rule text-foreground">
                     {contact.email}
                   </a>
                 </li>
@@ -72,13 +80,10 @@ export function SiteFooter({
               {contact.officeHours ? <li>{contact.officeHours}</li> : null}
             </ul>
             {socialEntries.length > 0 ? (
-              <ul className="mt-4 flex gap-3">
+              <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-1">
                 {socialEntries.map(([label, url]) => (
                   <li key={label}>
-                    <a
-                      href={url}
-                      className="text-sm text-muted-foreground hover:text-foreground hover:underline"
-                    >
+                    <a href={url} className="link-rule inline-block py-1.5 text-[0.9375rem]">
                       {label}
                     </a>
                   </li>
@@ -88,8 +93,8 @@ export function SiteFooter({
           </div>
         ) : null}
       </div>
-      <div className="border-t border-border px-4 py-4 sm:px-6 lg:px-8">
-        <p className="mx-auto max-w-6xl text-xs text-muted-foreground">
+      <div className="border-t border-border py-4">
+        <p className="mx-auto max-w-7xl px-(--gutter) text-sm text-muted-foreground">
           {footerText ?? `© ${year} Department of Mathematics, Obafemi Awolowo University.`}
         </p>
       </div>

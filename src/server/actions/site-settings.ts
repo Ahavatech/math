@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser, requirePermission } from "@/lib/rbac";
 import { contextFromHeaders } from "@/server/services/audit";
 import { sanitizeRichText } from "@/lib/sanitize-html";
+import { donationsSettingsSchema } from "@/lib/validators/donations";
 import {
   setSetting,
   restoreSetting,
@@ -209,6 +210,46 @@ export async function saveFooterTextAction(
 ): Promise<ActionResult> {
   try {
     await saveAndRevalidate("footer.text", { text: str(formData, "text") });
+    return { success: true };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not save" };
+  }
+}
+
+export async function saveDonationsAction(
+  _prevState: ActionResult | undefined,
+  formData: FormData,
+): Promise<ActionResult> {
+  try {
+    const titles = formData.getAll("purposeTitle").map(String);
+    const descriptions = formData.getAll("purposeDescription").map(String);
+    // A row left completely blank is dropped; a row with only a description
+    // is kept so validation can tell the editor it needs a title.
+    const purposes = titles
+      .map((title, i) => ({ title, description: descriptions[i] ?? "" }))
+      .filter((purpose) => purpose.title.trim() !== "" || purpose.description.trim() !== "");
+
+    const value = {
+      enabled: formData.get("enabled") === "true",
+      heading: str(formData, "heading"),
+      intro: str(formData, "intro"),
+      purposes,
+      accountName: str(formData, "accountName"),
+      bankName: str(formData, "bankName"),
+      accountNumber: str(formData, "accountNumber"),
+      swiftCode: str(formData, "swiftCode"),
+      reference: str(formData, "reference"),
+      receiptsNote: str(formData, "receiptsNote"),
+      contactEmail: str(formData, "contactEmail"),
+    };
+    // Say what is wrong in words, not as raw validation output.
+    const checked = donationsSettingsSchema.safeParse(value);
+    if (!checked.success) {
+      return { error: checked.error.issues[0]?.message ?? "Please check the details and try again." };
+    }
+    await saveAndRevalidate("donations.details", value);
+    // The footer link to /donate appears on every public page.
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not save" };

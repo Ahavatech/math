@@ -894,3 +894,78 @@ NOT DONE (move to Stage 14):
 **Not verified:** nothing was run on the VPS. Only `bash -n update.sh` was checked. Unknowns: how the existing site's Nginx is laid out (guide step 0 inspects it), whether the repo is private (deploy key note), how long a first build takes on one vCPU, and the Resend DNS records.
 
 **Notes:** the user has not yet asked to commit, merge or push these files, and the VPS clones main, so they must be merged before the guide works. DECISIONS.md was not changed (hosting topology still listed as open). Real Resend and Cloudinary credentials must be created by the user.
+
+
+### Entry 053 | 2026-11-12 | Prompt 053: Stage 15 part 1, UI redesign (design system, shell, homepage)
+
+**Asked:** Use the "stageshow" skill to upgrade the UI. No such skill exists (not installed, not in the user's claude.ai skills); the user chose the `impeccable` skill instead. Also asked: create a donations page, and confirm the project is done.
+
+**Critique first.** Two isolated reviewers: a design review (21/32, "acceptable", generic university template, no visual identity, one CTA for four audiences, "0 Alumni" stat, raw enum labels, flat 11-item nav) and the detector (0 findings, no token pair under 4.5:1). The design reviewer's browser pane was only about 800 px wide, so it fully inspected only `/` and `/events`; its other findings were inferred from source.
+
+**Direction chosen by the user:** full redesign, nothing off limits, "The Exercise Book" interpreted as a premium editorial system, usability first, three stages (15 shell and public pages, 15b journal, 15c admin). Docs/DESIGN.md rewritten with the direction contract and tokens.
+
+**Done (this entry covers part 1 only):** new palette (blue-black ink, cool white, one red, token names unchanged so contrast.test.ts still reads them), Source Serif 4 and Hanken Grotesk replacing IBM Plex (two new packages, self-hosted), red double margin rule in the (site) layout, squared-paper hero, authored Riemann-sum SVG figure with KaTeX caption, ruled index rows instead of cards, homepage rebuilt (hero, "Find what you need" grouped by audience, news and events with forward links when empty, HOD address two-column, research index, featured lecturer and alumni), zero-valued stats hidden, event/news categories humanised, header with active-page underline and labelled Menu button, full-screen mobile menu with search, footer and announcement bar restyled, Container/Section/PageHeader/Breadcrumbs/Prose/NewsCard/EventCard/PersonCard restyled with unchanged props.
+
+**Checks:** tsc 0 errors, eslint clean, impeccable detector `[]` on the changed files, vitest tests/unit/design and src/components 14/14 (run with TEST_DATABASE_URL blank because Docker was not running). Viewed in the dev server without a database at 1440 and 390 px: header, margin rule, hero, figure, find-it-fast index, empty states, footer; a header overflow on phones was found and fixed.
+
+**Not verified:** anything with real data (no database locally), the mobile menu with real navigation items, every inner page, the full Vitest suite, `npm run build`, the Playwright and axe suites (selectors and headings may have changed; the header search link now has visible text), real-phone behaviour, keyboard and screen-reader passes, the finish review and the impeccable documenter step.
+
+**Not done:** Stage 15 parts for inner pages, 15b journal, 15c admin; donations page (next stage, bank-details version, branch stage/16-donations); the project-completeness answer is in the chat reply, not a document. Nothing committed.
+
+
+### Entry 054 | 2026-11-12 | Prompt 054: Stage 15 part 2, inner pages
+
+**Asked:** Continue redesigning the inner pages.
+
+**Done:** Staff, News, Events, Programmes, Research, Students hub, Courses, Calendar, Downloads, Handbook index, Alumni, Search, Contact, About, Lecturer profile, and the News, Event, Programme and Research detail pages recomposed in the exercise-book system (ruled rows instead of cards and badges, square 48px controls, drawn-underline links, red for dates and active states). New shared pieces: `FilterLinks`, `UnderlineTabs` and `PageNav` (`src/components/ui/filter-links.tsx`) and `field-classes.ts`. `NewsCard` gained optional pinned and cover props; the news list keeps its cover images and pinned marker. Usability changes: filter choices are real links with `aria-current` (the old badge links had no state for assistive tech); the course table collapses to two columns on phones; the empty Upcoming events page links to Past events; the staff search, course search and handbook search have labels; non-teaching staff emails are mailto links; the contact page now shows the department's address, email, phones and office hours (from site settings) beside the form; "Clear filters" added to courses and alumni. Raw enum values (event types, news categories) are shown as words on lists and detail pages.
+
+**Checks:** tsc 0 errors, eslint clean over src/app/(site) and src/components, impeccable detector `[]`. Viewed in the dev server without a database: Staff, Events, Programmes at 1280 px; Contact and Courses at 390 px. All showed the new layout and empty states correctly.
+
+**Not verified:** any page with real data (no database locally: populated lists, the lecturer profile, news and event detail pages, the alumni cards, search results were not seen), the Playwright and axe suites (headings, link text and some selectors changed; not run), the full Vitest suite, `npm run build`, keyboard and screen-reader behaviour, and the finish review.
+
+**Not done:** alumni submission form and confirmation, course and handbook detail pages, events series, 403 and 404 pages (inherit tokens only); Stage 15b journal and 15c admin. Nothing committed.
+
+
+### Entry 055 | 2026-11-12 | Prompt 055: Stage 15b, journal pages
+
+**Asked:** Continue with the journal pages.
+
+**Done:** a journal running head shared by every journal page (layout plus client nav with active state; it reads no session so static journal pages stay static); landing, articles list (search, type and year filters, PageNav), article page (retraction and correction notices, PDF as a real link instead of a button inside a link, how-to-cite block), issue archive and issue page, editorial board and the four text pages recomposed; author dashboard and reviewer dashboard rebuilt on PageHeader with a `StatusTag` component replacing the multicolour status pills; headings, buttons, fields and notice boxes restyled across dashboard detail, reviewer invitation and review form, register, verify and the five submission steps by pattern replacement (17 files). Layout fix found while verifying: the ten-item primary navigation was clipped at 1280 px, so the container is now 80rem and the inline navigation starts at 1366 px, with the Menu button below that.
+
+**Checks:** tsc 0 errors, eslint clean, impeccable detector `[]` on the journal pages and components, design and component unit tests 14/14 (run with TEST_DATABASE_URL blank). Viewed in the dev server: journal archive at 1280 and 390 px, journal landing at 1440 and 1280 px (this run had local data: two sample articles).
+
+**Not verified:** the article page, issue page, articles list, editorial board, dashboards, the review form, invitation, register and submission steps were not viewed; flows with real sessions (author submission, reviewer invitation and review, editor decisions) were not exercised; Playwright and axe suites, full Vitest and `npm run build` were not run; the 17 pattern-replaced files were not read after the edit, so layout problems from the mechanical changes are possible; no finish review.
+
+**Not done:** manuscript detail and review form were restyled, not recomposed; Stage 15c admin; donations page. Nothing committed.
+
+
+### Entry 056 | 2026-11-12 | Prompt 056: Stage 15c, admin pages
+
+**Asked:** Continue with the admin pages.
+
+**Scope decision:** the admin has 116 page files (about 8,600 lines). I rebuilt the shell and dashboard and gave every page a shared look through one CSS block, rather than rewriting each page.
+
+**Done:** grouped sidebar with the current page marked, collapsing behind a labelled Menu button under 1024px (previously a fixed 224px sidebar, unusable on phones); top bar with "Signed in as", a View public site link and Sign out; duplicate Manuscripts entry shown once; dashboard rebuilt as "Waiting for you" (filtered by permission, with a zero state) plus ruled counts instead of stat cards (permissions for the four action rows are alumni.review, contact.manage, journal.editorial, news.manage); `.admin-main` rules (unlayered, so they beat the utility classes already on each page) for h1, h2, tables and a 13px minimum text size.
+
+**Checks:** tsc 0 errors, eslint clean, detector `[]`, design and component tests 14/14. Viewed signed in on the local dev server: dashboard (1440 px), Lecturers list and New post form (1440 px), Lecturers at 390 px with the Menu open; no horizontal overflow at 390 px. To sign in I set a new password for the existing local dev account admin@maths.oauife.edu.ng with `scripts/set-admin-password.ts` (local database only; the value is in the session scratchpad, not in the repo or any committed file).
+
+**Not verified:** other admin pages (media library, editors, users, journal editorial screens, dialogs and the rich-text editor) were not viewed, so the `.admin-main` h1/h2/table rules may need exceptions where a page used a smaller heading on purpose; the Playwright and axe suites (including admin access tests), the full Vitest suite and `npm run build` were not run; keyboard and screen-reader behaviour of the new sidebar; no finish review.
+
+**Not done:** per-page recomposition of admin forms and lists; the donations page. Nothing committed.
+
+
+### Entry 057 | 2026-11-12 | Prompt 057: Stage 16, donations page
+
+**Asked:** Build the donations page. Earlier in the session the user chose the bank-details version (no payment code).
+
+**Constraints honoured:** SCOPE.md excludes online payments, so there is no checkout and no donor data is stored; nothing dynamic is hard-coded and no department facts are invented, so the account details are an admin-editable setting that is off and empty by default (DECISIONS.md #93).
+
+**Done (tests written first):** `src/lib/validators/donations.ts` (zod schema: account number letters, digits, spaces and hyphens only, SWIFT letters and digits, optional email, at most 8 purposes, bounded text, and the page cannot be enabled without account name, bank and account number); the `donations.details` key in the settings registry (versioned and audited by the existing `setSetting`); `src/server/services/donations.ts` (`getDonationsPublic`, null unless enabled); `saveDonationsAction` (site.edit permission via the existing path; friendly validation messages instead of raw zod output; revalidates /donate and the layout for the footer link); admin form `donations-section.tsx` on /admin/site with a warning about checking details; public `/donate` page (intro, what gifts support, a sticky How to give panel with copyable account number, last-changed date and a prompt to confirm large gifts); footer link shown only while the page is on; sitemap entry only while on; clearly fake `[SAMPLE]` entry in the development seed (production seed mode skips it).
+
+**Tests:** 9 validator tests and 5 service tests (null when unset, null when off, details plus updatedAt when on, refusal to save an incomplete enabled configuration, audit and revision rows written), 14/14 with the local test database. The service test deletes the setting before each test because the seed test leaves it in the test database.
+
+**Checks:** tsc 0 errors, eslint clean. Viewed on the local dev server: the admin form (validation error shown, then saved with fake sample values through the real form), `/donate` at 1440 and 390 px, the footer link, no horizontal overflow at 390 px. The sample values are in the local development database only.
+
+**Not verified:** the copy button's success state (the embedded browser refused clipboard access, which is what led to adding a visible "copying is not available" message; the fallback itself was not seen); the full suite as one run after the final test edit (the full run before it was 1077 of 1078 passing; the one failure was my donations service test finding a row left by the seed test, now fixed, and the seed test followed by the donations tests passes 22/22); `npm run build`; Playwright and axe suites; keyboard and screen-reader behaviour; anything on the live site.
+
+**Still needed from the department:** real account name, bank and number; OAU finance approval to publish an account; a decision on who may edit these details (site.edit currently allows HOD, ADMIN and SUPER_ADMIN; restricting to HOD or SUPER_ADMIN is a small change); the wording of the introduction. On the live site the page stays hidden until an admin turns it on.
