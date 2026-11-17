@@ -17,12 +17,12 @@ import {
  * response is identical either way, so existence is never leaked.
  */
 export async function GET(_request: Request, { params }: { params: Promise<{ fileId: string }> }) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser({ pending: "signed-out" });
   if (!user || !user.isActive) {
     return new NextResponse("Not found", { status: 404 });
   }
 
-  const rate = manuscriptFileDownloadRateLimiter.check(user.id);
+  const rate = await manuscriptFileDownloadRateLimiter.check(user.id);
   if (!rate.allowed) {
     return new NextResponse("Too many requests", { status: 429 });
   }

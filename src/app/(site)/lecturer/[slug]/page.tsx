@@ -61,7 +61,7 @@ export default async function LecturerPage({ params }: { params: Promise<{ slug:
     }
 
     if (lookup && lookup.profile.status !== "PUBLISHED") {
-      const user = await getCurrentUser();
+      const user = await getCurrentUser({ pending: "signed-out" });
       const isOwnerOrAdmin =
         user?.isActive && (user.id === lookup.profile.userId || hasPermission(user, "lecturers.manage"));
       if (isOwnerOrAdmin) {

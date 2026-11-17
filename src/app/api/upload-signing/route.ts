@@ -12,14 +12,14 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser({ pending: "signed-out" });
   if (!user || !user.isActive) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const h = await headers();
   const ip = (h.get("x-forwarded-for") ?? "unknown").split(",")[0].trim();
-  const rate = uploadSigningRateLimiter.check(`${ip}:${user.id}`);
+  const rate = await uploadSigningRateLimiter.check(`${ip}:${user.id}`);
   if (!rate.allowed) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }

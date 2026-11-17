@@ -50,6 +50,7 @@ model User {
   roles         UserRole[]
   tokens        UserToken[]
   recoveryCodes RecoveryCode[]
+  passkeys      Passkey[]
 
   lecturerProfile LecturerProfile?
 
@@ -1141,4 +1142,35 @@ model LoginAttempt {
 
   @@index([key, at])
   @@index([at])
+}
+
+/// A passkey (WebAuthn credential) a person has registered: a way to sign in
+/// with a fingerprint, face or device PIN instead of a password. Only the
+/// public half is stored; the private key never leaves the person's device.
+model Passkey {
+  id           String    @id @default(cuid())
+  userId       String
+  credentialId String    @unique
+  publicKey    Bytes
+  counter      Int       @default(0)
+  transports   String[]
+  deviceName   String
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime?
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// A one-time challenge handed to a browser during passkey registration or
+/// sign-in. Single-use and short-lived.
+model WebAuthnChallenge {
+  id        String   @id @default(cuid())
+  challenge String
+  purpose   String
+  userId    String?
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([expiresAt])
 }

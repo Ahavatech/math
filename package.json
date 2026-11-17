@@ -43,6 +43,8 @@
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "@react-email/components": "^1.0.12",
+    "@simplewebauthn/browser": "^14.0.0",
+    "@simplewebauthn/server": "^14.1.0",
     "@tiptap/extension-image": "^3.31.4",
     "@tiptap/extension-link": "^3.31.4",
     "@tiptap/pm": "^3.31.4",
@@ -55,7 +57,7 @@
     "cn": "^0.4.0",
     "katex": "^0.19.0",
     "lucide-react": "^1.52.0",
-    "next": "16.3.8",
+    "next": "16.4.6",
     "next-auth": "^5.0.0-beta.32",
     "next-themes": "^0.4.6",
     "pg": "^8.23.1",
@@ -90,7 +92,7 @@
     "@vitejs/plugin-react": "^4.7.0",
     "dotenv": "^18.0.5",
     "eslint": "^9",
-    "eslint-config-next": "16.3.8",
+    "eslint-config-next": "16.4.6",
     "jsdom": "^29.1.1",
     "prettier": "^3.9.9",
     "prettier-plugin-tailwindcss": "^0.8.1",
@@ -98,5 +100,11 @@
     "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^5.0.3"
+  },
+  "overrides": {
+    "next-auth": {
+      "@simplewebauthn/browser": "$@simplewebauthn/browser",
+      "@simplewebauthn/server": "$@simplewebauthn/server"
+    }
   }
 }

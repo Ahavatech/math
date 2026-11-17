@@ -25,12 +25,12 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser({ pending: "signed-out" });
   if (!user || !user.isActive) {
     return new NextResponse("Not found", { status: 404 });
   }
 
-  const rate = journalUploadRateLimiter.check(user.id);
+  const rate = await journalUploadRateLimiter.check(user.id);
   if (!rate.allowed) {
     return new NextResponse("Too many requests", { status: 429 });
   }

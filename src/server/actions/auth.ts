@@ -133,8 +133,8 @@ export async function forgotPasswordAction(
   }
 
   const ip = await clientIp();
-  const ipCheck = forgotPasswordRateLimiter.check(`ip:${ip}`);
-  const emailCheck = forgotPasswordRateLimiter.check(`email:${parsed.data.email}`);
+  const ipCheck = await forgotPasswordRateLimiter.check(`ip:${ip}`);
+  const emailCheck = await forgotPasswordRateLimiter.check(`email:${parsed.data.email}`);
   if (!ipCheck.allowed || !emailCheck.allowed) {
     return { error: RATE_LIMITED_ERROR };
   }
@@ -171,7 +171,7 @@ export async function resetPasswordAction(
   }
 
   const ip = await clientIp();
-  if (!tokenConsumeRateLimiter.check(`ip:${ip}`).allowed) {
+  if (!(await tokenConsumeRateLimiter.check(`ip:${ip}`)).allowed) {
     return { error: RATE_LIMITED_ERROR };
   }
 
@@ -207,7 +207,7 @@ export async function acceptInviteAction(
   }
 
   const ip = await clientIp();
-  if (!tokenConsumeRateLimiter.check(`ip:${ip}`).allowed) {
+  if (!(await tokenConsumeRateLimiter.check(`ip:${ip}`)).allowed) {
     return { error: RATE_LIMITED_ERROR };
   }
 
@@ -239,10 +239,10 @@ export async function changePasswordAction(
   }
 
   const ip = await clientIp();
-  if (!changePasswordRateLimiter.check(`user:${session.user.id}`).allowed) {
+  if (!(await changePasswordRateLimiter.check(`user:${session.user.id}`)).allowed) {
     return { error: RATE_LIMITED_ERROR };
   }
-  if (!changePasswordRateLimiter.check(`ip:${ip}`).allowed) {
+  if (!(await changePasswordRateLimiter.check(`ip:${ip}`)).allowed) {
     return { error: RATE_LIMITED_ERROR };
   }
 

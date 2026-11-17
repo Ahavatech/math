@@ -26,6 +26,13 @@ const heroSchema = z.object({
   ctaHref: z.string(),
 });
 
+// A photograph for the About page (the department building, for example): the
+// media asset to show and a caption under it.
+const aboutImageSchema = z.object({
+  imageId: z.string().nullable(),
+  caption: z.string().max(200),
+});
+
 const announcementSchema = z.object({
   enabled: z.boolean(),
   message: z.string(),
@@ -87,6 +94,12 @@ export const SETTINGS_REGISTRY = {
     default: { heading: "", subheading: "", imageId: null, ctaLabel: "", ctaHref: "" },
     label: "Homepage hero",
     section: "Homepage hero",
+  },
+  "about.image": {
+    schema: aboutImageSchema,
+    default: { imageId: null, caption: "" },
+    label: "About page image",
+    section: "About page image",
   },
   "site.announcement": {
     schema: announcementSchema,
@@ -220,6 +233,7 @@ const PUBLIC_REVALIDATE_PATHS: Partial<Record<SettingsKey, string[]>> = {
   identity: ["/", "/about"],
   "hod.welcomeAddress": ["/", "/about"],
   "homepage.hero": ["/"],
+  "about.image": ["/about"],
   "site.announcement": ["/"],
   "homepage.stats": ["/"],
   "homepage.featuredLecturer": ["/"],

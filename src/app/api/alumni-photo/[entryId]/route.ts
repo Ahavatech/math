@@ -12,7 +12,7 @@ import { getSignedAlumniPhotoUrl, buildAlumniPhotoFetchUrl } from "@/server/serv
  * Cloudinary URL never reaches the browser.
  */
 export async function GET(_request: Request, { params }: { params: Promise<{ entryId: string }> }) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser({ pending: "signed-out" });
   try {
     requirePermission(user, "alumni.review");
   } catch (err) {

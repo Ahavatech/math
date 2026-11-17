@@ -1,4 +1,4 @@
-import NextAuth, { CredentialsSignin } from "next-auth";
+import NextAuth, { CredentialsSignin, type Session } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { db } from "@/lib/db";
 import { verifyPassword, dummyHash } from "@/lib/password";
@@ -12,6 +12,8 @@ import {
 } from "@/server/services/login-attempts";
 import { isSessionRevoked } from "@/server/services/sessions";
 import { verifySecondFactor } from "@/server/services/two-factor";
+import { relyingPartyFor, verifyLogin } from "@/server/services/passkeys";
+import { checkPersistentLimit } from "@/server/services/rate-limits";
 import { sendFailedLoginAlertEmail } from "@/lib/email";
 import type { Role } from "@prisma/client";
 
@@ -95,7 +97,7 @@ export async function refreshTokenRoles(
   };
 }
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+const nextAuth = NextAuth({
   session: { strategy: "jwt", maxAge: SESSION_MAX_AGE_SECONDS },
   trustHost: true,
   pages: {
@@ -147,7 +149,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const supplied = typeof credentials?.totp === "string" ? credentials.totp.trim() : "";
           if (!supplied) throw new TotpRequiredSignin();
           const codeOk = await verifySecondFactor(db, user.id, supplied, env.AUTH_SECRET);
-          if (!codeOk) throw new TotpInvalidSignin();
+          if (!codeOk) {
+            void claimFailedLoginAlert(db, email)
+              .then((owner) => (owner ? sendFailedLoginAlertEmail({ to: owner.email, name: owner.name }) : undefined))
+              .catch((error) => console.error("Failed-sign-in alert failed:", error));
+            throw new TotpInvalidSignin();
+          }
         }
 
         await recordSuccessfulLogin(db, email);
@@ -163,6 +170,45 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: user.name,
           roles: user.roles.map((r) => r.role),
           passwordChangedAt: user.passwordChangedAt?.getTime() ?? null,
+          // A password alone is one factor; a password with a verified code is two.
+          strong: Boolean(user.totpEnabledAt),
+        };
+      },
+    }),
+    // Signing in with a passkey: a fingerprint, face or device PIN on a device
+    // the person registered. Phishing-resistant and strong on its own.
+    Credentials({
+      id: "passkey",
+      credentials: { challengeId: {}, response: {} },
+      async authorize(credentials, request) {
+        const challengeId = typeof credentials?.challengeId === "string" ? credentials.challengeId : "";
+        const raw = typeof credentials?.response === "string" ? credentials.response : "";
+        if (!challengeId || !raw || raw.length > 20_000) return null;
+
+        const ip = clientIpFromHeaders(request?.headers);
+        const limit = await checkPersistentLimit(db, { name: "passkey-login", key: ip, limit: 20, windowMs: 60_000 });
+        if (!limit.allowed) throw new RateLimitedSignin();
+
+        let response;
+        try {
+          response = JSON.parse(raw);
+        } catch {
+          return null;
+        }
+        const verified = await verifyLogin(db, { challengeId, response }, relyingPartyFor(env.AUTH_URL));
+        if (!verified) return null;
+
+        const user = await db.user.findUnique({ where: { id: verified.userId }, include: { roles: true } });
+        if (!user || !user.isActive) return null;
+
+        await db.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          roles: user.roles.map((r) => r.role),
+          passwordChangedAt: user.passwordChangedAt?.getTime() ?? null,
+          strong: true,
         };
       },
     }),
@@ -178,6 +224,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.isActive = true;
         token.rolesCheckedAt = Date.now();
         token.passwordChangedAt = (user as unknown as { passwordChangedAt: number | null }).passwordChangedAt;
+        token.strong = (user as unknown as { strong?: boolean }).strong === true;
         return token;
       }
 
@@ -194,9 +241,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.id = token.id as string;
       session.user.roles = (token.roles as Role[]) ?? [];
       session.user.isActive = (token.isActive as boolean) ?? false;
+      session.strong = token.strong === true;
       session.sessionId = token.sid as string | undefined;
       session.sessionExpiresAt = token.sessionExpiresAt as number | undefined;
       return session;
     },
   },
 });
+
+export const { handlers, signIn, signOut } = nextAuth;
+
+/**
+ * The current session, or null. A session whose account has been
+ * deactivated, whose password changed since it began, or that was signed out
+ * on the server comes back as null, exactly like no session at all. Without
+ * this, a page that only asked "is there a session?" would keep working for a
+ * cookie that has been revoked.
+ */
+export async function auth(): Promise<Session | null> {
+  const session = await nextAuth.auth();
+  if (!session?.user || session.user.isActive !== true) return null;
+  return session;
+}
+

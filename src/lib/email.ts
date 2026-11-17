@@ -90,6 +90,49 @@ export async function sendFailedLoginAlertEmail(params: { to: string; name: stri
   );
 }
 
+export async function sendTwoFactorChangedEmail(params: {
+  to: string;
+  name: string;
+  what: "on" | "off" | "reset" | "recovery";
+}) {
+  const sentence = {
+    on: "Two-factor sign-in was turned on for your account.",
+    off: "Two-factor sign-in was turned off for your account.",
+    reset: "A Super Admin reset two-factor sign-in on your account. You will be asked to set it up again at your next sign-in.",
+    recovery: "A new set of recovery codes was made for your account, and the old ones no longer work.",
+  }[params.what];
+  await send(
+    params.to,
+    "A change to your account's sign-in security",
+    SecurityNoticeEmail({
+      heading: "Your sign-in security changed",
+      paragraphs: [
+        `Hello ${params.name}, ${sentence}`,
+        "If you did this, nothing more is needed. If you did not, use Forgot your password? on the sign-in page straight away and tell the department's web administrator, because someone else may have access to your account.",
+      ],
+    }),
+  );
+}
+
+export async function sendPasskeyChangedEmail(params: {
+  to: string;
+  name: string;
+  what: "added" | "removed";
+  deviceName: string;
+}) {
+  await send(
+    params.to,
+    params.what === "added" ? "A passkey was added to your account" : "A passkey was removed from your account",
+    SecurityNoticeEmail({
+      heading: params.what === "added" ? "A passkey was added" : "A passkey was removed",
+      paragraphs: [
+        `Hello ${params.name}, the passkey "${params.deviceName}" was ${params.what} ${params.what === "added" ? "to" : "from"} your account on the Department of Mathematics website. A passkey lets someone sign in to your account with a fingerprint, face or device PIN.`,
+        "If you did this, nothing more is needed. If you did not, use Forgot your password? on the sign-in page straight away and tell the department's web administrator.",
+      ],
+    }),
+  );
+}
+
 export async function sendPasswordChangedEmail(params: { to: string; name: string; how: "reset" | "change" }) {
   await send(
     params.to,

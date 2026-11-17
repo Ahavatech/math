@@ -15,6 +15,8 @@ import {
 import { logoutAction } from "@/server/actions/auth";
 import { Button } from "@/components/ui/button";
 import { TwoFactorPanel } from "./two-factor-panel";
+import { PasskeysPanel } from "./passkeys-panel";
+import { listPasskeys } from "@/server/services/passkeys";
 
 export const metadata: Metadata = {
   title: "Two-factor sign-in",
@@ -28,7 +30,7 @@ export default async function TwoFactorPage({
 }: {
   searchParams: Promise<{ required?: string }>;
 }) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser({ pending: "allow" });
   if (!user || !user.isActive) redirect("/login?callbackUrl=/two-factor");
 
   const { required } = await searchParams;
@@ -38,6 +40,12 @@ export default async function TwoFactorPage({
   const pending =
     status === "pending" ? await pendingTwoFactorSecret(db, user.id, env.AUTH_SECRET, "OAU Mathematics") : null;
   const qr = pending ? await QRCode.toString(pending.uri, { type: "svg", margin: 1, width: 192 }) : null;
+  const passkeys = (await listPasskeys(db, user.id)).map((p) => ({
+    id: p.id,
+    deviceName: p.deviceName,
+    createdAt: p.createdAt.toISOString(),
+    lastUsedAt: p.lastUsedAt?.toISOString() ?? null,
+  }));
   const recoveryLeft = status === "on" ? await remainingRecoveryCodes(db, user.id) : 0;
 
   return (
@@ -56,6 +64,7 @@ export default async function TwoFactorPage({
         recoveryLeft={recoveryLeft}
         mustHave={mustHave}
       />
+      <PasskeysPanel passkeys={passkeys} />
       <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-border pt-4">
         {status === "on" ? (
           <Link href="/admin" className="link-rule inline-flex min-h-11 items-center font-medium">

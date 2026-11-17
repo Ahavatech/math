@@ -241,6 +241,20 @@ test.describe("mobile navigation", () => {
   });
 });
 
+test("the About page shows the department photograph, with its caption, at its own proportions", async ({ page }) => {
+  await page.goto("/about");
+  const figure = page.locator("main figure").first();
+  test.skip((await figure.count()) === 0, "no About page image has been set in this database");
+  const img = figure.locator("img");
+  await expect(img).toBeVisible();
+  expect(await img.getAttribute("alt")).not.toBeNull();
+  // Fully loaded, not broken.
+  expect(await img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true);
+  // It never pushes the page sideways on a phone.
+  await page.setViewportSize({ width: 360, height: 800 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+});
+
 test("every main public page has exactly one h1", async ({ page }) => {
   for (const route of ["/", "/about", "/programmes", "/research", "/staff", "/news", "/events", "/students", "/journal", "/contact", "/donate", "/privacy"]) {
     await page.goto(route);

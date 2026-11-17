@@ -103,6 +103,21 @@ export async function saveHeroAction(
   }
 }
 
+export async function saveAboutImageAction(
+  _prevState: ActionResult | undefined,
+  formData: FormData,
+): Promise<ActionResult> {
+  try {
+    await saveAndRevalidate("about.image", {
+      imageId: str(formData, "imageId") || null,
+      caption: str(formData, "caption").trim().slice(0, 200),
+    });
+    return { success: true };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not save" };
+  }
+}
+
 export async function saveAnnouncementAction(
   _prevState: ActionResult | undefined,
   formData: FormData,

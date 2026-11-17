@@ -109,10 +109,25 @@ After five failed sign-ins on a real, active account within 30 minutes, the owne
 - Turning it off needs the password and is refused for roles that must have it.
 - **Lost phone and recovery codes:** a Super Admin clicks "Reset two-factor" next to the person on `/admin/users` (written to the audit log); they set it up again at their next sign-in. If the only Super Admin is locked out, set `ADMIN_2FA_REQUIRED=false`, restart, sign in, reset the account, and turn it back on.
 
+## Sessions and the two-factor requirement (Stage 23)
+
+- `auth()` (in `src/auth.ts`) returns null when the session's account is inactive, was signed out on the server, or had its password changed. Always call it (or `getCurrentUser()`); never read the Auth.js session another way.
+- `getCurrentUser()` enforces the two-factor requirement for SUPER_ADMIN, HOD and ADMIN: an account that has not set up an authenticator app is redirected to `/two-factor?required=1` (option `pending: "redirect"`, the default), or treated as signed out (`pending: "signed-out"`, used by API routes and public pages), or let through for the setup page itself (`pending: "allow"`). A session that signed in with a passkey is already strong and is not asked.
+- The owner is emailed when two-factor or recovery codes are turned on, off, reset or regenerated, and when a passkey is added or removed.
+
+## Passkeys
+
+- Registered at `/two-factor` (a "Passkeys" section); up to 10 per account. Each stores the credential id, the public key, a counter, the transports and a name; the private key stays on the device. Registration and sign-in require user verification (fingerprint, face or PIN), so a passkey sign-in is a strong sign-in by itself.
+- Sign-in: the login page's "Sign in with a passkey" asks for a one-time challenge (`WebAuthnChallenge`, single-use, 5 minutes), the device signs it, and the `passkey` Credentials provider in `src/auth.ts` verifies it. Usernameless: no email or password is entered.
+- The relying party is taken from `AUTH_URL`: a passkey works only on the exact site that created it, so changing the domain makes existing passkeys unusable.
+- Removing one needs the password. Attempts are limited per address.
+
+## Password checks
+
+New passwords must be 10 to 128 characters, not a very common password, not a simple pattern, not built from the person's name or email, and not in the Pwned Passwords list. The last check sends only the first five characters of the SHA-1 of the password and fails open if the service is unreachable (`src/lib/breached-password.ts`; `BREACHED_PASSWORD_CHECK=false` turns it off).
+
 ## Open items (not done)
 
-- No `includeSubDomains`/preload on HSTS (deliberate).
-- The in-memory limiters for forgot-password, token consumption and uploads still reset on restart and are per process; only sign-in is in the database.
-- Passwords are checked against a short built-in list, not a breached-password service.
-- 2FA covers password sign-in only; there is no WebAuthn/passkey option.
-- Not done: a penetration test, and a review of every token flow beyond its tests.
+- The contact, alumni-submission and search limits are still in memory (they reset on restart); everything that guards sign-in, reset, tokens, uploads and downloads is in the database.
+- 2FA recovery from a lost phone depends on a Super Admin (or the `ADMIN_2FA_REQUIRED=false` emergency switch); there is no self-service recovery by email on purpose.
+- A real penetration test against a staging copy of the deployment has not been done.

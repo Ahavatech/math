@@ -44,8 +44,8 @@ export default async function ChangePasswordPage() {
       <section className="space-y-3 border-t border-border pt-6">
         <h2 className="font-heading text-lg font-semibold">Sign out everywhere</h2>
         <p className="text-muted-foreground">
-          Ends every session on every device, including this one. Use it if you signed in on a shared computer or think
-          someone else may have your session.
+          Ends this session now and every other session within about a minute. Use it if you signed in on a shared computer or
+          think someone else may have your session.
         </p>
         <form action={signOutEverywhereAction}>
           <Button type="submit" variant="outline">

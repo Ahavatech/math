@@ -20,6 +20,7 @@ import {
   verifySecondFactor,
 } from "../two-factor";
 import { issueToken } from "../tokens";
+import { checkPersistentLimit } from "../rate-limits";
 import { setPasswordFromToken, changeOwnPassword, WeakPasswordError } from "../account";
 
 const db = await getTestDb();
@@ -83,6 +84,43 @@ describe.skipIf(db === null)("security hardening services", () => {
       const extra = `${RUN}-ip-extra@example.com`;
       keys.push(`email:${extra}`);
       expect((await checkLoginAttempt(db!, ip, extra, now)).allowed).toBe(false);
+    });
+  });
+
+  describe("persistent limits", () => {
+    it("counts hits in the database, refuses past the limit, and moves on after the window", async () => {
+      const name = `test-${RUN}`;
+      keys.push(`rl:${name}:a`, `rl:${name}:b`);
+      const now = new Date();
+      for (let i = 0; i < 3; i++) {
+        expect((await checkPersistentLimit(db!, { name, key: "a", limit: 3, windowMs: 60_000, now })).allowed).toBe(true);
+      }
+      const refused = await checkPersistentLimit(db!, { name, key: "a", limit: 3, windowMs: 60_000, now });
+      expect(refused.allowed).toBe(false);
+      expect(refused.retryAfterMs).toBeGreaterThan(0);
+      expect(refused.retryAfterMs).toBeLessThanOrEqual(60_000);
+
+      // A different key, and a different limit name, are counted separately.
+      expect((await checkPersistentLimit(db!, { name, key: "b", limit: 3, windowMs: 60_000, now })).allowed).toBe(true);
+      keys.push(`rl:${name}-other:a`);
+      expect((await checkPersistentLimit(db!, { name: `${name}-other`, key: "a", limit: 3, windowMs: 60_000, now })).allowed).toBe(true);
+
+      // The window slides on.
+      const later = new Date(now.getTime() + 61_000);
+      expect((await checkPersistentLimit(db!, { name, key: "a", limit: 3, windowMs: 60_000, now: later })).allowed).toBe(true);
+    });
+
+    it("a refused request is not counted, so a patient caller is let back in on time", async () => {
+      const name = `test2-${RUN}`;
+      keys.push(`rl:${name}:x`);
+      const t0 = new Date();
+      await checkPersistentLimit(db!, { name, key: "x", limit: 1, windowMs: 60_000, now: t0 });
+      for (let i = 0; i < 5; i++) {
+        await checkPersistentLimit(db!, { name, key: "x", limit: 1, windowMs: 60_000, now: new Date(t0.getTime() + 10_000) });
+      }
+      const rows = await db!.loginAttempt.count({ where: { key: `rl:${name}:x` } });
+      expect(rows).toBe(1);
+      expect((await checkPersistentLimit(db!, { name, key: "x", limit: 1, windowMs: 60_000, now: new Date(t0.getTime() + 61_000) })).allowed).toBe(true);
     });
   });
 

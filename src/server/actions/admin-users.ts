@@ -1,6 +1,8 @@
 "use server";
 
 import { headers } from "next/headers";
+import { after } from "next/server";
+import { sendTwoFactorChangedEmail } from "@/lib/email";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requirePermission, getCurrentUser } from "@/lib/rbac";
@@ -125,7 +127,17 @@ export async function resetUserTwoFactorAction(formData: FormData): Promise<void
   const parsed = resendInviteSchema.parse({ userId: formData.get("userId") });
   if (parsed.userId === actor.id) return;
 
+  const target = await db.user.findUnique({ where: { id: parsed.userId }, select: { email: true, name: true } });
   await disableTwoFactor(db, parsed.userId);
+  if (target) {
+    after(async () => {
+      try {
+        await sendTwoFactorChangedEmail({ to: target.email, name: target.name, what: "reset" });
+      } catch (error) {
+        console.error("Failed to send two-factor reset notice:", error);
+      }
+    });
+  }
   await logAction(
     db,
     {

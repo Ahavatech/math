@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   const h = await headers();
   const ip = (h.get("x-forwarded-for") ?? "unknown").split(",")[0].trim();
 
-  if (!alumniPhotoSigningIpRateLimiter.check(ip).allowed) {
+  if (!(await alumniPhotoSigningIpRateLimiter.check(ip)).allowed) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "This link is no longer valid" }, { status: 403 });
   }
 
-  if (!alumniPhotoSigningLinkRateLimiter.check(validation.link.id).allowed) {
+  if (!(await alumniPhotoSigningLinkRateLimiter.check(validation.link.id)).allowed) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 

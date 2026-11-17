@@ -130,11 +130,17 @@ export function decryptSecret(stored: string, authSecret: string): string {
   return Buffer.concat([decipher.update(body), decipher.final()]).toString("utf8");
 }
 
-/** Eight recovery codes shaped like `a1b2-c3d4-e5f6`. */
+/**
+ * Eight recovery codes shaped like `a1b2-c3d4-e5f6-a7b8-c9d0` (80 bits each, so
+ * a stolen copy of the hashes cannot be ground through offline). Codes made
+ * before this change were 48 bits; they keep working until regenerated.
+ */
+export const RECOVERY_CODE_LENGTHS = [12, 20] as const;
+
 export function generateRecoveryCodes(count = 8): string[] {
   return Array.from({ length: count }, () => {
-    const hex = randomBytes(6).toString("hex");
-    return `${hex.slice(0, 4)}-${hex.slice(4, 8)}-${hex.slice(8, 12)}`;
+    const hex = randomBytes(10).toString("hex");
+    return hex.match(/.{4}/g)!.join("-");
   });
 }
 

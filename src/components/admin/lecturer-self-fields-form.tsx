@@ -1,6 +1,6 @@
 "use client";
 
-import { SavedMark } from "@/components/ui/saved-mark";
+import { SaveBar } from "@/components/admin/save-bar";
 import { useEffect, useState, useTransition } from "react";
 import type { MediaAsset, ResearchArea } from "@prisma/client";
 import { Button } from "@/components/ui/button";
@@ -174,13 +174,17 @@ export function LecturerSelfFieldsForm({
         <RichTextEditor initialHtml={supervisionText} existingMedia={existingMedia} onChange={(html) => { setSupervisionText(html); setDirty(true); }} />
       </div>
 
-      {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
-      {result?.success ? <SavedMark /> : null}
-      {dirty && !result?.success ? <p className="text-xs text-muted-foreground">You have unsaved changes.</p> : null}
-
-      <Button onClick={save} disabled={pending}>
-        {pending ? "Saving..." : "Save"}
-      </Button>
+      <SaveBar
+        saved={result?.success}
+        dirty={dirty && !result?.success}
+        actions={
+          <Button onClick={save} disabled={pending}>
+            {pending ? "Saving..." : "Save"}
+          </Button>
+        }
+      >
+        {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
+      </SaveBar>
     </div>
   );
 }
