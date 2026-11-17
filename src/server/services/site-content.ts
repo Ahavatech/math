@@ -121,6 +121,14 @@ export async function getHomepageHero() {
   }
 }
 
+export async function getAboutImage() {
+  try {
+    return await getSetting(db, "about.image");
+  } catch {
+    return { imageId: null, caption: "" };
+  }
+}
+
 export async function getPublishedPage(slug: string) {
   try {
     return await db.page.findFirst({ where: { slug, status: "PUBLISHED" } });

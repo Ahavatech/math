@@ -79,6 +79,7 @@ async function main() {
       await db.newsPost.deleteMany({ where: { slug: { startsWith: "sample-" } } });
       await db.lecturerProfile.updateMany({ where: { photoId: { in: ids } }, data: { photoId: null } });
       await db.researchArea.updateMany({ where: { imageId: { in: ids } }, data: { imageId: null } });
+      await db.siteSetting.deleteMany({ where: { key: "about.image" } });
       for (const key of ["homepage.hero", "hod.welcomeAddress"]) {
         const row = await db.siteSetting.findUnique({ where: { key } });
         const v = row?.value as { imageId?: string | null; photoId?: string | null } | undefined;
@@ -93,6 +94,13 @@ async function main() {
     // Homepage hero and the HOD photo slot.
     const hero = await asset("hero.jpg");
     console.log("hero image:", (await setJson("homepage.hero", { imageId: hero.id })) ? "attached" : "no homepage.hero setting found");
+    // About page photograph (the department building slot). The setting row may not exist yet.
+    await db.siteSetting.upsert({
+      where: { key: "about.image" },
+      create: { key: "about.image", value: { imageId: hero.id, caption: "[SAMPLE] The department building" } },
+      update: { value: { imageId: hero.id, caption: "[SAMPLE] The department building" } },
+    });
+    console.log("about page image: attached");
     const hodPhoto = await asset("stand-in-square-5.jpg");
     console.log("HOD photo slot:", (await setJson("hod.welcomeAddress", { photoId: hodPhoto.id })) ? "attached" : "no hod setting found");
 

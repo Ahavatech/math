@@ -6,6 +6,7 @@ import { loginAction } from "@/server/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasskeyLoginButton } from "./passkey-login-button";
 
 export function LoginForm({ callbackUrl = "" }: { callbackUrl?: string }) {
   const [state, formAction, pending] = useActionState(loginAction, undefined);
@@ -80,6 +81,7 @@ export function LoginForm({ callbackUrl = "" }: { callbackUrl?: string }) {
           Forgot your password?
         </Link>
       </p>
+      {needsCode ? null : <PasskeyLoginButton callbackUrl={callbackUrl} />}
     </form>
   );
 }

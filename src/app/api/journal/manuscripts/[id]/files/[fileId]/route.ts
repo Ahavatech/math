@@ -7,7 +7,7 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string; fileId: string }> },
 ) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser({ pending: "signed-out" });
   if (!user || !user.isActive) {
     return new NextResponse("Not found", { status: 404 });
   }

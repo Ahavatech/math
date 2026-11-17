@@ -5,6 +5,7 @@ import { getSetting } from "@/server/services/site-settings";
 import { IdentitySection } from "./sections/identity-section";
 import { HodSection } from "./sections/hod-section";
 import { HeroSection } from "./sections/hero-section";
+import { AboutImageSection } from "./sections/about-image-section";
 import { AnnouncementSection } from "./sections/announcement-section";
 import { StatsSection } from "./sections/stats-section";
 import { FeaturedLecturerSection } from "./sections/featured-lecturer-section";
@@ -19,11 +20,12 @@ export default async function AdminSitePage() {
     redirect("/403");
   }
 
-  const [identity, hod, hero, announcement, stats, featuredLecturer, contact, social, donations, footer, media, publishedLecturers] =
+  const [identity, hod, hero, aboutImage, announcement, stats, featuredLecturer, contact, social, donations, footer, media, publishedLecturers] =
     await Promise.all([
       getSetting(db, "identity"),
       getSetting(db, "hod.welcomeAddress"),
       getSetting(db, "homepage.hero"),
+      getSetting(db, "about.image"),
       getSetting(db, "site.announcement"),
       getSetting(db, "homepage.stats"),
       getSetting(db, "homepage.featuredLecturer"),
@@ -41,6 +43,7 @@ export default async function AdminSitePage() {
       <IdentitySection value={identity} existingMedia={media} />
       <HodSection value={hod} existingMedia={media} />
       <HeroSection value={hero} existingMedia={media} />
+      <AboutImageSection value={aboutImage} existingMedia={media} />
       <AnnouncementSection value={announcement} />
       <StatsSection value={stats} />
       <FeaturedLecturerSection value={featuredLecturer} publishedLecturers={publishedLecturers} />

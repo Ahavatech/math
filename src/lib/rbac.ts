@@ -78,18 +78,51 @@ export type SessionUser = {
  * authorization purposes; everything else should go through this or
  * the require* helpers below.
  */
-export async function getCurrentUser(): Promise<SessionUser | null> {
+export type PendingTwoFactor = "redirect" | "signed-out" | "allow";
+
+export async function getCurrentUser(
+  options: {
+    /**
+     * What to do with an admin account that has not set up two-factor yet
+     * (when it is required). "redirect" (the default) sends them to the setup
+     * page; "signed-out" treats them as not signed in, for API routes and
+     * public pages; "allow" is for the setup page itself.
+     */
+    pending?: PendingTwoFactor;
+  } = {},
+): Promise<SessionUser | null> {
   // Dynamically imported so a test exercising only this file's pure
   // functions (hasRole, hasPermission, canEditLecturerProfile, ...)
   // never has to resolve next-auth's module graph.
   const { auth } = await import("@/auth");
   const session = await auth();
   if (!session?.user) return null;
-  return {
+  const user: SessionUser = {
     id: session.user.id,
     roles: session.user.roles,
     isActive: session.user.isActive,
   };
+
+  // Every route and server action reads the user here, so this is where the
+  // two-factor requirement is enforced for real: hiding the pages is not
+  // enough, because an action can be called directly.
+  const pending = options.pending ?? "redirect";
+  // A session that signed in with a passkey is already strong; it needs no authenticator app.
+  if (pending !== "allow" && session.strong !== true && (await twoFactorEnrolmentPending(user))) {
+    if (pending === "signed-out") return null;
+    const { redirect } = await import("next/navigation");
+    redirect("/two-factor?required=1");
+  }
+  return user;
+}
+
+async function twoFactorEnrolmentPending(user: SessionUser): Promise<boolean> {
+  const { env } = await import("@/lib/env");
+  if (env.ADMIN_2FA_REQUIRED !== "true") return false;
+  const { twoFactorRequiredFor, twoFactorStatus } = await import("@/server/services/two-factor");
+  if (!twoFactorRequiredFor(user.roles)) return false;
+  const { db } = await import("@/lib/db");
+  return (await twoFactorStatus(db, user.id)) !== "on";
 }
 
 /** Throws UnauthorizedError when signed out or inactive. */

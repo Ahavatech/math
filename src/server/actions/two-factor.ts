@@ -1,6 +1,8 @@
 "use server";
 
 import { headers } from "next/headers";
+import { after } from "next/server";
+import { sendTwoFactorChangedEmail } from "@/lib/email";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
@@ -21,8 +23,21 @@ const TOO_MANY = "Too many attempts. Please wait a minute and try again.";
 
 export type TwoFactorState = { error?: string; recoveryCodes?: string[]; done?: boolean };
 
+/** Emails the account's owner that its sign-in security changed, after the response has gone. */
+async function notifyTwoFactorChange(userId: string, what: "on" | "off" | "reset" | "recovery") {
+  const row = await db.user.findUnique({ where: { id: userId }, select: { email: true, name: true } });
+  if (!row) return;
+  after(async () => {
+    try {
+      await sendTwoFactorChangedEmail({ to: row.email, name: row.name, what });
+    } catch (error) {
+      console.error(`Failed to send two-factor notice for user ${userId}:`, error);
+    }
+  });
+}
+
 async function signedInUser() {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser({ pending: "allow" });
   return user && user.isActive ? user : null;
 }
 
@@ -43,7 +58,7 @@ export async function confirmTwoFactorAction(
 ): Promise<TwoFactorState> {
   const user = await signedInUser();
   if (!user) return { error: "You must be signed in." };
-  if (!changePasswordRateLimiter.check(`2fa:${user.id}`).allowed) return { error: TOO_MANY };
+  if (!(await changePasswordRateLimiter.check(`2fa:${user.id}`)).allowed) return { error: TOO_MANY };
 
   const code = String(formData.get("code") ?? "");
   const result = await confirmTwoFactor(db, user.id, code, env.AUTH_SECRET);
@@ -60,6 +75,7 @@ export async function confirmTwoFactorAction(
     },
     contextFromHeaders(await headers()),
   );
+  await notifyTwoFactorChange(user.id, "on");
   revalidatePath("/two-factor");
   return { recoveryCodes: result.recoveryCodes };
 }
@@ -75,7 +91,7 @@ export async function regenerateRecoveryCodesAction(
 ): Promise<TwoFactorState> {
   const user = await signedInUser();
   if (!user) return { error: "You must be signed in." };
-  if (!changePasswordRateLimiter.check(`2fa:${user.id}`).allowed) return { error: TOO_MANY };
+  if (!(await changePasswordRateLimiter.check(`2fa:${user.id}`)).allowed) return { error: TOO_MANY };
   if (!(await passwordIsRight(user.id, String(formData.get("password") ?? "")))) {
     return { error: "That password is not right." };
   }
@@ -91,6 +107,7 @@ export async function regenerateRecoveryCodesAction(
     },
     contextFromHeaders(await headers()),
   );
+  await notifyTwoFactorChange(user.id, "recovery");
   revalidatePath("/two-factor");
   return { recoveryCodes };
 }
@@ -104,7 +121,7 @@ export async function disableTwoFactorAction(
   if (env.ADMIN_2FA_REQUIRED === "true" && twoFactorRequiredFor(user.roles)) {
     return { error: "Two-factor sign-in is required for your role and cannot be turned off." };
   }
-  if (!changePasswordRateLimiter.check(`2fa:${user.id}`).allowed) return { error: TOO_MANY };
+  if (!(await changePasswordRateLimiter.check(`2fa:${user.id}`)).allowed) return { error: TOO_MANY };
   if (!(await passwordIsRight(user.id, String(formData.get("password") ?? "")))) {
     return { error: "That password is not right." };
   }
@@ -120,6 +137,7 @@ export async function disableTwoFactorAction(
     },
     contextFromHeaders(await headers()),
   );
+  await notifyTwoFactorChange(user.id, "off");
   revalidatePath("/two-factor");
   return { done: true };
 }

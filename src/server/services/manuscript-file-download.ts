@@ -4,9 +4,9 @@ import type { SessionUser } from "@/lib/rbac";
 import { canDownloadAs, type ManuscriptFileAccessInput } from "@/server/services/manuscript-access";
 import { privateStorage } from "@/lib/private-storage";
 import { logAction, type AuditRequestContext } from "@/server/services/audit";
-import { InMemoryRateLimiter } from "@/lib/rate-limit";
+import { PersistentRateLimiter } from "@/lib/rate-limit";
 
-export const manuscriptFileDownloadRateLimiter = new InMemoryRateLimiter({ limit: 30, windowMs: 60_000 });
+export const manuscriptFileDownloadRateLimiter = new PersistentRateLimiter({ name: "manuscript-download", limit: 30, windowMs: 60_000 });
 
 export type FileDownloadDecision =
   | { allowed: true; storageKey: string; mimeType: string; displayFilename: string; auditRequired: boolean }

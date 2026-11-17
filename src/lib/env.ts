@@ -18,6 +18,9 @@ const envSchema = z
     // Admin roles must set up two-factor sign-in before they can use /admin.
     // "false" is an emergency switch (for example to recover from a lockout).
     ADMIN_2FA_REQUIRED: z.enum(["true", "false"]).default("true"),
+    // New passwords are checked against a list of breached passwords (only a
+    // 5-character hash prefix is sent). "false" turns the check off.
+    BREACHED_PASSWORD_CHECK: z.enum(["true", "false"]).default("true"),
   })
   .superRefine((data, ctx) => {
     if (data.NODE_ENV === "production" && data.AUTH_SECRET.length < 32) {

@@ -3,9 +3,16 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ConfirmButton } from "@/components/admin/confirm-button";
+import { ConfirmDialog } from "@/components/admin/confirm-button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { Ellipsis } from "lucide-react";
 import { rankLabel } from "@/lib/lecturer-rank";
 import { StatusBadge } from "@/components/admin/status-badge";
 import {
@@ -39,6 +46,7 @@ type LecturerRowData = {
 export function LecturerRow({ lecturer, completeness }: { lecturer: LecturerRowData; completeness: number }) {
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [confirmDeactivate, setConfirmDeactivate] = useState(false);
 
   function sendInvite() {
     startTransition(async () => {
@@ -94,55 +102,58 @@ export function LecturerRow({ lecturer, completeness }: { lecturer: LecturerRowD
             {!lecturer.user.isActive ? <Badge variant="destructive">Deactivated</Badge> : null}
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-1">
-          <Button type="button" variant="ghost" size="icon" aria-label={`Move up: ${lecturer.fullName}`} onClick={() => move("up")} disabled={pending}>
-            <ArrowUp className="size-4" />
-          </Button>
-          <Button type="button" variant="ghost" size="icon" aria-label={`Move down: ${lecturer.fullName}`} onClick={() => move("down")} disabled={pending}>
-            <ArrowDown className="size-4" />
-          </Button>
-          <Button type="button" size="sm" variant="outline" onClick={sendInvite} disabled={pending} aria-label={`${lecturer.inviteState === "not_invited" ? "Send invite" : "Resend invite"}: ${lecturer.fullName}`}>
-            {lecturer.inviteState === "not_invited" ? "Send invite" : "Resend invite"}
-          </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* The one thing most often done here stays on the row; the rest is in the menu. */}
           {lecturer.status === "PUBLISHED" ? (
             <Button type="button" size="sm" variant="outline" onClick={() => runAction(unpublishLecturerAction)} disabled={pending} aria-label={`Unpublish: ${lecturer.fullName}`}>
               Unpublish
             </Button>
           ) : (
-            <Button type="button" size="sm" variant="outline" onClick={() => runAction(publishLecturerAction)} disabled={pending} aria-label={`Publish: ${lecturer.fullName}`}>
+            <Button type="button" size="sm" onClick={() => runAction(publishLecturerAction)} disabled={pending} aria-label={`Publish: ${lecturer.fullName}`}>
               Publish
             </Button>
           )}
-          {lecturer.status === "ARCHIVED" ? (
-            <Button type="button" size="sm" variant="outline" onClick={() => runAction(restoreLecturerAction)} disabled={pending} aria-label={`Restore: ${lecturer.fullName}`}>
-              Restore
-            </Button>
-          ) : (
-            <Button type="button" size="sm" variant="outline" onClick={() => runAction(archiveLecturerAction)} disabled={pending} aria-label={`Archive: ${lecturer.fullName}`}>
-              Archive
-            </Button>
-          )}
-          {lecturer.user.isActive ? (
-            <ConfirmButton
-              label="Deactivate"
-              subject={lecturer.fullName}
-              variant="outline"
-              disabled={pending}
-              title={`Deactivate ${lecturer.fullName}'s account?`}
-              description="They are signed out within a minute and cannot sign in until you reactivate the account. Their public profile is not changed."
-              confirmLabel="Deactivate"
-              onConfirm={toggleActive}
-            />
-          ) : (
-            <Button type="button" size="sm" variant="outline" onClick={toggleActive} disabled={pending} aria-label={`Reactivate: ${lecturer.fullName}`}>
-              Reactivate
-            </Button>
-          )}
-          {lecturer.status === "PUBLISHED" ? (
-            <a href={`/lecturer/${lecturer.slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-sm text-primary underline" aria-label={`View public page: ${lecturer.fullName}`}>
-              View public
-            </a>
-          ) : null}
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={<Button type="button" size="icon" variant="outline" aria-label={`More actions: ${lecturer.fullName}`} disabled={pending} />}
+            >
+              <Ellipsis aria-hidden="true" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={sendInvite}>
+                {lecturer.inviteState === "not_invited" ? "Send invite" : "Resend invite"}
+              </DropdownMenuItem>
+              {lecturer.status === "PUBLISHED" ? (
+                <DropdownMenuItem onClick={() => window.open(`/lecturer/${lecturer.slug}`, "_blank", "noopener,noreferrer")}>
+                  View public page
+                </DropdownMenuItem>
+              ) : null}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => move("up")}>Move up in the list</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => move("down")}>Move down in the list</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {lecturer.status === "ARCHIVED" ? (
+                <DropdownMenuItem onClick={() => runAction(restoreLecturerAction)}>Restore</DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onClick={() => runAction(archiveLecturerAction)}>Archive</DropdownMenuItem>
+              )}
+              {lecturer.user.isActive ? (
+                <DropdownMenuItem variant="destructive" onClick={() => setConfirmDeactivate(true)}>
+                  Deactivate account
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onClick={toggleActive}>Reactivate account</DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <ConfirmDialog
+            open={confirmDeactivate}
+            onOpenChange={setConfirmDeactivate}
+            title={`Deactivate ${lecturer.fullName}'s account?`}
+            description="They are signed out within a minute and cannot sign in until you reactivate the account. Their public profile is not changed."
+            confirmLabel="Deactivate"
+            onConfirm={toggleActive}
+          />
         </div>
       </div>
       {inviteUrl ? (

@@ -18,7 +18,7 @@ async function signIn(page: Page) {
   await page.goto("/login");
   await page.getByLabel("Email").fill(email!);
   await page.getByLabel("Password").fill(password!);
-  await page.getByRole("button", { name: /sign in|log in/i }).click();
+  await page.getByRole("button", { name: /^sign in$/i }).click();
   await page.waitForURL(/\/admin|\/journal|\/$/);
 }
 

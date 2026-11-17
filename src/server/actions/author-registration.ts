@@ -17,7 +17,7 @@ export async function registerAuthorAction(
   const h = await headers();
   const ip = (h.get("x-forwarded-for") ?? "unknown").split(",")[0].trim();
 
-  if (!journalRegisterIpRateLimiter.check(ip).allowed) {
+  if (!(await journalRegisterIpRateLimiter.check(ip)).allowed) {
     return { error: "Too many registration attempts. Please try again later." };
   }
 

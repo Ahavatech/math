@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getHodWelcome, getPublishedPage } from "@/server/services/site-content";
+import { getAboutImage, getHodWelcome, getPublishedPage } from "@/server/services/site-content";
 import { getHeroImage } from "@/server/services/homepage";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
@@ -15,8 +15,8 @@ export const metadata: Metadata = {
 };
 
 export default async function AboutPage() {
-  const [page, hod] = await Promise.all([getPublishedPage("about"), getHodWelcome()]);
-  const hodPhoto = await getHeroImage(hod.photoId);
+  const [page, hod, about] = await Promise.all([getPublishedPage("about"), getHodWelcome(), getAboutImage()]);
+  const [hodPhoto, aboutPhoto] = await Promise.all([getHeroImage(hod.photoId), getHeroImage(about.imageId)]);
 
   if (!page && !hod.message) {
     notFound();
@@ -28,6 +28,27 @@ export default async function AboutPage() {
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "About" }]} />
         {/* Always a page title, even when the About text is not published yet. */}
         <PageHeader className="mt-4" title={page?.title ?? "About the department"} />
+        {aboutPhoto ? (
+          // The department building (or whatever the department chose), at its own proportions.
+          <figure className="mt-8 max-w-3xl">
+            <div className="border border-foreground">
+              <CloudImage
+                src={aboutPhoto.url}
+                alt={aboutPhoto.alt ?? ""}
+                width={aboutPhoto.width ?? 1200}
+                height={aboutPhoto.height ?? 800}
+                priority
+                sizes="(min-width: 1024px) 768px, 100vw"
+                className="h-auto w-full"
+              />
+            </div>
+            {about.caption ? (
+              <figcaption className="mt-2 border-l-2 border-accent pl-3 text-sm text-muted-foreground">
+                {about.caption}
+              </figcaption>
+            ) : null}
+          </figure>
+        ) : null}
         {page ? (
           <Prose className="mt-8" dangerouslySetInnerHTML={{ __html: renderRichText(page.body) }} />
         ) : null}

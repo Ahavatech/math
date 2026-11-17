@@ -63,7 +63,7 @@ test.describe("sign-in rate limiting", () => {
         await page.goto("/login");
         await page.getByLabel("Email").fill(email);
         await page.getByLabel("Password").fill(`not-the-password-${i}`);
-        await page.getByRole("button", { name: "Sign in" }).click();
+        await page.getByRole("button", { name: "Sign in", exact: true }).click();
         const alert = page.locator("form p[role='alert']");
         await expect(alert).toBeVisible();
         messages.push((await alert.innerText()).trim());
@@ -126,7 +126,7 @@ test.describe("session cookie (needs E2E_ADMIN_EMAIL and E2E_ADMIN_PASSWORD)", (
     await page.goto("/login?callbackUrl=%2Fadmin%2Fnews");
     await page.getByLabel("Email").fill(email!);
     await page.getByLabel("Password").fill(password!);
-    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
     // The safe return address is honoured.
     await page.waitForURL(/\/admin\/news/);
 

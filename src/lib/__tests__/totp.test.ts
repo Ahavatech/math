@@ -76,8 +76,9 @@ describe("totp", () => {
   it("makes eight distinct recovery codes that hash the same however they are typed", () => {
     const codes = generateRecoveryCodes();
     expect(new Set(codes).size).toBe(8);
-    expect(codes[0]).toMatch(/^[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}$/);
+    expect(codes[0]).toMatch(/^[0-9a-f]{4}(-[0-9a-f]{4}){4}$/);
     expect(hashRecoveryCode(codes[0].toUpperCase())).toBe(hashRecoveryCode(codes[0].replace(/-/g, " ")));
     expect(normaliseRecoveryCode(" AB12-cd34-EF56 ")).toBe("ab12cd34ef56");
+    expect(normaliseRecoveryCode(codes[0])).toHaveLength(20);
   });
 });

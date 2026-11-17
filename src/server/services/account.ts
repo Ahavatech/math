@@ -3,11 +3,33 @@ import { hashPassword, verifyPassword } from "@/lib/password";
 import { logAction, type AuditRequestContext } from "@/server/services/audit";
 import { consumeToken, peekToken } from "@/server/services/tokens";
 import { passwordProblem, PASSWORD_PROBLEM_MESSAGE } from "@/lib/weak-password";
+import { checkBreachedPassword } from "@/lib/breached-password";
+import { env } from "@/lib/env";
 import type { UserTokenType } from "@prisma/client";
 
 type Db = typeof defaultDb;
 
 export class WeakPasswordError extends Error {}
+
+const BREACHED_MESSAGE =
+  "That password has appeared in a public data breach, so it is not safe to use. Choose a different one, such as three or four unrelated words.";
+
+/**
+ * Why a new password should be refused, or null. First the quick local checks
+ * (very common, patterns, built from the person's name or email), then, unless
+ * switched off or running tests, the breached-password list. The list check
+ * fails open: if that service cannot be reached the password is accepted.
+ */
+export async function newPasswordProblem(
+  password: string,
+  identity: { email?: string | null; name?: string | null },
+): Promise<string | null> {
+  const local = passwordProblem(password, identity);
+  if (local) return PASSWORD_PROBLEM_MESSAGE[local];
+  if (env.BREACHED_PASSWORD_CHECK !== "true" || env.NODE_ENV === "test") return null;
+  const result = await checkBreachedPassword(password);
+  return result?.breached ? BREACHED_MESSAGE : null;
+}
 
 export class WrongPasswordError extends Error {
   constructor() {
@@ -30,8 +52,8 @@ export async function changeOwnPassword(
 ): Promise<void> {
   const user = await db.user.findUniqueOrThrow({ where: { id: userId } });
 
-  const problem = passwordProblem(input.newPassword, { email: user.email, name: user.name });
-  if (problem) throw new WeakPasswordError(PASSWORD_PROBLEM_MESSAGE[problem]);
+  const problem = await newPasswordProblem(input.newPassword, { email: user.email, name: user.name });
+  if (problem) throw new WeakPasswordError(problem);
 
   const currentOk = user.passwordHash
     ? await verifyPassword(user.passwordHash, input.currentPassword)
@@ -93,8 +115,8 @@ export async function setPasswordFromToken(
   });
   if (!user || !user.isActive) return invalid;
 
-  const problem = passwordProblem(input.password, { email: user.email, name: user.name });
-  if (problem) return { ok: false, reason: "weak", message: PASSWORD_PROBLEM_MESSAGE[problem] };
+  const problem = await newPasswordProblem(input.password, { email: user.email, name: user.name });
+  if (problem) return { ok: false, reason: "weak", message: problem };
 
   const consumed = await consumeToken(db, input.token, input.type);
   if (!consumed) return invalid;

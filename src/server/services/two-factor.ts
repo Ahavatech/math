@@ -7,6 +7,7 @@ import {
   hashRecoveryCode,
   normaliseRecoveryCode,
   otpauthUri,
+  RECOVERY_CODE_LENGTHS,
   verifyTotp,
 } from "@/lib/totp";
 
@@ -140,7 +141,7 @@ export async function verifySecondFactor(
     return claimed.count === 1;
   }
 
-  if (normaliseRecoveryCode(trimmed).length !== 12) return false;
+  if (!(RECOVERY_CODE_LENGTHS as readonly number[]).includes(normaliseRecoveryCode(trimmed).length)) return false;
   const used = await db.recoveryCode.updateMany({
     where: { userId, codeHash: hashRecoveryCode(trimmed), usedAt: null },
     data: { usedAt: new Date(now) },

@@ -75,17 +75,28 @@ export const PRIVACY_NOTICE_BODY =
   "publish, such as a photo, biography, contact details, publications and courses.</li>" +
   "<li>Actions taken in the admin area are recorded (who did what, when, and the address and browser " +
   "used) so that changes can be traced and mistakes undone.</li>" +
+  "<li>If you turn on two-factor sign-in or add a passkey, we keep what the feature needs: an encrypted " +
+  "copy of the authenticator secret, scrambled recovery codes, and for each passkey its public half and " +
+  "the name you gave it. The private part of a passkey never leaves your device.</li>" +
+  "<li>To stop password guessing, we keep a short record of sign-in attempts (the address they came from " +
+  "and the email entered). If someone enters the wrong password for your account several times, we email you " +
+  "a warning.</li>" +
   "</ul>" +
   "<h2>Cookies</h2>" +
   "<p>The site uses only the cookies it needs to work. When you sign in, a session cookie keeps you " +
   "signed in for up to 12 hours; short-lived security cookies protect the sign-in form. We do not use " +
-  "advertising or analytics cookies. If you never sign in, these cookies are not used for you.</p>" +
+  "advertising or analytics cookies. If you never sign in, these cookies are not used for you. If you " +
+  "choose light or dark appearance, your choice is saved in your browser only; it is not sent to us.</p>" +
   "<h2>Services that help us run the site</h2>" +
   "<ul>" +
   "<li><strong>Cloudinary</strong> stores and delivers the public images and PDF files shown on the " +
   "site. When you view a page with such images, your browser fetches them from Cloudinary.</li>" +
   "<li><strong>Resend</strong> sends the emails the site sends (invitations, password resets, email " +
   "confirmation and journal notices). It sees the recipient&rsquo;s email address and the message.</li>" +
+  "<li><strong>Pwned Passwords</strong> (haveibeenpwned.com) lets us check, when you choose a new password, " +
+  "whether it has appeared in a public data breach. Only the first five characters of a scrambled copy of " +
+  "the password are sent, never the password itself or your email address, and the check is skipped if the " +
+  "service cannot be reached.</li>" +
   "<li><strong>Our hosting provider</strong> runs the server that holds the website&rsquo;s database " +
   "and the private manuscript files.</li>" +
   "</ul>" +
@@ -95,6 +106,8 @@ export const PRIVACY_NOTICE_BODY =
   "transfers outside Nigeria and name any further safeguards required.]</p>" +
   "<h2>How long we keep information</h2>" +
   "<ul>" +
+  "<li><strong>Sign-in attempt records:</strong> about two hours (a little longer if the site is quiet), " +
+  "then deleted. Records of signed-out sessions are kept only until the session would have expired anyway.</li>" +
   "<li><strong>Alumni entries that are not approved:</strong> 90 days, in case you want to correct " +
   "and resubmit, then permanently deleted along with any photo.</li>" +
   "<li><strong>Approved alumni entries:</strong> until you ask us to correct or remove them.</li>" +
@@ -131,6 +144,8 @@ export const PRIVACY_NOTICE_BODY =
   "<ul>" +
   "<li>The site is served over an encrypted connection (HTTPS).</li>" +
   "<li>Sign-in attempts are limited, and what a signed-in person can do depends on their role.</li>" +
+  "<li>Administrators must use two-factor sign-in, and anyone can add a passkey or turn on two-factor. " +
+  "Signing out ends the session on the server, so a copied sign-in stops working.</li>" +
   "<li>Private files are kept away from the public website and are only given to people allowed to " +
   "see them.</li>" +
   "<li>Alumni entries stay hidden until the department approves them.</li>" +

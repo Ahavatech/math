@@ -15,14 +15,14 @@ import { DOWNLOADS_FOLDER } from "@/server/services/downloads";
  * the lecturer CV flow.
  */
 export async function POST() {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser({ pending: "signed-out" });
   if (!user || !user.isActive || !hasPermission(user, "students.manage")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const h = await headers();
   const ip = (h.get("x-forwarded-for") ?? "unknown").split(",")[0].trim();
-  const rate = cvUploadSigningRateLimiter.check(`${ip}:${user.id}`);
+  const rate = await cvUploadSigningRateLimiter.check(`${ip}:${user.id}`);
   if (!rate.allowed) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
