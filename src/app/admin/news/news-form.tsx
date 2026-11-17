@@ -158,18 +158,18 @@ export function NewsForm({ post, existingMedia }: { post: ExistingPost | null; e
       </FormSection>
 
       {post?.status === "DRAFT" ? (
-        <a href={`/news/${post.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline">
+        <a href={`/news/${post.slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-sm text-primary underline">
           View as public (preview)
         </a>
       ) : null}
 
-      <SaveBar dirty={dirty && !result?.success} actions={
+      <SaveBar saved={result?.success} dirty={dirty && !result?.success} actions={
         <Button onClick={save} disabled={pending || !title.trim() || !slug.trim()}>
         {pending ? "Saving..." : "Save"}
       </Button>
       }>
         {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
-      {result?.success ? <Alert><AlertDescription>Saved.</AlertDescription></Alert> : null}
+      
 
       
       </SaveBar>

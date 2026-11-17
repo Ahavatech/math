@@ -76,7 +76,7 @@ export function LoginForm({ callbackUrl = "" }: { callbackUrl?: string }) {
         {pending ? "Signing in..." : needsCode ? "Verify and sign in" : "Sign in"}
       </Button>
       <p className="text-center">
-        <Link href="/forgot-password" className="link-rule inline-block py-2 font-medium">
+        <Link href="/forgot-password" className="link-rule inline-flex min-h-11 items-center font-medium">
           Forgot your password?
         </Link>
       </p>

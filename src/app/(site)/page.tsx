@@ -255,7 +255,7 @@ export default async function Home() {
               />
               <Link
                 href="/about"
-                className="link-rule mt-5 inline-block py-1 font-medium text-primary"
+                className="link-rule mt-5 inline-flex min-h-11 items-center font-medium text-primary"
               >
                 Read the full address
               </Link>
@@ -351,7 +351,7 @@ function SectionHead({
     <div className="mb-1 flex items-baseline justify-between gap-4 border-b-2 border-foreground pb-3">
       <h2 className="font-heading text-3xl leading-tight font-semibold">{title}</h2>
       {href && linkLabel ? (
-        <Link href={href} className="link-rule shrink-0 py-2 text-[0.9375rem] font-medium text-primary">
+        <Link href={href} className="link-rule inline-flex min-h-11 shrink-0 items-center text-[0.9375rem] font-medium text-primary">
           {linkLabel}
         </Link>
       ) : null}

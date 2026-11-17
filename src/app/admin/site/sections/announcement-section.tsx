@@ -1,5 +1,6 @@
 "use client";
 
+import { SavedMark } from "@/components/ui/saved-mark";
 import { useState } from "react";
 import type { SettingValue } from "@/server/services/site-settings";
 import { saveAnnouncementAction } from "@/server/actions/site-settings";
@@ -39,7 +40,7 @@ export function AnnouncementSection({ value }: { value: SettingValue<"site.annou
         <Input id="announcement-href" value={href} onChange={(e) => { setHref(e.target.value); setDirty(true); }} />
       </div>
       {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
-      {result?.success ? <Alert><AlertDescription>Saved.</AlertDescription></Alert> : null}
+      {result?.success ? <SavedMark /> : null}
       <Button
         onClick={() => {
           const fd = new FormData();

@@ -36,7 +36,7 @@ export default async function ChangePasswordPage() {
           <StatusBadge status={twoFactor === "on" ? "ACTIVE" : twoFactor === "pending" ? "PENDING" : "ARCHIVED"} />
           <span>{twoFactor === "on" ? "On" : twoFactor === "pending" ? "Started, not finished" : "Off"}</span>
         </p>
-        <Link href="/two-factor" className="link-rule inline-block py-2 font-medium">
+        <Link href="/two-factor" className="link-rule inline-flex min-h-11 items-center font-medium">
           {twoFactor === "on" ? "Manage two-factor sign-in" : "Set up two-factor sign-in"}
         </Link>
       </section>

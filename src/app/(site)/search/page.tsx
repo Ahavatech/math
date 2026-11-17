@@ -99,12 +99,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 minLength={2}
                 maxLength={100}
                 autoComplete="off"
-                className="h-12 flex-1 border border-input bg-background px-3 text-base"
+                className="h-12 min-w-0 flex-1 border border-input bg-background px-3 text-base"
                 aria-label="Search query"
               />
               <button
                 type="submit"
-                className="inline-flex h-12 items-center gap-2 bg-primary px-5 text-base font-medium text-primary-foreground transition-colors hover:bg-foreground"
+                className="inline-flex h-12 shrink-0 items-center gap-2 bg-primary px-5 text-base font-medium text-primary-foreground transition-colors hover:bg-foreground"
               >
                 <Search size={16} aria-hidden="true" />
                 Search

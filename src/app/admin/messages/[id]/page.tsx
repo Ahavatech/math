@@ -26,7 +26,7 @@ export default async function AdminMessageDetailPage({ params }: { params: Promi
 
   return (
     <div className="max-w-2xl space-y-6">
-      <Link href="/admin/messages" className="text-sm text-primary underline">
+      <Link href="/admin/messages" className="inline-flex min-h-11 items-center text-sm text-primary underline">
         Back to messages
       </Link>
       <h1 className="font-heading text-lg font-semibold">{message.subject}</h1>

@@ -16,12 +16,12 @@ export function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
               {item.href && !isLast ? (
                 <Link
                   href={item.href}
-                  className="link-rule inline-block py-1 hover:text-foreground"
+                  className="link-rule inline-flex items-center py-1 hover:text-foreground max-md:min-h-11"
                 >
                   {item.label}
                 </Link>
               ) : (
-                <span aria-current={isLast ? "page" : undefined} className="py-1 text-foreground">
+                <span aria-current={isLast ? "page" : undefined} className="py-1 text-foreground max-md:inline-flex max-md:min-h-11 max-md:items-center">
                   {item.label}
                 </span>
               )}

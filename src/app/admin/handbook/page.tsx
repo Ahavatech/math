@@ -25,9 +25,9 @@ export default async function AdminHandbookPage() {
         <Button render={<Link href="/admin/handbook/new">New page</Link>} />
       </div>
 
-      <ul className="space-y-3">
+      <ul className="grouped">
         {topLevel.map((page) => (
-          <li key={page.id} className="rounded-md border border-border p-3">
+          <li key={page.id} className="px-4 py-3">
             <div className="flex items-center justify-between gap-4">
               <Link href={`/admin/handbook/${page.id}`} className="font-medium hover:underline">
                 {page.title}
@@ -54,7 +54,7 @@ export default async function AdminHandbookPage() {
             ) : null}
           </li>
         ))}
-        {pages.length === 0 ? <AdminEmpty title="No handbook pages yet">Each page you add becomes a section of the student handbook and appears in its contents once published.</AdminEmpty> : null}
+        {pages.length === 0 ? <li><AdminEmpty inList title="No handbook pages yet">Each page you add becomes a section of the student handbook and appears in its contents once published.</AdminEmpty></li> : null}
       </ul>
     </div>
   );

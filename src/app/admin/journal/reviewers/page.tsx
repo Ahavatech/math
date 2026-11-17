@@ -3,6 +3,10 @@ import { AdminEmpty } from "@/components/admin/admin-bits";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser, hasPermission, hasRole } from "@/lib/rbac";
 import { db } from "@/lib/db";
+import { PageNav } from "@/components/ui/filter-links";
+import { StatusBadge } from "@/components/admin/status-badge";
+
+const PER_PAGE = 25;
 
 export function generateMetadata() {
   return { title: "Reviewers" };
@@ -32,7 +36,11 @@ async function updateReviewerProfile(formData: FormData): Promise<void> {
   revalidatePath("/admin/journal/reviewers");
 }
 
-export default async function AdminJournalReviewersPage() {
+export default async function AdminJournalReviewersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
@@ -40,8 +48,15 @@ export default async function AdminJournalReviewersPage() {
     redirect("/admin");
   }
 
+  const requested = Number((await searchParams).page);
+  const total = await db.userRole.count({ where: { role: "REVIEWER" } });
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+  const page = Number.isFinite(requested) && requested >= 1 ? Math.min(Math.floor(requested), totalPages) : 1;
+
   const reviewers = await db.userRole.findMany({
     where: { role: "REVIEWER" },
+    skip: (page - 1) * PER_PAGE,
+    take: PER_PAGE,
     include: {
       user: {
         select: {
@@ -60,8 +75,8 @@ export default async function AdminJournalReviewersPage() {
   return (
     <div>
       <h1 className="text-xl font-semibold mb-4">Reviewers</h1>
-      <p className="text-sm text-muted-foreground mb-6">
-        Users with the REVIEWER role. Edit expertise, active status and notes below.
+      <p className="mb-6 text-sm text-muted-foreground">
+        Users with the REVIEWER role ({total} in all). Edit expertise, active status and notes below.
       </p>
       {reviewers.length === 0 ? (
         <AdminEmpty title="No reviewers found">Reviewers are added when an editor invites them from a manuscript, and are listed here once they have an account.</AdminEmpty>
@@ -78,30 +93,23 @@ export default async function AdminJournalReviewersPage() {
                     <p className="text-muted-foreground text-xs mt-0.5">
                       {u._count.reviewAssignments} assignment(s) &middot;{" "}
                       {u.emailVerifiedAt ? (
-                        <span className="text-green-600">verified</span>
+                        <span className="font-medium text-foreground">verified</span>
                       ) : (
                         <span>unverified</span>
                       )}
                     </p>
                   </div>
-                  <span
-                    className={`text-xs rounded-full px-2 py-0.5 ${
-                      profile?.isActive !== false
-                        ? "bg-green-100 text-green-800"
-                        : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {profile?.isActive !== false ? "Active" : "Inactive"}
-                  </span>
+                  <StatusBadge status={profile?.isActive !== false ? "ACTIVE" : "ARCHIVED"} />
                 </div>
 
                 <form action={updateReviewerProfile} className="mt-3 space-y-2">
                   <input type="hidden" name="userId" value={u.id} />
                   <div>
-                    <label className="block text-xs font-medium mb-0.5">
+                    <label htmlFor={`tags-${u.id}`} className="mb-0.5 block text-sm font-medium">
                       Expertise tags (comma-separated)
                     </label>
                     <input
+                      id={`tags-${u.id}`}
                       name="expertiseTags"
                       defaultValue={profile?.expertiseTags.join(", ") ?? ""}
                       className="w-full rounded border px-2 py-1 text-sm"
@@ -116,15 +124,16 @@ export default async function AdminJournalReviewersPage() {
                       id={`active-${u.id}`}
                       defaultChecked={profile?.isActive !== false}
                     />
-                    <label htmlFor={`active-${u.id}`} className="text-xs">
+                    <label htmlFor={`active-${u.id}`} className="text-sm">
                       Available for new assignments
                     </label>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium mb-0.5">
+                    <label htmlFor={`notes-${u.id}`} className="mb-0.5 block text-sm font-medium">
                       Editor notes (confidential)
                     </label>
                     <textarea
+                      id={`notes-${u.id}`}
                       name="notes"
                       defaultValue={profile?.notes ?? ""}
                       rows={2}
@@ -141,6 +150,9 @@ export default async function AdminJournalReviewersPage() {
               </div>
             );
           })}
+          {totalPages > 1 ? (
+            <PageNav page={page} totalPages={totalPages} hrefFor={(target) => `/admin/journal/reviewers?page=${target}`} />
+          ) : null}
         </div>
       )}
     </div>

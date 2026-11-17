@@ -20,11 +20,11 @@ export default async function AdminCalendarPage() {
 
       <CalendarEntryForm entry={null} />
 
-      <ul className="space-y-2">
+      <ul className="grouped">
         {entries.map((entry) => (
           <CalendarEntryRow key={entry.id} entry={entry} />
         ))}
-        {entries.length === 0 ? <AdminEmpty title="No calendar entries yet">Add the dates students rely on, such as the start of lectures and the examination period. They appear on the public calendar as soon as they are saved.</AdminEmpty> : null}
+        {entries.length === 0 ? <li><AdminEmpty inList title="No calendar entries yet">Add the dates students rely on, such as the start of lectures and the examination period. They appear on the public calendar as soon as they are saved.</AdminEmpty></li> : null}
       </ul>
     </div>
   );

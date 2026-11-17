@@ -20,7 +20,7 @@ export default async function AdminAlumniLinksPage() {
     <div className="max-w-3xl space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-lg font-semibold">Alumni links</h1>
-        <Link href="/admin/alumni" className="text-sm text-primary underline">
+        <Link href="/admin/alumni" className="inline-flex min-h-11 items-center text-sm text-primary underline">
           Back to review queue
         </Link>
       </div>
@@ -30,7 +30,7 @@ export default async function AdminAlumniLinksPage() {
         <CohortLinksDialog />
       </div>
 
-      <ul className="space-y-2">
+      <ul className="grouped">
         {links.map((link) => {
           const status = !link.isActive
             ? "inactive"
@@ -41,7 +41,7 @@ export default async function AdminAlumniLinksPage() {
                 : "active";
           return <LinkRow key={link.id} link={link} status={status} entriesReceived={link._count.entries} />;
         })}
-        {links.length === 0 ? <AdminEmpty title="No alumni links yet">A link lets a cohort of graduates send in their details. Generate one for a graduating year. Nothing they send is public until you approve it.</AdminEmpty> : null}
+        {links.length === 0 ? <li><AdminEmpty inList title="No alumni links yet">A link lets a cohort of graduates send in their details. Generate one for a graduating year. Nothing they send is public until you approve it.</AdminEmpty></li> : null}
       </ul>
     </div>
   );

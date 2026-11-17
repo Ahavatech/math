@@ -16,7 +16,7 @@ export function FilterLinks({ label, items }: { label: string; items: FilterLink
             <Link
               href={item.href}
               aria-current={item.active ? "true" : undefined}
-              className="inline-flex min-h-10 items-center border border-foreground px-3.5 text-[0.9375rem] font-medium transition-colors hover:bg-secondary aria-[current=true]:bg-foreground aria-[current=true]:text-background"
+              className="inline-flex min-h-11 items-center border border-foreground px-3.5 text-[0.9375rem] font-medium transition-colors hover:bg-secondary aria-[current=true]:bg-foreground aria-[current=true]:text-background"
             >
               {item.label}
             </Link>
@@ -30,8 +30,9 @@ export function FilterLinks({ label, items }: { label: string; items: FilterLink
 /** Two or three views of the same list (for example Upcoming and Past). */
 export function UnderlineTabs({ label, items }: { label: string; items: FilterLinkItem[] }) {
   return (
-    <nav aria-label={label}>
-      <ul className="flex gap-8 border-b border-border">
+    // Scrolls sideways on a narrow screen rather than pushing the page wider.
+    <nav aria-label={label} className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <ul className="flex w-max min-w-full gap-6 border-b border-border whitespace-nowrap sm:gap-8">
         {items.map((item) => (
           <li key={item.href}>
             <Link
@@ -64,7 +65,7 @@ export function PageNav({
       aria-label="Pagination"
     >
       {page > 1 ? (
-        <Link href={hrefFor(page - 1)} className="link-rule py-2 font-medium">
+        <Link href={hrefFor(page - 1)} className="link-rule inline-flex min-h-11 items-center font-medium">
           Previous
         </Link>
       ) : (
@@ -74,7 +75,7 @@ export function PageNav({
         Page {page} of {totalPages}
       </span>
       {page < totalPages ? (
-        <Link href={hrefFor(page + 1)} className="link-rule py-2 font-medium">
+        <Link href={hrefFor(page + 1)} className="link-rule inline-flex min-h-11 items-center font-medium">
           Next
         </Link>
       ) : (

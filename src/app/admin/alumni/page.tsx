@@ -46,7 +46,7 @@ export default async function AdminAlumniPage({
     <div className="max-w-3xl space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-lg font-semibold">Alumni</h1>
-        <Link href="/admin/alumni/links" className="text-sm text-primary underline">
+        <Link href="/admin/alumni/links" className="inline-flex min-h-11 items-center text-sm text-primary underline">
           Links
         </Link>
       </div>
@@ -64,7 +64,7 @@ export default async function AdminAlumniPage({
         <BulkApproveBar unflaggedIds={entries.filter((e) => !flagged.get(e.id)).map((e) => e.id)} />
       ) : null}
 
-      <ul className="space-y-2">
+      <ul className="grouped">
         {entries.map((entry) => (
           <EntryRow key={entry.id} entry={entry} isDuplicateFlagged={Boolean(flagged.get(entry.id))} tab={tab} />
         ))}

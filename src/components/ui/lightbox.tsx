@@ -43,7 +43,7 @@ export function Lightbox({ image, onClose }: { image: LightboxImage; onClose: ()
     <dialog
       ref={dialogRef}
       onClick={handleBackdropClick}
-      className="m-auto max-h-none max-w-none border-none bg-transparent p-0 backdrop:bg-black/90"
+      className="m-auto max-h-none max-w-none border-none bg-transparent p-0 backdrop:bg-chrome/95"
     >
       <div className="flex max-h-screen w-screen flex-col items-center justify-center gap-2 p-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -54,11 +54,11 @@ export function Lightbox({ image, onClose }: { image: LightboxImage; onClose: ()
           className="max-h-[80vh] max-w-full cursor-zoom-in touch-pinch-zoom select-none object-contain transition-transform"
           style={{ transform: zoomed ? "scale(2)" : "scale(1)" }}
         />
-        {image.caption ? <p className="max-w-2xl text-center text-sm text-white">{image.caption}</p> : null}
+        {image.caption ? <p className="max-w-2xl text-center text-sm text-chrome-foreground">{image.caption}</p> : null}
         <button
           type="button"
           onClick={() => dialogRef.current?.close()}
-          className="absolute right-4 top-4 rounded-full bg-white/10 px-3 py-1 text-sm text-white hover:bg-white/20"
+          className="absolute right-4 top-4 rounded-full bg-chrome-foreground/10 px-3 py-1 text-sm text-chrome-foreground hover:bg-chrome-foreground/20"
           aria-label="Close"
         >
           Close

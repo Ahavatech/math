@@ -58,7 +58,7 @@ export default async function AdminNewsPage({
         <Button type="submit" variant="outline" size="sm">Filter</Button>
       </form>
 
-      <ul className="space-y-2">
+      <ul className="grouped">
         {posts.map((post) => (
           <NewsRow key={post.id} post={post} needsReview={Boolean(importFlags[post.id])} />
         ))}

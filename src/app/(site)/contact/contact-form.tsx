@@ -1,5 +1,6 @@
 "use client";
 
+import { SavedMark } from "@/components/ui/saved-mark";
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,9 +30,10 @@ export function ContactForm({
 
   if (state?.success) {
     return (
-      <p className="mt-6 border-t-2 border-accent pt-4 text-lg">
-        Thank you. Your message has been received.
-      </p>
+      <div className="mt-6 flex items-center gap-3 border-t-2 border-accent pt-4 text-lg">
+        <SavedMark label="Message sent" visibleMs={Infinity} className="[&>span:first-child]:size-9" />
+        <p>We have your message.</p>
+      </div>
     );
   }
 

@@ -43,7 +43,7 @@ export default async function AdminLecturersPage() {
 
       <CreateLecturerForm />
 
-      <ul className="space-y-2">
+      <ul className="grouped">
         {lecturers.map((lecturer) => (
           <LecturerRow
             key={lecturer.id}
@@ -54,7 +54,7 @@ export default async function AdminLecturersPage() {
             })()}
           />
         ))}
-        {lecturers.length === 0 ? <AdminEmpty title="No lecturers yet">Add a lecturer, or import a list from a spreadsheet. A profile stays a draft until it is published to the public staff page.</AdminEmpty> : null}
+        {lecturers.length === 0 ? <li><AdminEmpty inList title="No lecturers yet">Add a lecturer, or import a list from a spreadsheet. A profile stays a draft until it is published to the public staff page.</AdminEmpty></li> : null}
       </ul>
     </div>
   );

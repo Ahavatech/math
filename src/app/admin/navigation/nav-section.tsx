@@ -59,9 +59,9 @@ function NavRow({
 
   return (
     <div className="space-y-1" style={{ marginLeft: depth * 24 }}>
-      <div className="flex items-center gap-2">
-        <Input value={label} onChange={(e) => setLabel(e.target.value)} className="w-40" />
-        <Input value={href} onChange={(e) => setHref(e.target.value)} className="flex-1" />
+      <div className="flex flex-wrap items-center gap-2">
+        <Input value={label} onChange={(e) => setLabel(e.target.value)} className="w-40" aria-label="Menu item label" />
+        <Input value={href} onChange={(e) => setHref(e.target.value)} className="min-w-40 flex-1" aria-label="Menu item address" />
         <Button size="icon-sm" variant="outline" onClick={() => act(reorderNavItemAction, { direction: "up" })} aria-label="Move up">
           <ArrowUp className="size-4" />
         </Button>
@@ -137,18 +137,19 @@ export function NavSection({
         ))}
       </div>
 
-      <div className="flex items-end gap-2 border-t border-border pt-3">
+      <div className="flex flex-wrap items-end gap-2 border-t border-border pt-3">
         <div className="space-y-1">
           <label className="text-xs text-muted-foreground">Label</label>
-          <Input value={newLabel} onChange={(e) => setNewLabel(e.target.value)} />
+          <Input value={newLabel} onChange={(e) => setNewLabel(e.target.value)} aria-label="New item label" />
         </div>
         <div className="space-y-1">
           <label className="text-xs text-muted-foreground">Link</label>
-          <Input value={newHref} onChange={(e) => setNewHref(e.target.value)} placeholder="/about" />
+          <Input value={newHref} onChange={(e) => setNewHref(e.target.value)} placeholder="/about" aria-label="New item address" />
         </div>
         <div className="space-y-1">
           <label className="text-xs text-muted-foreground">Parent (optional)</label>
           <select
+            aria-label="Parent menu item"
             className="h-8 rounded-md border border-input bg-background px-2 text-sm"
             value={parentId}
             onChange={(e) => setParentId(e.target.value)}

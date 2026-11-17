@@ -74,11 +74,11 @@ export function IssueForm({ issue }: { issue?: IssueInput }) {
           <option value="ARCHIVED">Archived</option>
         </select>
       </div>
-      <SaveBar actions={
+      <SaveBar saved={result?.success} actions={
         <Button type="submit" disabled={pending}>{pending ? "Saving..." : "Save"}</Button>
       }>
         {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
-      {result?.success ? <Alert><AlertDescription>Saved.</AlertDescription></Alert> : null}
+      
       
       </SaveBar>
     </form>

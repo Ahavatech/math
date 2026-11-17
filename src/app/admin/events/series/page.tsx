@@ -18,20 +18,20 @@ export default async function AdminEventSeriesPage() {
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-lg font-semibold">Event series</h1>
-        <Link href="/admin/events" className="text-sm text-primary underline">Back to events</Link>
+        <Link href="/admin/events" className="inline-flex min-h-11 items-center text-sm text-primary underline">Back to events</Link>
       </div>
 
       <SeriesForm series={null} />
 
-      <ul className="space-y-2">
+      <ul className="grouped">
         {series.map((s) => (
-          <li key={s.id} className="rounded-md border border-border p-3">
+          <li key={s.id} className="px-4 py-3">
             <p className="font-medium">{s.title}</p>
             <p className="text-xs text-muted-foreground">{s._count.events} event(s)</p>
             <SeriesForm series={s} />
           </li>
         ))}
-        {series.length === 0 ? <AdminEmpty title="No event series yet">A series groups recurring events, such as a termly seminar, under one name. Create one, then choose it when you add an event.</AdminEmpty> : null}
+        {series.length === 0 ? <li><AdminEmpty inList title="No event series yet">A series groups recurring events, such as a termly seminar, under one name. Create one, then choose it when you add an event.</AdminEmpty></li> : null}
       </ul>
     </div>
   );

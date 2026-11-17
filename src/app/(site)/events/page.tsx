@@ -99,6 +99,7 @@ export default async function EventsPage({
             <div className="mt-4 grid gap-x-12 md:grid-cols-2">
               {events.map((event) => (
                 <EventCard
+                headingLevel="h2"
                   key={event.id}
                   title={event.title}
                   type={event.type}

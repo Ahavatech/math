@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { AdminEmpty } from "@/components/admin/admin-bits";
 import Link from "next/link";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
@@ -54,9 +55,9 @@ export default async function AdminMessagesPage({
         <button type="submit" className="h-9 rounded-md border border-input px-3 text-sm">Filter</button>
       </form>
 
-      <ul className="space-y-2">
+      <ul className="grouped">
         {messages.map((message) => (
-          <li key={message.id} className="flex items-center justify-between gap-4 rounded-md border border-border p-3">
+          <li key={message.id} className="flex items-center justify-between gap-4 px-4 py-3">
             <div>
               <Link href={`/admin/messages/${message.id}`} className="font-medium hover:underline">
                 {message.subject}
@@ -70,7 +71,7 @@ export default async function AdminMessagesPage({
             </div>
           </li>
         ))}
-        {messages.length === 0 ? <p className="text-sm text-muted-foreground">No messages match.</p> : null}
+        {messages.length === 0 ? <li><AdminEmpty inList title="No messages match">Try a different status or type. New messages from the contact form appear here.</AdminEmpty></li> : null}
       </ul>
     </div>
   );

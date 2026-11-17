@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import type { NavLink, ContactDetails, SocialLinks } from "@/server/services/site-content";
 
 export function SiteFooter({
@@ -40,7 +41,7 @@ export function SiteFooter({
             <div key={column.id}>
               <Link
                 href={column.href}
-                className="link-rule inline-block font-heading text-base font-semibold"
+                className="link-rule inline-flex min-h-11 items-center font-heading text-base font-semibold"
               >
                 {column.label}
               </Link>
@@ -50,7 +51,7 @@ export function SiteFooter({
                     <li key={child.id}>
                       <Link
                         href={child.href}
-                        className="inline-flex min-h-9 items-center text-[0.9375rem] text-muted-foreground hover:text-accent"
+                        className="inline-flex min-h-11 items-center text-[0.9375rem] text-muted-foreground hover:text-accent"
                       >
                         {child.label}
                       </Link>
@@ -83,7 +84,7 @@ export function SiteFooter({
               <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-1">
                 {socialEntries.map(([label, url]) => (
                   <li key={label}>
-                    <a href={url} className="link-rule inline-block py-1.5 text-[0.9375rem]">
+                    <a href={url} className="link-rule inline-flex min-h-11 items-center text-[0.9375rem]">
                       {label}
                     </a>
                   </li>
@@ -96,9 +97,12 @@ export function SiteFooter({
       <div className="border-t border-border py-4">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-1 px-(--gutter) text-sm text-muted-foreground">
           <p>{footerText ?? `© ${year} Department of Mathematics, Obafemi Awolowo University.`}</p>
-          <Link href="/privacy" className="link-rule inline-block py-1.5 font-medium text-foreground">
-            Privacy notice
-          </Link>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+            <Link href="/privacy" className="link-rule inline-flex min-h-11 items-center font-medium text-foreground">
+              Privacy notice
+            </Link>
+            <ThemeToggle />
+          </div>
         </div>
       </div>
     </footer>

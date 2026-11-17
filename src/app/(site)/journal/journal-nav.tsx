@@ -27,7 +27,7 @@ export function JournalNav({ name, submissionsOpen }: { name: string; submission
       <div className="mx-auto flex max-w-7xl flex-col gap-x-8 px-(--gutter) lg:flex-row lg:items-center">
         <Link
           href="/journal"
-          className="shrink-0 pt-3 font-heading text-lg font-semibold hover:text-accent lg:py-2"
+          className="inline-flex min-h-11 shrink-0 items-center font-heading text-lg font-semibold hover:text-accent"
         >
           {name}
         </Link>
@@ -54,7 +54,7 @@ export function JournalNav({ name, submissionsOpen }: { name: string; submission
               {submissionsOpen ? (
                 <Link
                   href="/journal/submit"
-                  className="inline-flex min-h-9 items-center bg-primary px-4 text-[0.9375rem] font-medium whitespace-nowrap text-primary-foreground transition-colors hover:bg-foreground"
+                  className="inline-flex min-h-11 items-center bg-primary px-4 text-[0.9375rem] font-medium whitespace-nowrap text-primary-foreground transition-colors hover:bg-foreground"
                 >
                   Submit a manuscript
                 </Link>

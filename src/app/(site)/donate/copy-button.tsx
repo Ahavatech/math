@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Check, Copy } from "lucide-react";
+import { hapticSuccess } from "@/lib/haptics";
 
 type State = "idle" | "copied" | "failed";
 
@@ -22,6 +24,7 @@ export function CopyButton({ value, label }: { value: string; label: string }) {
     try {
       await navigator.clipboard.writeText(value);
       setState("copied");
+      hapticSuccess();
     } catch {
       setState("failed");
     }
@@ -41,6 +44,11 @@ export function CopyButton({ value, label }: { value: string; label: string }) {
         onClick={copy}
         className="inline-flex min-h-11 items-center border border-foreground px-4 text-[0.9375rem] font-medium transition-colors hover:bg-foreground hover:text-background"
       >
+        {state === "copied" ? (
+          <Check className="check-draw pop-in mr-2 size-4" strokeWidth={3} aria-hidden="true" />
+        ) : (
+          <Copy className="mr-2 size-4" aria-hidden="true" />
+        )}
         {state === "copied" ? "Copied" : `Copy ${label}`}
       </button>
       <span role="status" aria-live="polite" className={message ? "mt-2 block text-sm text-muted-foreground" : "sr-only"}>

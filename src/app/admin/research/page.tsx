@@ -25,11 +25,11 @@ export default async function AdminResearchPage() {
         <h1 className="font-heading text-lg font-semibold">Research areas</h1>
         <Button render={<Link href="/admin/research/new">New research area</Link>} />
       </div>
-      <ul className="space-y-2">
+      <ul className="grouped">
         {areas.map((area) => (
           <ResearchAreaRow key={area.id} area={area} needsReview={Boolean(importFlags[area.slug])} />
         ))}
-        {areas.length === 0 ? <AdminEmpty title="No research areas yet">Research areas show on the public research page. Add one with a short description and an image.</AdminEmpty> : null}
+        {areas.length === 0 ? <li><AdminEmpty inList title="No research areas yet">Research areas show on the public research page. Add one with a short description and an image.</AdminEmpty></li> : null}
       </ul>
     </div>
   );

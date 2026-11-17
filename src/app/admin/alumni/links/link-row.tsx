@@ -40,7 +40,7 @@ export function LinkRow({
   }
 
   return (
-    <li className="flex items-center justify-between gap-4 rounded-md border border-border p-3">
+    <li className="flex items-center justify-between gap-4 px-4 py-3">
       <div>
         <p className="font-medium">{link.label}</p>
         <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">

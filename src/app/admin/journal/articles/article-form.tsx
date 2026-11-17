@@ -1,5 +1,6 @@
 "use client";
 
+import { SavedMark } from "@/components/ui/saved-mark";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
@@ -182,7 +183,7 @@ export function ArticleForm({ article, issues }: { article?: ArticleData; issues
       </div>
 
       {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
-      {result?.success ? <Alert><AlertDescription>Saved.</AlertDescription></Alert> : null}
+      {result?.success ? <SavedMark /> : null}
       <Button type="submit" disabled={pending}>{pending ? "Saving..." : "Save"}</Button>
     </form>
   );

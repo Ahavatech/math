@@ -1,5 +1,6 @@
 "use client";
 
+import { SavedMark } from "@/components/ui/saved-mark";
 import { useState, useTransition } from "react";
 import { LecturerRank, type ContentStatus } from "@prisma/client";
 import { Button } from "@/components/ui/button";
@@ -82,7 +83,7 @@ export function AdminFieldsForm({
         </label>
       </div>
       {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
-      {result?.success ? <Alert><AlertDescription>Saved.</AlertDescription></Alert> : null}
+      {result?.success ? <SavedMark /> : null}
       <Button onClick={save} disabled={pending}>{pending ? "Saving..." : "Save admin fields"}</Button>
     </section>
   );

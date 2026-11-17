@@ -16,7 +16,7 @@ export function ForgotPasswordForm() {
         <p className="border-t-2 border-accent pt-3 text-lg" role="status">
           {state.message}
         </p>
-        <Link href="/login" className="link-rule inline-block py-2 font-medium">
+        <Link href="/login" className="link-rule inline-flex min-h-11 items-center font-medium">
           Back to sign in
         </Link>
       </div>
@@ -46,7 +46,7 @@ export function ForgotPasswordForm() {
         {pending ? "Sending..." : "Send reset link"}
       </Button>
       <p className="text-center">
-        <Link href="/login" className="link-rule inline-block py-2 font-medium">
+        <Link href="/login" className="link-rule inline-flex min-h-11 items-center font-medium">
           Back to sign in
         </Link>
       </p>

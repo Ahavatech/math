@@ -25,7 +25,7 @@ export function CalendarEntryRow({ entry }: { entry: AcademicCalendarEntry }) {
   }
 
   return (
-    <li className="flex items-center justify-between gap-4 rounded-md border border-border p-3">
+    <li className="flex items-center justify-between gap-4 px-4 py-3">
       <div>
         <p className="font-medium">{entry.title}</p>
         <p className="text-xs text-muted-foreground">

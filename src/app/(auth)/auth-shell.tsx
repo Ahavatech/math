@@ -19,7 +19,7 @@ export function AuthShell({
   return (
     <main className="grid-paper flex min-h-screen items-start justify-center bg-background px-5 py-10 sm:items-center">
       <div className="w-full max-w-md bg-background p-6 sm:border sm:border-foreground sm:p-8">
-        <Link href="/" className="flex items-center gap-3">
+        <Link href="/" className="flex min-h-11 items-center gap-3">
           <Image src={oauLogo} alt="" aria-hidden="true" className="h-10 w-auto" priority />
           <span className="font-heading text-base leading-tight font-semibold">
             Department of Mathematics

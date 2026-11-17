@@ -17,6 +17,7 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import oauLogo from "../../../design-assets/oau-logo.png";
 
 export type AdminNavItem = { label: string; href: string; group: string };
@@ -46,8 +47,11 @@ export function AdminSidebar({
   items,
   onHide,
   onNavigate,
+  showHide = true,
 }: {
   items: AdminNavItem[];
+  /** The hide button is not shown inside the phone sheet (it has its own close control). */
+  showHide?: boolean;
   /** Hides the sidebar (desktop) or closes the drawer (phone). */
   onHide: () => void;
   onNavigate: () => void;
@@ -92,28 +96,30 @@ export function AdminSidebar({
     : [];
 
   const linkClass =
-    "flex min-h-10 items-center px-3 text-[0.9375rem] text-background/85 transition-colors hover:bg-background/10 hover:text-background aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground";
+    "flex min-h-10 items-center px-3 text-[0.9375rem] text-chrome-foreground/85 transition-colors hover:bg-chrome-foreground/10 hover:text-chrome-foreground aria-[current=page]:bg-accent aria-[current=page]:font-medium aria-[current=page]:text-accent-foreground";
 
   return (
-    <div className="flex h-full flex-col bg-foreground text-background">
+    <div className="flex h-full flex-col bg-chrome text-chrome-foreground">
       <div className="flex items-center gap-3 px-4 pt-5 pb-4">
         <Link href="/admin" onClick={onNavigate} className="flex min-w-0 flex-1 items-center gap-3">
-          <span className="flex size-11 shrink-0 items-center justify-center bg-background">
+          <span className="flex size-11 shrink-0 items-center justify-center bg-chrome-foreground">
             <Image src={oauLogo} alt="" aria-hidden="true" className="h-9 w-auto" />
           </span>
           <span className="min-w-0 font-heading text-lg leading-tight font-semibold">
             Mathematics
-            <span className="block text-sm font-normal text-background/70">Admin</span>
+            <span className="block text-sm font-normal text-chrome-foreground/70">Admin</span>
           </span>
         </Link>
+        {showHide ? (
         <button
           type="button"
           onClick={onHide}
-          className="inline-flex size-10 shrink-0 items-center justify-center text-background/80 transition-colors hover:bg-background/10 hover:text-background"
+          className="inline-flex size-10 shrink-0 items-center justify-center text-chrome-foreground/80 transition-colors hover:bg-chrome-foreground/10 hover:text-chrome-foreground"
           aria-label="Hide the menu"
         >
           <ChevronsLeft className="size-5" aria-hidden="true" />
         </button>
+        ) : null}
       </div>
 
       <div className="px-4 pb-3">
@@ -121,7 +127,7 @@ export function AdminSidebar({
           Jump to a page
         </label>
         <div className="relative">
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-background/60" aria-hidden="true" />
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-chrome-foreground/60" aria-hidden="true" />
           <input
             id={searchId}
             ref={searchRef}
@@ -130,7 +136,7 @@ export function AdminSidebar({
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Jump to a page (press /)"
             autoComplete="off"
-            className="h-10 w-full border border-background/30 bg-background/10 pr-3 pl-9 text-[0.9375rem] text-background placeholder:text-background/60 focus-visible:border-background focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-accent"
+            className="h-10 w-full border border-chrome-foreground/30 bg-chrome-foreground/10 pr-3 pl-9 text-[0.9375rem] text-chrome-foreground placeholder:text-chrome-foreground/60 focus-visible:border-chrome-foreground focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-accent"
           />
         </div>
       </div>
@@ -152,14 +158,14 @@ export function AdminSidebar({
                   >
                     <span>
                       {item.label}
-                      <span className="ml-2 text-sm text-background/60">{item.group}</span>
+                      <span className="ml-2 text-sm text-chrome-foreground/60">{item.group}</span>
                     </span>
                   </Link>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="px-3 py-2 text-[0.9375rem] text-background/70">No page matches &ldquo;{query}&rdquo;.</p>
+            <p className="px-3 py-2 text-[0.9375rem] text-chrome-foreground/70">No page matches &ldquo;{query}&rdquo;.</p>
           )
         ) : (
           groups.map((group) => {
@@ -189,18 +195,18 @@ export function AdminSidebar({
                   aria-expanded={open}
                   aria-controls={listId}
                   onClick={() => setToggled((previous) => ({ ...previous, [group.name]: !open }))}
-                  className="flex min-h-10 w-full items-center gap-3 px-3 text-left text-[0.9375rem] font-medium text-background transition-colors hover:bg-background/10"
+                  className="flex min-h-10 w-full items-center gap-3 px-3 text-left text-[0.9375rem] font-medium text-chrome-foreground transition-colors hover:bg-chrome-foreground/10"
                 >
                   <Icon className="size-5 shrink-0" aria-hidden="true" />
                   <span className="flex-1">{group.name}</span>
-                  <span className="text-sm text-background/60">{group.items.length}</span>
+                  <span className="text-sm text-chrome-foreground/60">{group.items.length}</span>
                   <ChevronDown
-                    className={`size-4 shrink-0 text-background/70 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+                    className={`size-4 shrink-0 text-chrome-foreground/70 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
                     aria-hidden="true"
                   />
                 </button>
                 {open ? (
-                  <ul id={listId} className="mt-0.5 mb-1 ml-5 border-l border-background/20 pl-2">
+                  <ul id={listId} className="mt-0.5 mb-1 ml-5 border-l border-chrome-foreground/20 pl-2">
                     {group.items.map((item) => (
                       <li key={item.href}>
                         <Link
@@ -220,6 +226,11 @@ export function AdminSidebar({
           })
         )}
       </nav>
+
+      <div className="border-t border-chrome-foreground/20 px-4 py-3">
+        <p className="mb-2 text-sm text-chrome-foreground/70">Appearance</p>
+        <ThemeToggle onChrome className="w-full [&>button]:flex-1 [&>button]:justify-center" />
+      </div>
     </div>
   );
 }

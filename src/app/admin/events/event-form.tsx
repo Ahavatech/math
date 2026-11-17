@@ -232,23 +232,23 @@ export function EventForm({
             <option key={s.id} value={s.id}>{s.title}</option>
           ))}
         </select>
-        <Link href="/admin/events/series" className="text-xs text-primary underline">Manage series</Link>
+        <Link href="/admin/events/series" className="inline-flex min-h-11 items-center text-xs text-primary underline">Manage series</Link>
       </div>
       </FormSection>
 
       {event?.status === "DRAFT" ? (
-        <a href={`/events/${event.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline">
+        <a href={`/events/${event.slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-sm text-primary underline">
           View as public (preview)
         </a>
       ) : null}
 
-      <SaveBar dirty={dirty && !result?.success} actions={
+      <SaveBar saved={result?.success} dirty={dirty && !result?.success} actions={
         <Button onClick={save} disabled={pending || !title.trim() || !slug.trim() || !startsAt}>
         {pending ? "Saving..." : "Save"}
       </Button>
       }>
         {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
-      {result?.success ? <Alert><AlertDescription>Saved.</AlertDescription></Alert> : null}
+      
 
       
       </SaveBar>

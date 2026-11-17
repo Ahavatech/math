@@ -107,7 +107,7 @@ export function UploadForm() {
           <option value="PUBLISHED">Published</option>
         </select>
       </div>
-      <Input ref={inputRef} type="file" accept="application/pdf" />
+      <Input ref={inputRef} type="file" accept="application/pdf" aria-label="PDF file to upload" />
       {error ? (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>

@@ -61,7 +61,7 @@ function ThankYouOnly() {
         Your details have been received. The department will review your submission and it will appear
         in the alumni directory once approved.
       </p>
-      <Link href="/alumni" className="link-rule inline-block py-2 font-medium text-primary">
+      <Link href="/alumni" className="link-rule inline-flex min-h-11 items-center font-medium text-primary">
         View the alumni directory
       </Link>
     </div>
@@ -114,7 +114,7 @@ export default async function AlumniConfirmPage({
           Your details have been received. The department will review your submission and it will appear
           in the alumni directory once approved.
         </p>
-        <Link href="/alumni" className="link-rule inline-block py-2 font-medium text-primary">
+        <Link href="/alumni" className="link-rule inline-flex min-h-11 items-center font-medium text-primary">
           View the alumni directory
         </Link>
       </div>

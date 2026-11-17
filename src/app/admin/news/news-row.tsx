@@ -23,7 +23,7 @@ export function NewsRow({ post, needsReview }: { post: NewsPost & { cover: Media
   }
 
   return (
-    <li className="flex items-center justify-between gap-4 rounded-md border border-border p-3">
+    <li className="flex items-center justify-between gap-4 px-4 py-3">
       <div>
         <Link href={`/admin/news/${post.id}`} className="font-medium hover:underline">
           {post.title}
@@ -48,7 +48,7 @@ export function NewsRow({ post, needsReview }: { post: NewsPost & { cover: Media
           </Button>
         )}
         {post.status === "PUBLISHED" ? (
-          <a href={`/news/${post.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline" aria-label={`View public page: ${post.title}`}>
+          <a href={`/news/${post.slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-sm text-primary underline" aria-label={`View public page: ${post.title}`}>
             View public
           </a>
         ) : null}

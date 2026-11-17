@@ -132,7 +132,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               {dbUser?.name ?? "you"}
             </span>
             <form action={logoutAction}>
-              <Button type="submit" variant="outline" className="h-10 px-4 text-[0.9375rem]">
+              <Button type="submit" variant="outline" className="h-11 px-4 text-[0.9375rem]">
                 Sign out
               </Button>
             </form>

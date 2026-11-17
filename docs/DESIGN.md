@@ -10,7 +10,7 @@ The site reads like a beautifully typeset mathematics journal set on squared pap
 - **Squared paper** appears only in masthead zones (the homepage hero), faded out downward. It is never behind running text.
 - **Figures:** mathematical illustrations are authored SVG with real notation (`src/components/sections/riemann-figure.tsx`). They cost no image download.
 - **No cards** as page structure. Content is set as ruled index rows (hairline above, a red tick slides in on hover), the way a table of contents or an index is set.
-- **Corners are square** (`--radius: 0.125rem`). No gradients, no glass, no shadows except the dropdown menu.
+- **Corners are square** (`--radius: 0.125rem`) for controls and page structure. Two surfaces are deliberately soft, because they are the phone's native shapes: inset grouped lists (`--radius-group`) and sheets (`--radius-sheet`). No gradients and no shadows except the dropdown menu. Glass is used only on the bars the page scrolls under (see Phone conventions).
 
 ## Direction contract
 
@@ -22,7 +22,7 @@ The site reads like a beautifully typeset mathematics journal set on squared pap
 
 ## Colour
 
-Light only. Every pair is asserted by `tests/unit/design/contrast.test.ts`, which reads these hex values from `src/app/globals.css`.
+Light and dark, following the device (`prefers-color-scheme`). Every colour is a semantic token that flips; no component writes white, black or a hex colour (`tests/unit/design/no-hardcoded-colours.test.ts` fails the build if one does, except the QR code, which must stay dark on light to scan). Every pair, in both schemes, is asserted by `tests/unit/design/contrast.test.ts`, which reads the hex values from `src/app/globals.css`. The table is the light scheme; the dark scheme is the `@media (prefers-color-scheme: dark)` block next to it.
 
 | Token | Hex | Role |
 | --- | --- | --- |
@@ -34,8 +34,9 @@ Light only. Every pair is asserted by `tests/unit/design/contrast.test.ts`, whic
 | `--muted`, `--secondary` | `#eef2f5` | Quiet surfaces |
 | `--muted-foreground` | `#455264` | Secondary text |
 | `--border` | `#d5dde4` | Hairlines |
-| `--input` | `#b8c4cf` | Form field borders |
+| `--input` | `#7a8796` | Form field borders (3:1 against the page) |
 | `--grid` | `#dce6ec` | Squared-paper lines (decorative only) |
+| `--chrome`, `--chrome-foreground` | `#0d1626`, `#fbfcfc` | The dark admin sidebar and sheet scrims; a dark panel in both schemes |
 
 ## Typography
 
@@ -83,4 +84,18 @@ The page container is now 80rem (was 72rem). The primary navigation is inline fr
 
 ## Not yet redesigned
 
-The journal author and reviewer inner screens (manuscript detail, review form, invitation, verify, register) only had their controls, headings and statuses restyled, not recomposed. The individual admin pages (forms, lists, dialogs) were not recomposed: they inherit the new tokens, fonts, titles and tables only. The old shadcn dark theme block was removed because the site is light only.
+The journal author and reviewer inner screens (manuscript detail, review form, invitation, verify, register) only had their controls, headings and statuses restyled, not recomposed. The individual admin pages (forms, lists, dialogs) were not recomposed: they inherit the new tokens, fonts, titles and tables only. The old shadcn `.dark` class block was removed; dark mode now comes from the device setting through the token block described under Colour.
+
+
+## Phone conventions (Stage 22)
+
+The platform conventions for phone apps, translated for a website (this is a website, so none of it uses native components):
+
+- **Tab bar, glass, content flows under.** Below 768px (public) and 1024px (admin) a fixed bottom tab bar replaces the header Menu button: Home plus the three most useful sections the department has in its menu (taken from the database menu, never hard-coded), and More or Menu. It is translucent (`.glass`: the page is blurred behind it and scrolls under it) and falls back to a solid bar where blur is unavailable or the person asked for reduced transparency. The page ends above it (`body[data-tabbar]` padding, with the safe-area inset).
+- **Symbols match the text.** Icons are lucide, drawn at the weight of the text beside them (a hairline next to regular text, heavier next to medium or bold; `svg.lucide` rules in `globals.css`), sized to the text, and coloured from the text. Section icons come from the address (`src/lib/nav-icons.ts`, `src/lib/admin-icons.ts`), so a renamed menu keeps its symbols.
+- **Grouped lists, not a card per row.** Related rows share one inset rounded container with hairlines between them (`.grouped`): admin lists of news, events, lecturers, staff, alumni, messages and so on, and the phone menu. A row is never its own bordered card.
+- **A large title that tucks into the bar, and a Back that never scrolls away.** Pages keep their large title. The sticky glass bar carries the Back button (to the section the page belongs to; `src/lib/parent-path.ts` only returns real pages) and shows the page title in compact form once the large one has scrolled under it. On desktop admin the bar always shows the title.
+- **Real sheets.** The phone menu, the admin menu and every dialog open as a bottom sheet on a phone: it slides up, has a grab handle, soft top corners and a scrim, and is dismissed by pulling it down, tapping outside or pressing Escape (`DialogContent`, `useSheetDrag`). From 640px dialogs are centred modals again.
+- **Success you see, not read.** A save or a sent message shows a check mark that pops in and draws itself, with a short haptic tick on phones that allow vibration (`SavedMark`, `src/lib/haptics.ts`). There is no "Saved." banner; screen readers still get a status message. Haptics are skipped for people who prefer reduced motion, and do nothing on browsers without the Vibration API (iPhone Safari), where the check mark alone carries it.
+- **Dark mode** is described under Colour. A three-way Appearance toggle (Light, Dark, System) is in the footer, the phone menu sheet and the admin sidebar (`ThemeToggle`). The choice is kept in this browser (`oau-theme`) and applied as `data-theme` on `<html>` by a tiny inline script before first paint, so there is no flash; System removes it and the device decides. The forced-dark palette is asserted identical to the dark-device palette by the contrast test.
+- Tap targets are at least 44px tall on phones: footer links, breadcrumbs and section links were raised in this stage. Form field borders are 3:1 against the page (a gap found by the new contrast tests).

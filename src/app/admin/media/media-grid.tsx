@@ -56,7 +56,7 @@ function MediaCard({ asset }: { asset: AssetWithUsage }) {
         <Badge variant={asset.usageCount > 0 ? "secondary" : "outline"}>
           {asset.usageCount > 0 ? `Used ${asset.usageCount}x` : "Unused"}
         </Badge>
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-1">
           <Button size="sm" variant="outline" onClick={handleSaveAlt} disabled={saving}>
             Save
           </Button>
@@ -101,7 +101,7 @@ export function MediaGrid({ assets }: { assets: AssetWithUsage[] }) {
           description="Upload an image above to add it to the library."
         />
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid gap-4 min-[480px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
           {assets.map((asset) => (
             <MediaCard key={asset.id} asset={asset} />
           ))}

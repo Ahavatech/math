@@ -24,7 +24,7 @@ export function EventRow({ event, needsReview }: { event: Event; needsReview: bo
   }
 
   return (
-    <li className="flex items-center justify-between gap-4 rounded-md border border-border p-3">
+    <li className="flex items-center justify-between gap-4 px-4 py-3">
       <div>
         <Link href={`/admin/events/${event.id}`} className="font-medium hover:underline">
           {event.title}
@@ -48,7 +48,7 @@ export function EventRow({ event, needsReview }: { event: Event; needsReview: bo
           </Button>
         )}
         {event.status === "PUBLISHED" ? (
-          <a href={`/events/${event.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline" aria-label={`View public page: ${event.title}`}>
+          <a href={`/events/${event.slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-sm text-primary underline" aria-label={`View public page: ${event.title}`}>
             View public
           </a>
         ) : null}

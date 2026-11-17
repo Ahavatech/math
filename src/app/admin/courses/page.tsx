@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { AdminEmpty } from "@/components/admin/admin-bits";
 import Link from "next/link";
 import { getCurrentUser, hasPermission } from "@/lib/rbac";
 import { db } from "@/lib/db";
@@ -28,7 +29,7 @@ export default async function AdminCoursesPage({
     <div className="max-w-3xl space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-lg font-semibold">Courses</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button render={<Link href="/admin/courses/import">Import CSV</Link>} variant="outline" />
           <Button render={<Link href="/admin/courses/new">New course</Link>} />
         </div>
@@ -55,9 +56,9 @@ export default async function AdminCoursesPage({
         <button type="submit" className="h-9 rounded-md border border-input px-3 text-sm">Filter</button>
       </form>
 
-      <ul className="space-y-2">
+      <ul className="grouped">
         {courses.map((course) => (
-          <li key={course.id} className="flex items-center justify-between gap-4 rounded-md border border-border p-3">
+          <li key={course.id} className="flex items-center justify-between gap-4 px-4 py-3">
             <div>
               <Link href={`/admin/courses/${course.id}`} className="font-medium hover:underline">
                 {course.code} - {course.title}
@@ -73,7 +74,7 @@ export default async function AdminCoursesPage({
             </div>
           </li>
         ))}
-        {courses.length === 0 ? <p className="text-sm text-muted-foreground">No courses match.</p> : null}
+        {courses.length === 0 ? <li><AdminEmpty inList title="No courses match">Try a different programme, semester or search, or add a course.</AdminEmpty></li> : null}
       </ul>
     </div>
   );

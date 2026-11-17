@@ -4,6 +4,7 @@ import "@fontsource-variable/hanken-grotesk/wght.css";
 import "@fontsource-variable/source-serif-4/wght.css";
 import "@fontsource-variable/source-serif-4/wght-italic.css";
 import "./globals.css";
+import { themeInitScript } from "@/lib/theme";
 
 // Fonts are self-hosted through @fontsource-variable (no request to Google
 // at build or run time). Each file has a unicode-range, so a page only
@@ -20,7 +21,12 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className={`h-full antialiased `}>
+    // data-theme is set by the script below before the page paints, so the server
+    // markup and the client differ on purpose.
+    <html lang="en" className={`h-full antialiased `} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );
