@@ -26,11 +26,10 @@ export default async function AboutPage() {
     <Section>
       <Container>
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "About" }]} />
+        {/* Always a page title, even when the About text is not published yet. */}
+        <PageHeader className="mt-4" title={page?.title ?? "About the department"} />
         {page ? (
-          <>
-            <PageHeader className="mt-4" title={page.title} />
-            <Prose className="mt-8" dangerouslySetInnerHTML={{ __html: renderRichText(page.body) }} />
-          </>
+          <Prose className="mt-8" dangerouslySetInnerHTML={{ __html: renderRichText(page.body) }} />
         ) : null}
 
         {hod.message ? (

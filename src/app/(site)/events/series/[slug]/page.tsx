@@ -36,6 +36,7 @@ export default async function EventSeriesPage({ params }: { params: Promise<{ sl
           <div className="mt-6 grid gap-x-12 md:grid-cols-2">
             {series.events.map((event) => (
               <EventCard
+                headingLevel="h2"
                 key={event.id}
                 title={event.title}
                 type={event.type}

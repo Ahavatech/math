@@ -25,11 +25,11 @@ export default async function AdminStaffPage() {
         <h1 className="font-heading text-lg font-semibold">Non-teaching staff</h1>
         <Button render={<Link href="/admin/staff/new">New staff member</Link>} />
       </div>
-      <ul className="space-y-2">
+      <ul className="grouped">
         {staff.map((member) => (
           <StaffRow key={member.id} staff={member} needsReview={Boolean(importFlags[member.id])} />
         ))}
-        {staff.length === 0 ? <AdminEmpty title="No non-teaching staff yet">Add the technical and administrative staff you want listed on the public staff page.</AdminEmpty> : null}
+        {staff.length === 0 ? <li><AdminEmpty inList title="No non-teaching staff yet">Add the technical and administrative staff you want listed on the public staff page.</AdminEmpty></li> : null}
       </ul>
     </div>
   );

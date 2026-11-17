@@ -73,6 +73,7 @@ export default async function NewsPage({
             <div className="mt-6 max-w-4xl">
               {posts.map((post) => (
                 <NewsCard
+                headingLevel="h2"
                   key={post.id}
                   title={post.title}
                   excerpt={post.excerpt ?? undefined}

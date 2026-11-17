@@ -1,5 +1,6 @@
 "use client";
 
+import { SavedMark } from "@/components/ui/saved-mark";
 import { useEffect, useState, useTransition } from "react";
 import type { MediaAsset, ResearchArea } from "@prisma/client";
 import { Button } from "@/components/ui/button";
@@ -174,7 +175,7 @@ export function LecturerSelfFieldsForm({
       </div>
 
       {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
-      {result?.success ? <Alert><AlertDescription>Saved.</AlertDescription></Alert> : null}
+      {result?.success ? <SavedMark /> : null}
       {dirty && !result?.success ? <p className="text-xs text-muted-foreground">You have unsaved changes.</p> : null}
 
       <Button onClick={save} disabled={pending}>

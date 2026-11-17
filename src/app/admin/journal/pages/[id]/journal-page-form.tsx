@@ -59,11 +59,11 @@ export function JournalPageForm({ page }: { page: Page }) {
           <option value="ARCHIVED">Archived</option>
         </select>
       </div>
-      <SaveBar actions={
+      <SaveBar saved={result?.success} actions={
         <Button onClick={save} disabled={pending}>{pending ? "Saving..." : "Save"}</Button>
       }>
         {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
-      {result?.success ? <Alert><AlertDescription>Saved.</AlertDescription></Alert> : null}
+      
       
       </SaveBar>
     </div>

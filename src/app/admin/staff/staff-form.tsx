@@ -1,5 +1,6 @@
 "use client";
 
+import { SavedMark } from "@/components/ui/saved-mark";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { MediaAsset, NonTeachingStaff } from "@prisma/client";
@@ -127,11 +128,7 @@ export function StaffForm({
           <AlertDescription>{result.error}</AlertDescription>
         </Alert>
       ) : null}
-      {result?.success ? (
-        <Alert>
-          <AlertDescription>Saved.</AlertDescription>
-        </Alert>
-      ) : null}
+      {result?.success ? <SavedMark /> : null}
       {dirty && !result?.success ? (
         <p className="text-xs text-muted-foreground">You have unsaved changes.</p>
       ) : null}

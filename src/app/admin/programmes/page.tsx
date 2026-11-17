@@ -22,7 +22,7 @@ export default async function AdminProgrammesPage() {
   return (
     <div className="max-w-2xl space-y-6">
       <h1 className="font-heading text-lg font-semibold">Programmes</h1>
-      <ul className="divide-y divide-border rounded-md border border-border">
+      <ul className="grouped">
         {programmes.map((programme) => (
           <li key={programme.id} className="flex items-center justify-between gap-4 p-4">
             <div>

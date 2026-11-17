@@ -49,7 +49,7 @@ function SpecialisationRow({ spec }: { spec: Specialisation }) {
   }
 
   return (
-    <li className={`space-y-2 rounded-md border border-border p-3 ${spec.isActive ? "" : "opacity-60"}`}>
+    <li className={`space-y-2 px-4 py-3 ${spec.isActive ? "" : "opacity-60"}`}>
       <div className="flex items-center gap-2">
         <Input value={title} onChange={(e) => setTitle(e.target.value)} className="flex-1" />
         <Button type="button" variant="ghost" size="icon" aria-label="Move up" onClick={() => move("up")} disabled={pending}>
@@ -104,7 +104,7 @@ export function SpecialisationsManager({
   return (
     <section className="space-y-4">
       <h2 className="font-heading text-base font-semibold">Specialisations</h2>
-      <ul className="space-y-3">
+      <ul className="grouped">
         {specialisations.map((spec) => (
           <SpecialisationRow key={spec.id} spec={spec} />
         ))}

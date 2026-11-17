@@ -37,7 +37,7 @@ export function EntryRow({
   const primaryProg = entry.programmes[0];
 
   return (
-    <li className="flex items-center justify-between gap-4 rounded-md border border-border p-3">
+    <li className="flex items-center justify-between gap-4 px-4 py-3">
       <div>
         <Link href={`/admin/alumni/${entry.id}`} className="font-medium hover:underline">
           {entry.fullName}
@@ -53,7 +53,7 @@ export function EntryRow({
           {entry.link?.label ? <span>via {entry.link.label}</span> : null}
           {entry.isFeatured ? <Badge>Featured</Badge> : null}
           {isDuplicateFlagged ? <Badge variant="outline">Possible duplicate</Badge> : null}
-          {entry.isDuplicateEmail ? <Badge variant="outline" className="border-amber-400 text-amber-700">Duplicate email</Badge> : null}
+          {entry.isDuplicateEmail ? <Badge variant="outline" className="border-destructive text-destructive">Duplicate email</Badge> : null}
           <span>{entry.createdAt.toLocaleDateString()}</span>
         </div>
       </div>

@@ -434,7 +434,7 @@ export default async function ManuscriptDetailAdminPage({
                       </form>
                     )}
                     {a.status === "SUBMITTED" && (
-                      <span className="text-xs text-green-600">
+                      <span className="text-sm font-medium text-foreground">
                         Submitted {a.review?.submittedAt ? new Date(a.review.submittedAt).toLocaleDateString() : ""}
                       </span>
                     )}

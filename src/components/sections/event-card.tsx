@@ -9,10 +9,12 @@ export type EventCardProps = {
   venue?: string;
   speakerName?: string;
   href: string;
+  /** h3 under a section heading (the home page); h2 on a list page whose title is the h1. */
+  headingLevel?: "h2" | "h3";
 };
 
 /** An event as a ruled list row: the day in red serif, details beside it. */
-export function EventCard({ title, type, startsAt, venue, speakerName, href }: EventCardProps) {
+export function EventCard({ title, type, startsAt, venue, speakerName, href, headingLevel: Heading = "h3" }: EventCardProps) {
   const day = new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Lagos", day: "numeric" }).format(startsAt);
   const month = new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Lagos", month: "short" }).format(startsAt);
   const time = formatWAT(startsAt, { hour: "2-digit", minute: "2-digit", hour12: false });
@@ -24,11 +26,11 @@ export function EventCard({ title, type, startsAt, venue, speakerName, href }: E
         <span className="mt-1 block text-sm font-medium text-muted-foreground">{month}</span>
       </div>
       <div className="min-w-0">
-        <h3 className="font-heading text-lg leading-snug font-semibold">
+        <Heading className="font-heading text-lg leading-snug font-semibold">
           <Link href={href} className="link-rule after:absolute after:inset-0">
             {title}
           </Link>
-        </h3>
+        </Heading>
         <p className="mt-1.5 text-sm text-muted-foreground">
           {humanise(type)}, {time}
           {venue ? `, ${venue}` : ""}

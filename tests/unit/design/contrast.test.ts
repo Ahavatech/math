@@ -4,10 +4,13 @@ import { describe, expect, it } from "vitest";
 
 const css = readFileSync(resolve(__dirname, "../../../src/app/globals.css"), "utf8");
 
-/** Parses the :root { ... } block's hex custom properties into a map. */
-function parseRootTokens(source: string): Record<string, string> {
-  const rootMatch = source.match(/:root\s*\{([^}]*)\}/);
-  if (!rootMatch) throw new Error(":root block not found in globals.css");
+/** Parses the first (light) :root { ... } block's hex custom properties into a map. */
+function parseRootTokens(source: string, scheme: "light" | "dark" = "light"): Record<string, string> {
+  const rootMatch =
+    scheme === "light"
+      ? source.match(/:root\s*\{([^}]*)\}/)
+      : source.match(/@media \(prefers-color-scheme: dark\)\s*\{\s*:root:not\(\[data-theme="light"\]\)\s*\{([^}]*)\}/);
+  if (!rootMatch) throw new Error(`${scheme} :root block not found in globals.css`);
 
   const tokens: Record<string, string> = {};
   const lineRegex = /--([\w-]+):\s*(#[0-9a-fA-F]{6})\s*;/g;
@@ -61,17 +64,42 @@ const TEXT_PAIRS: Array<{ name: string; fg: string; bg: string; minRatio: number
   { name: "secondary-foreground on secondary", fg: "secondary-foreground", bg: "secondary", minRatio: 4.5 },
 ];
 
-describe("WCAG AA contrast of design tokens", () => {
+const darkTokens = parseRootTokens(css, "dark");
+
+// Pairs that exist only because of the admin chrome and borders.
+const EXTRA_PAIRS: Array<{ name: string; fg: string; bg: string; minRatio: number }> = [
+  { name: "chrome-foreground on chrome (admin sidebar)", fg: "chrome-foreground", bg: "chrome", minRatio: 4.5 },
+  { name: "accent on background (dates, active nav)", fg: "accent", bg: "background", minRatio: 4.5 },
+  { name: "destructive on background (errors)", fg: "destructive", bg: "background", minRatio: 4.5 },
+  { name: "accent on card", fg: "accent", bg: "card", minRatio: 4.5 },
+  { name: "muted-foreground on card", fg: "muted-foreground", bg: "card", minRatio: 4.5 },
+  { name: "muted-foreground on muted", fg: "muted-foreground", bg: "muted", minRatio: 4.5 },
+  // Field borders are non-text UI and need 3:1 against the page.
+  { name: "input border on background", fg: "input", bg: "background", minRatio: 3 },
+];
+
+describe.each([
+  ["light", tokens],
+  ["dark", darkTokens],
+] as const)("WCAG AA contrast of design tokens (%s)", (scheme, set) => {
   it("parsed at least the expected core tokens from globals.css", () => {
-    for (const key of ["background", "foreground", "primary", "accent", "destructive"]) {
-      expect(tokens[key], `token --${key} not found`).toBeDefined();
+    for (const key of ["background", "foreground", "primary", "accent", "destructive", "chrome"]) {
+      expect(set[key], `token --${key} not found`).toBeDefined();
     }
   });
 
-  for (const pair of TEXT_PAIRS) {
+  it("defines every token the light scheme defines, so nothing falls back to light in dark", () => {
+    if (scheme === "light") return;
+    const missing = Object.keys(tokens).filter((key) => !(key in darkTokens) && !key.startsWith("chart-"));
+    // Tokens that are deliberately shared between schemes.
+    const shared = new Set(["radius", "radius-group", "radius-sheet", "gutter", "sheet-width"]);
+    expect(missing.filter((key) => !shared.has(key))).toEqual([]);
+  });
+
+  for (const pair of [...TEXT_PAIRS, ...EXTRA_PAIRS]) {
     it(`${pair.name} meets ${pair.minRatio}:1`, () => {
-      const fgHex = tokens[pair.fg];
-      const bgHex = tokens[pair.bg];
+      const fgHex = set[pair.fg];
+      const bgHex = set[pair.bg];
       expect(fgHex, `--${pair.fg} not found`).toBeDefined();
       expect(bgHex, `--${pair.bg} not found`).toBeDefined();
 
@@ -79,4 +107,14 @@ describe("WCAG AA contrast of design tokens", () => {
       expect(ratio).toBeGreaterThanOrEqual(pair.minRatio);
     });
   }
+});
+
+describe("the Dark choice in the toggle", () => {
+  it("uses exactly the same colours as a dark device", () => {
+    const forced = css.match(/:root\[data-theme="dark"\]\s*\{([^}]*)\}/);
+    expect(forced, "no :root[data-theme=dark] block").not.toBeNull();
+    const forcedTokens: Record<string, string> = {};
+    for (const m of forced![1].matchAll(/--([\w-]+):\s*(#[0-9a-fA-F]{6})\s*;/g)) forcedTokens[m[1]] = m[2];
+    expect(forcedTokens).toEqual(darkTokens);
+  });
 });

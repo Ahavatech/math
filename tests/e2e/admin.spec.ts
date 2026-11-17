@@ -75,7 +75,7 @@ test.describe("admin area", () => {
 
   test("the sidebar marks the current page and opens only the group you are in", async ({ page }) => {
     await page.goto("/admin/news");
-    const nav = page.getByRole("navigation", { name: "Admin" });
+    const nav = page.getByRole("navigation", { name: "Admin", exact: true });
     await expect(nav.getByRole("link", { name: "News", exact: true })).toHaveAttribute("aria-current", "page");
     // Other groups start folded, so the list stays short.
     await expect(nav.getByRole("link", { name: "Programmes", exact: true })).toHaveCount(0);
@@ -89,7 +89,7 @@ test.describe("admin area", () => {
   test("the jump box finds a page by name", async ({ page }) => {
     await page.goto("/admin");
     await page.getByRole("searchbox", { name: "Jump to a page" }).fill("lectur");
-    const nav = page.getByRole("navigation", { name: "Admin" });
+    const nav = page.getByRole("navigation", { name: "Admin", exact: true });
     await expect(nav.getByRole("link", { name: /Lecturers/ })).toBeVisible();
     await nav.getByRole("link", { name: /Lecturers/ }).click();
     await page.waitForURL(/\/admin\/lecturers/);
@@ -108,7 +108,7 @@ test.describe("admin area", () => {
   test("on a large screen the sidebar can be hidden, and stays hidden after a reload", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/admin");
-    const nav = page.getByRole("navigation", { name: "Admin" });
+    const nav = page.getByRole("navigation", { name: "Admin", exact: true });
     await expect(nav).toBeVisible();
     await page.getByRole("button", { name: "Hide the menu" }).click();
     await expect(nav).toBeHidden();
@@ -118,17 +118,52 @@ test.describe("admin area", () => {
     await expect(nav).toBeVisible();
   });
 
-  test("on a phone the sidebar is a drawer behind a Menu button, closes with Escape, and the page does not overflow", async ({ page }) => {
+  test("on a phone there is a tab bar, and Menu opens the full menu as a sheet that closes with Escape", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/admin/lecturers");
-    const menu = page.getByRole("button", { name: "Menu", exact: true });
-    await expect(menu).toBeVisible();
-    await expect(page.getByRole("navigation", { name: "Admin" })).toBeHidden();
+    const tabs = page.getByRole("navigation", { name: "Admin sections" });
+    await expect(tabs).toBeVisible();
+    // The big sidebar is not on screen; the page does not overflow sideways.
+    await expect(page.getByRole("navigation", { name: "Admin", exact: true })).toBeHidden();
     expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1)).toBe(false);
-    await menu.click();
-    await expect(page.getByRole("navigation", { name: "Admin" })).toBeVisible();
+
+    await tabs.getByRole("button", { name: "Menu" }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Admin", exact: true })).toBeVisible();
     await page.keyboard.press("Escape");
-    await expect(page.getByRole("navigation", { name: "Admin" })).toBeHidden();
+    await expect(page.getByRole("dialog")).toBeHidden();
+  });
+
+  test("on a phone the Save button sits above the tab bar, not behind it", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 700 });
+    await page.goto("/admin/news/new");
+    const save = page.getByRole("button", { name: "Save", exact: true });
+    const tabs = page.getByRole("navigation", { name: "Admin sections" });
+    await expect(save).toBeInViewport();
+    const saveBox = await save.boundingBox();
+    const tabsBox = await tabs.boundingBox();
+    expect(saveBox!.y + saveBox!.height).toBeLessThanOrEqual(tabsBox!.y + 1);
+  });
+
+  test("on a phone the Back button is in the bar and stays there while scrolling", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 600 });
+    await page.goto("/admin/news/new");
+    const back = page.getByRole("link", { name: "Back to News" }).first();
+    await expect(back).toBeVisible();
+    await page.evaluate(() => window.scrollTo(0, 800));
+    const box = await back.boundingBox();
+    expect(box!.y).toBeGreaterThanOrEqual(0);
+    expect(box!.y).toBeLessThan(60);
+  });
+
+  test("lists are one inset grouped list, not a card per row", async ({ page }) => {
+    await page.goto("/admin/news");
+    const list = page.locator("ul.grouped");
+    test.skip((await list.count()) === 0, "no news posts in this database");
+    const radius = await list.first().evaluate((el) => getComputedStyle(el).borderTopLeftRadius);
+    expect(parseFloat(radius)).toBeGreaterThan(8);
+    const firstRow = list.first().locator("> li").first();
+    expect(await firstRow.evaluate((el) => getComputedStyle(el).borderTopWidth)).toBe("0px");
   });
 
   test("the donations form refuses to turn the page on without bank details", async ({ page }) => {
@@ -213,5 +248,17 @@ test.describe("admin area", () => {
 
     await first.close();
     await thief.close();
+  });
+
+  test("the sidebar has an appearance toggle that works on the admin too", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto("/admin");
+    const group = page.getByRole("radiogroup", { name: "Appearance" });
+    await expect(group).toBeVisible();
+    await group.getByRole("radio", { name: "Dark" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(11, 18, 32)");
+    // Leave the shared test session as it was.
+    await group.getByRole("radio", { name: "System" }).click();
   });
 });

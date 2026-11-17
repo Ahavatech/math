@@ -11,6 +11,8 @@ export type NewsCardProps = {
   pinned?: boolean;
   coverUrl?: string;
   coverAlt?: string;
+  /** h3 under a section heading (the home page); h2 on a list page whose title is the h1. */
+  headingLevel?: "h2" | "h3";
 };
 
 /**
@@ -26,6 +28,7 @@ export function NewsCard({
   pinned,
   coverUrl,
   coverAlt,
+  headingLevel: Heading = "h3",
 }: NewsCardProps) {
   const day = publishedAt.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
   const year = publishedAt.getFullYear();
@@ -41,11 +44,11 @@ export function NewsCard({
       </time>
       <div className="flex min-w-0 gap-5">
         <div className="min-w-0 flex-1">
-          <h3 className="font-heading text-xl leading-snug font-semibold">
+          <Heading className="font-heading text-xl leading-snug font-semibold">
             <Link href={href} className="link-rule after:absolute after:inset-0">
               {title}
             </Link>
-          </h3>
+          </Heading>
           {excerpt ? (
             <p className="mt-2 line-clamp-2 max-w-[62ch] text-muted-foreground">{excerpt}</p>
           ) : null}

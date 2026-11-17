@@ -26,7 +26,7 @@ export default async function AdminDownloadsPage() {
       {[...byCategory.entries()].map(([category, items]) => (
         <div key={category} className="space-y-2">
           <h2 className="font-heading text-sm font-semibold uppercase text-muted-foreground">{category}</h2>
-          <ul className="space-y-2">
+          <ul className="grouped">
             {items.map((d) => (
               <DownloadRow key={d.id} download={d} />
             ))}

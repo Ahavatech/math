@@ -77,7 +77,7 @@ export function LecturerRow({ lecturer, completeness }: { lecturer: LecturerRowD
   }
 
   return (
-    <li className="space-y-2 rounded-md border border-border p-3">
+    <li className="space-y-2 px-4 py-3">
       <div className="flex items-center justify-between gap-4">
         <div>
           <Link href={`/admin/lecturers/${lecturer.id}`} className="font-medium hover:underline">
@@ -139,7 +139,7 @@ export function LecturerRow({ lecturer, completeness }: { lecturer: LecturerRowD
             </Button>
           )}
           {lecturer.status === "PUBLISHED" ? (
-            <a href={`/lecturer/${lecturer.slug}`} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline" aria-label={`View public page: ${lecturer.fullName}`}>
+            <a href={`/lecturer/${lecturer.slug}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-sm text-primary underline" aria-label={`View public page: ${lecturer.fullName}`}>
               View public
             </a>
           ) : null}

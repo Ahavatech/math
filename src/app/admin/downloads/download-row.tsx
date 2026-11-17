@@ -30,7 +30,7 @@ export function DownloadRow({ download }: { download: Download }) {
   }
 
   return (
-    <li className="flex items-center justify-between gap-4 rounded-md border border-border p-3">
+    <li className="flex items-center justify-between gap-4 px-4 py-3">
       <div>
         <a href={download.fileUrl ?? "#"} target="_blank" rel="noopener noreferrer" className="font-medium hover:underline">
           {download.title}

@@ -10,10 +10,10 @@ export function NotificationSettingsForm({ currentValue }: { currentValue: strin
   const [state, action, pending] = useActionState(setContactNotificationEmailAction, undefined);
 
   return (
-    <form action={action} className="flex items-end gap-2 rounded-md border border-border p-3">
+    <form action={action} className="flex flex-wrap items-end gap-2 rounded-md border border-border p-3">
       <div className="space-y-1.5">
         <Label htmlFor="notificationEmail">Notify this address of new messages (optional)</Label>
-        <Input id="notificationEmail" name="notificationEmail" type="email" defaultValue={currentValue} placeholder="e.g. hod@maths.oauife.edu.ng" className="w-72" />
+        <Input id="notificationEmail" name="notificationEmail" type="email" defaultValue={currentValue} placeholder="e.g. hod@maths.oauife.edu.ng" className="w-full sm:w-72" />
       </div>
       <Button type="submit" variant="outline" size="sm" disabled={pending}>
         {pending ? "Saving..." : "Save"}

@@ -16,13 +16,16 @@ const STATUS_LABELS: Record<string, string> = {
   WITHDRAWN: "Withdrawn",
 };
 
+// Same grammar as StatusBadge: red needs a person, dashed is in progress, solid
+// ink is moving, outlined red is turned away, grey is set aside. Token colours,
+// so they flip with dark mode.
 const STATUS_CLASSES: Record<string, string> = {
-  SUBMITTED: "bg-blue-100 text-blue-800",
-  SCREENING: "bg-yellow-100 text-yellow-800",
-  RETURNED_TO_AUTHOR: "bg-orange-100 text-orange-800",
-  UNDER_REVIEW: "bg-purple-100 text-purple-800",
-  REJECTED: "bg-red-100 text-red-800",
-  WITHDRAWN: "bg-muted text-muted-foreground",
+  SUBMITTED: "border-accent bg-accent text-accent-foreground",
+  SCREENING: "border-dashed border-foreground/60 bg-background text-foreground",
+  RETURNED_TO_AUTHOR: "border-destructive bg-background text-destructive",
+  UNDER_REVIEW: "border-primary bg-primary text-primary-foreground",
+  REJECTED: "border-destructive bg-background text-destructive",
+  WITHDRAWN: "border-border bg-muted text-muted-foreground",
 };
 
 export default async function ManuscriptsListPage({
@@ -53,9 +56,10 @@ export default async function ManuscriptsListPage({
       </div>
 
       {/* Filters */}
-      <form method="GET" className="mb-4 flex gap-3">
+      <form method="GET" className="mb-4 flex flex-wrap gap-3">
         <select
           name="status"
+          aria-label="Filter by status"
           defaultValue={status ?? ""}
           className="rounded-md border px-3 py-1.5 text-sm"
         >
@@ -68,7 +72,8 @@ export default async function ManuscriptsListPage({
           name="search"
           defaultValue={search ?? ""}
           placeholder="Search by title..."
-          className="rounded-md border px-3 py-1.5 text-sm w-64"
+          aria-label="Search by title"
+          className="w-full rounded-md border px-3 py-1.5 text-sm sm:w-64"
         />
         <button
           type="submit"
@@ -92,7 +97,7 @@ export default async function ManuscriptsListPage({
                 <th className="pb-2 pr-4 font-medium">Title</th>
                 <th className="pb-2 pr-4 font-medium">Status</th>
                 <th className="pb-2 pr-4 font-medium">Submitted</th>
-                <th className="pb-2 font-medium"></th>
+                <th className="pb-2 font-medium"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
             <tbody>
@@ -104,7 +109,7 @@ export default async function ManuscriptsListPage({
                   <td className="py-2 pr-4 max-w-xs truncate">{ms.title}</td>
                   <td className="py-2 pr-4">
                     <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLASSES[ms.status] ?? ""}`}
+                      className={`inline-flex h-6 items-center border px-2 text-[0.8125rem] font-medium whitespace-nowrap ${STATUS_CLASSES[ms.status] ?? "border-border"}`}
                     >
                       {STATUS_LABELS[ms.status] ?? ms.status}
                     </span>

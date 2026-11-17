@@ -1,5 +1,6 @@
 "use client";
 
+import { SavedMark } from "@/components/ui/saved-mark";
 import { useState } from "react";
 import type { SettingValue } from "@/server/services/site-settings";
 import { saveFooterTextAction } from "@/server/actions/site-settings";
@@ -29,7 +30,7 @@ export function FooterTextSection({ value }: { value: SettingValue<"footer.text"
         />
       </div>
       {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
-      {result?.success ? <Alert><AlertDescription>Saved.</AlertDescription></Alert> : null}
+      {result?.success ? <SavedMark /> : null}
       <Button
         onClick={() => {
           const fd = new FormData();

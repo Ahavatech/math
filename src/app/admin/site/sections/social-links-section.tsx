@@ -1,5 +1,6 @@
 "use client";
 
+import { SavedMark } from "@/components/ui/saved-mark";
 import { useState } from "react";
 import type { SettingValue } from "@/server/services/site-settings";
 import { saveSocialLinksAction } from "@/server/actions/site-settings";
@@ -67,7 +68,7 @@ export function SocialLinksSection({ value }: { value: SettingValue<"social.link
         <Plus className="size-4" /> Add link
       </Button>
       {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
-      {result?.success ? <Alert><AlertDescription>Saved.</AlertDescription></Alert> : null}
+      {result?.success ? <SavedMark /> : null}
       <Button
         onClick={() => {
           const fd = new FormData();

@@ -1,5 +1,6 @@
 "use client";
 
+import { SavedMark } from "@/components/ui/saved-mark";
 import type { JournalSettings } from "@/lib/validators/journal";
 import { saveJournalSettingsAction } from "@/server/actions/site-settings";
 import { useSectionSave } from "@/app/admin/site/use-section-save";
@@ -43,7 +44,7 @@ export function SettingsForm({ settings, licenses }: { settings: JournalSettings
       </div>
 
       {result?.error ? <Alert variant="destructive"><AlertDescription>{result.error}</AlertDescription></Alert> : null}
-      {result?.success ? <Alert><AlertDescription>Saved.</AlertDescription></Alert> : null}
+      {result?.success ? <SavedMark /> : null}
       <Button type="submit" disabled={pending}>{pending ? "Saving..." : "Save"}</Button>
     </form>
   );

@@ -19,13 +19,16 @@ export function AdminEmpty({
   title,
   children,
   action,
+  inList = false,
 }: {
   title: string;
   children?: React.ReactNode;
   action?: React.ReactNode;
+  /** Set when it sits inside a grouped list (wrapped in an li), where the heavy top rule is not wanted. */
+  inList?: boolean;
 }) {
   return (
-    <div className="border-t-2 border-foreground py-8">
+    <div className={inList ? "px-4 py-8" : "border-t-2 border-foreground py-8"}>
       <p className="font-heading text-xl font-semibold">{title}</p>
       {children ? <p className="mt-2 max-w-prose text-muted-foreground">{children}</p> : null}
       {action ? <div className="mt-4">{action}</div> : null}

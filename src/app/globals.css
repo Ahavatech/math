@@ -13,6 +13,8 @@
   --font-serif: "Source Serif 4 Variable", ui-serif, Georgia, serif;
   --color-success: var(--success);
   --color-grid: var(--grid);
+  --color-chrome: var(--chrome);
+  --color-chrome-foreground: var(--chrome-foreground);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -73,15 +75,23 @@
   --destructive-foreground: #fbfcfc;
   --success: #14213d;
   --border: #d5dde4;
-  --input: #b8c4cf;
+  --input: #7a8796;
   --ring: #b3261e;
   --grid: #dce6ec;
+  /* The dark panels that frame the admin (sidebar). Named, not
+     foreground/background, so they stay dark panels in both schemes. */
+  --chrome: #0d1626;
+  --chrome-foreground: #fbfcfc;
   --chart-1: #14213d;
   --chart-2: #b3261e;
   --chart-3: #455264;
   --chart-4: #8f1d18;
   --chart-5: #0d1626;
   --radius: 0.125rem;
+  /* Inset grouped lists and sheets are the two soft-cornered surfaces. */
+  --radius-group: 0.875rem;
+  --radius-sheet: 1.25rem;
+  color-scheme: light dark;
   --sidebar: #f3f6f8;
   --sidebar-foreground: #0d1626;
   --sidebar-primary: #14213d;
@@ -94,6 +104,106 @@
   /* Page gutter, shared by Container and the margin rule. */
   --gutter: 1.25rem;
   --sheet-width: 80rem;
+}
+
+/* Dark scheme: follows the device. Every colour is a token that flips; no
+   component hard-codes white or black. Pairs are asserted by
+   tests/unit/design/contrast.test.ts. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: #0b1220;
+    --foreground: #e8edf3;
+    --card: #111a2c;
+    --card-foreground: #e8edf3;
+    --popover: #111a2c;
+    --popover-foreground: #e8edf3;
+    --primary: #e8edf3;
+    --primary-foreground: #0b1220;
+    --secondary: #172238;
+    --secondary-foreground: #e8edf3;
+    --muted: #172238;
+    --muted-foreground: #a9b5c6;
+    --accent: #ff7b72;
+    --accent-foreground: #0b1220;
+    --destructive: #ff9a92;
+    --destructive-foreground: #0b1220;
+    --success: #e8edf3;
+    --border: #2a3750;
+    --input: #5f7399;
+    --ring: #ff7b72;
+    --grid: #16223a;
+    --chrome: #0f192c;
+    --chrome-foreground: #e8edf3;
+    --chart-1: #e8edf3;
+    --chart-2: #ff7b72;
+    --chart-3: #a9b5c6;
+    --chart-4: #ff9a92;
+    --chart-5: #cdd6e2;
+    --sidebar: #111a2c;
+    --sidebar-foreground: #e8edf3;
+    --sidebar-primary: #e8edf3;
+    --sidebar-primary-foreground: #0b1220;
+    --sidebar-accent: #172238;
+    --sidebar-accent-foreground: #e8edf3;
+    --sidebar-border: #2a3750;
+    --sidebar-ring: #ff7b72;
+    color-scheme: dark;
+  }
+
+  /* Photographs sit a little lower so they do not glare on a dark page. */
+  :root:not([data-theme="light"]) img:not([data-keep-bright]) {
+    filter: brightness(0.92);
+  }
+}
+
+/* The same dark palette when someone chooses Dark in the toggle, whatever the
+   device says; and Light forces the light palette against a dark device. */
+:root[data-theme="dark"] {
+    --background: #0b1220;
+    --foreground: #e8edf3;
+    --card: #111a2c;
+    --card-foreground: #e8edf3;
+    --popover: #111a2c;
+    --popover-foreground: #e8edf3;
+    --primary: #e8edf3;
+    --primary-foreground: #0b1220;
+    --secondary: #172238;
+    --secondary-foreground: #e8edf3;
+    --muted: #172238;
+    --muted-foreground: #a9b5c6;
+    --accent: #ff7b72;
+    --accent-foreground: #0b1220;
+    --destructive: #ff9a92;
+    --destructive-foreground: #0b1220;
+    --success: #e8edf3;
+    --border: #2a3750;
+    --input: #5f7399;
+    --ring: #ff7b72;
+    --grid: #16223a;
+    --chrome: #0f192c;
+    --chrome-foreground: #e8edf3;
+    --chart-1: #e8edf3;
+    --chart-2: #ff7b72;
+    --chart-3: #a9b5c6;
+    --chart-4: #ff9a92;
+    --chart-5: #cdd6e2;
+    --sidebar: #111a2c;
+    --sidebar-foreground: #e8edf3;
+    --sidebar-primary: #e8edf3;
+    --sidebar-primary-foreground: #0b1220;
+    --sidebar-accent: #172238;
+    --sidebar-accent-foreground: #e8edf3;
+    --sidebar-border: #2a3750;
+    --sidebar-ring: #ff7b72;
+  color-scheme: dark;
+}
+
+:root[data-theme="dark"] img:not([data-keep-bright]) {
+  filter: brightness(0.92);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
 }
 
 @media (min-width: 640px) {
@@ -136,8 +246,8 @@
     outline-offset: 3px;
   }
   ::selection {
-    background: #14213d;
-    color: #fbfcfc;
+    background: var(--primary);
+    color: var(--primary-foreground);
   }
   /* Tabular figures wherever numbers line up: tables, dates, codes. */
   table,
@@ -374,4 +484,209 @@
 .admin-main input[type="radio"] {
   width: 1.125rem;
   height: 1.125rem;
+}
+
+/* ---------------------------------------------------------------------
+   Stage 22: native-feeling surfaces for phones (web translation of the
+   platform conventions): translucent glass bars that content scrolls
+   under, inset grouped lists, bottom sheets, icons that match the text
+   weight, and a success mark you see rather than read.
+   --------------------------------------------------------------------- */
+
+/* Glass: a translucent bar with the page blurred behind it. Falls back to a
+   solid bar where blur is unavailable or the person asked for less
+   transparency. */
+.glass {
+  background: color-mix(in oklab, var(--background) 72%, transparent);
+  -webkit-backdrop-filter: saturate(1.8) blur(18px);
+  backdrop-filter: saturate(1.8) blur(18px);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: var(--background);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    background: var(--background);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Inset grouped list: related rows share one rounded container with
+   hairlines between them, instead of every row being its own card. */
+.grouped {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-group);
+  background: var(--card);
+  overflow: hidden;
+}
+
+.grouped > li {
+  position: relative;
+}
+
+.grouped > li + li::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 1rem;
+  right: 0;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Icons take the weight of the text beside them: a hairline icon next to
+   regular text, a heavier one next to medium or bold text. Sizes still come
+   from the size-* classes. */
+:where(svg.lucide) {
+  stroke-width: 1.625;
+}
+
+:where(.font-medium, [data-slot="button"], button, a, label) :where(svg.lucide) {
+  stroke-width: 1.875;
+}
+
+:where(.font-semibold, .font-bold, h1, h2, h3, h4) :where(svg.lucide) {
+  stroke-width: 2.125;
+}
+
+/* Safe areas for notched phones and home-indicator bars. */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* A bottom tab bar needs the page to end above it. */
+@media (max-width: 767px) {
+  body[data-tabbar] {
+    padding-bottom: calc(3.75rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* A sheet: slides up from the bottom, soft top corners, a grab handle. */
+.sheet {
+  border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+}
+
+.sheet-handle {
+  width: 2.25rem;
+  height: 0.3125rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--foreground) 28%, transparent);
+}
+
+/* The success mark: a check that draws itself. Seen, not announced; a
+   screen reader still gets the status text. */
+.check-draw path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: check-draw 360ms cubic-bezier(0.16, 1, 0.3, 1) 60ms forwards;
+}
+
+@keyframes check-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.pop-in {
+  animation: pop-in 280ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes pop-in {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* A large page title that tucks into the bar: the bar's own title fades in
+   once the large one has scrolled away. */
+.bar-title {
+  opacity: 0;
+  transform: translateY(0.375rem);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.bar-title[data-visible="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+@media print {
+  [data-tabbar-nav] {
+    display: none !important;
+  }
+}
+
+/* On a large screen the bar's title is always shown; the tuck-in effect is
+   for the small-screen bar only. */
+@media (min-width: 1024px) {
+  .bar-title[data-desktop-visible="true"] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Rows in a grouped list wrap on a narrow screen instead of pushing the page
+   sideways: the text takes a full line if it needs to, and the actions flow
+   beneath it. */
+.grouped > li {
+  flex-wrap: wrap;
+  row-gap: 0.5rem;
+}
+
+.grouped > li > :first-child {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.grouped > li > :last-child:not(:first-child) {
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+/* Badges hold a word or two; a long one wraps rather than overflowing. */
+.admin-main .group\/badge {
+  height: auto;
+  min-height: 1.5rem;
+  white-space: normal;
+  text-align: left;
+}
+
+/* On a touch screen every admin control is at least 44px, the size a
+   fingertip needs. */
+@media (pointer: coarse) {
+  .admin-main [data-slot="button"],
+  .admin-main [data-slot="dialog-trigger"],
+  .admin-main [data-slot="select-trigger"] {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+
+  .admin-main button:not([data-slot]),
+  .admin-main summary,
+  .admin-main input[type="file"] {
+    min-height: 2.75rem;
+  }
+
+  .admin-main input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
+  .admin-main select {
+    min-height: 2.75rem;
+  }
+
+  .admin-main input[type="checkbox"],
+  .admin-main input[type="radio"] {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
 }

@@ -6,6 +6,7 @@ import { cn } from "cn"
 
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
+import { useSheetDrag } from "@/lib/use-sheet-drag"
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
@@ -31,7 +32,7 @@ function DialogOverlay({
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        "fixed inset-0 isolate z-50 bg-chrome/45 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
         className
       )}
       {...props}
@@ -43,24 +44,63 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  variant = "dialog",
+  initialFocus,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
+  /**
+   * "dialog": a bottom sheet on phones and a centred modal from 640px up.
+   * "sheet": a bottom sheet at every width, for menus and longer content.
+   */
+  variant?: "dialog" | "sheet"
 }) {
+  const popupRef = React.useRef<HTMLDivElement>(null)
+  const closeRef = React.useRef<HTMLButtonElement>(null)
+  // Pulling the handle down far enough presses the (always present) close
+  // control, so the dialog's own open state does the closing.
+  const drag = useSheetDrag(
+    () => popupRef.current,
+    () => closeRef.current?.click()
+  )
+  const centredFromSm = variant === "dialog"
+
   return (
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Popup
+        ref={popupRef}
+        // A sheet puts focus on itself, not on its first field: a keyboard user
+        // still tabs into it from the top, and a phone does not pop its keyboard open.
+        initialFocus={initialFocus ?? (variant === "sheet" ? () => popupRef.current : undefined)}
+        tabIndex={-1}
         data-slot="dialog-content"
+        data-variant={variant}
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          // A bottom sheet by default: full width, soft top corners, never taller than the screen.
+          "sheet fixed inset-x-0 bottom-0 z-50 grid max-h-[90dvh] w-full gap-4 overflow-y-auto overscroll-contain bg-popover p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] text-sm text-popover-foreground ring-1 ring-foreground/10 duration-200 outline-none data-open:animate-in data-open:slide-in-from-bottom-full data-closed:animate-out data-closed:slide-out-to-bottom-full",
+          centredFromSm
+            ? "sm:inset-x-auto sm:top-1/2 sm:bottom-auto sm:left-1/2 sm:max-w-sm sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:pb-4 sm:duration-100 sm:data-open:slide-in-from-bottom-0 sm:data-open:fade-in-0 sm:data-open:zoom-in-95 sm:data-closed:slide-out-to-bottom-0 sm:data-closed:fade-out-0 sm:data-closed:zoom-out-95"
+            : "sm:inset-x-auto sm:left-1/2 sm:max-w-lg sm:-translate-x-1/2",
           className
         )}
         {...props}
       >
+        <div
+          data-slot="sheet-grabber"
+          className={cn(
+            "-mx-4 -mt-4 flex cursor-grab touch-none justify-center pt-2.5 pb-3 active:cursor-grabbing",
+            centredFromSm ? "sm:hidden" : ""
+          )}
+          aria-hidden="true"
+          {...drag}
+        >
+          <span className="sheet-handle" />
+        </div>
         {children}
         {showCloseButton && (
           <DialogPrimitive.Close
+            ref={closeRef}
             data-slot="dialog-close"
             render={
               <Button

@@ -129,7 +129,7 @@ export function TwoFactorPanel({
           <li>Enter the six-digit code the app shows, then press Turn on.</li>
         </ol>
         <div
-          className="inline-block border border-foreground bg-white p-2"
+          className="inline-block border border-foreground bg-white p-2" /* A QR code must be dark on light to scan, in either colour scheme. */
           role="img"
           aria-label="QR code for your authenticator app"
           dangerouslySetInnerHTML={{ __html: qrSvg }}

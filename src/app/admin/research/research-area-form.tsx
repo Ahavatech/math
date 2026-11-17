@@ -153,14 +153,14 @@ export function ResearchAreaForm({
             href={`/research/${area.slug}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-primary underline"
+            className="inline-flex min-h-11 items-center text-sm text-primary underline"
           >
             Preview on site
           </a>
         ) : null}
       </div>
 
-      <SaveBar dirty={dirty && !result?.success} actions={
+      <SaveBar saved={result?.success} dirty={dirty && !result?.success} actions={
         <Button onClick={save} disabled={pending || !title.trim()}>
         {pending ? "Saving..." : "Save"}
       </Button>
@@ -170,11 +170,7 @@ export function ResearchAreaForm({
           <AlertDescription>{result.error}</AlertDescription>
         </Alert>
       ) : null}
-      {result?.success ? (
-        <Alert>
-          <AlertDescription>Saved.</AlertDescription>
-        </Alert>
-      ) : null}
+      
 
       
       </SaveBar>

@@ -1,5 +1,6 @@
 "use client";
 
+import { SavedMark } from "@/components/ui/saved-mark";
 import { useActionState, useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -92,9 +93,10 @@ export function SubmitForm({
 
   if (state?.success) {
     return (
-      <p className="mt-6 text-sm">
-        Thank you. Your details were received and will appear after the department has reviewed them.
-      </p>
+      <div className="mt-6 flex items-start gap-3">
+        <SavedMark label="Details received" visibleMs={Infinity} />
+        <p>Your details were received and will appear after the department has reviewed them.</p>
+      </div>
     );
   }
 

@@ -58,12 +58,12 @@ export default async function TwoFactorPage({
       />
       <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-border pt-4">
         {status === "on" ? (
-          <Link href="/admin" className="link-rule py-2 font-medium">
+          <Link href="/admin" className="link-rule inline-flex min-h-11 items-center font-medium">
             Continue to the admin area
           </Link>
         ) : null}
         <form action={logoutAction}>
-          <Button type="submit" variant="outline">
+          <Button type="submit" variant="outline" className="min-h-11">
             Sign out
           </Button>
         </form>

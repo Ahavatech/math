@@ -93,13 +93,13 @@ export function PageEditorForm({
           href={`/${page.slug}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm text-primary underline"
+          className="inline-flex min-h-11 items-center text-sm text-primary underline"
         >
           Preview on site
         </a>
       </div>
 
-      <SaveBar dirty={dirty && !result?.success} actions={
+      <SaveBar saved={result?.success} dirty={dirty && !result?.success} actions={
         <Button onClick={save} disabled={pending}>
         {pending ? "Saving..." : "Save"}
       </Button>
@@ -109,11 +109,7 @@ export function PageEditorForm({
           <AlertDescription>{result.error}</AlertDescription>
         </Alert>
       ) : null}
-      {result?.success ? (
-        <Alert>
-          <AlertDescription>Saved.</AlertDescription>
-        </Alert>
-      ) : null}
+      
 
       
       </SaveBar>

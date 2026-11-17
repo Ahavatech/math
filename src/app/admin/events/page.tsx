@@ -57,7 +57,7 @@ export default async function AdminEventsPage({
         <Button type="submit" variant="outline" size="sm">Search</Button>
       </form>
 
-      <ul className="space-y-2">
+      <ul className="grouped">
         {events.map((event) => (
           <EventRow key={event.id} event={event} needsReview={Boolean(importFlags[event.id])} />
         ))}
