@@ -3,6 +3,7 @@ import type { Prisma, PrismaClient } from "@prisma/client";
 import { hashPassword } from "@/lib/password";
 import { issueToken, consumeToken } from "@/server/services/tokens";
 import { sendVerificationEmail, sendAlreadyRegisteredEmail } from "@/lib/email";
+import { safeCallbackPath } from "@/lib/safe-redirect";
 
 type Db = PrismaClient | Prisma.TransactionClient;
 
@@ -21,6 +22,9 @@ export async function registerAuthor(
   });
 
   if (existing) {
+    // Do the same expensive hashing as a real registration would, so the time taken
+    // does not reveal that this address already has an account.
+    await hashPassword(input.passwordPlaintext);
     await sendAlreadyRegisteredEmail({ to: input.email });
     return { sent: true };
   }
@@ -67,9 +71,7 @@ export async function verifyEmail(
  * Falls back to `/journal/dashboard`.
  */
 export function validateNextParam(next: string | null | undefined): string {
-  const fallback = "/journal/dashboard";
-  if (!next || typeof next !== "string") return fallback;
-  if (!next.startsWith("/")) return fallback;
-  if (next.startsWith("//")) return fallback;
-  return next;
+  // The shared check also refuses backslashes ("/\evil.com" is read as another
+  // host by browsers), control characters and any path outside the sign-in areas.
+  return safeCallbackPath(next) ?? "/journal/dashboard";
 }

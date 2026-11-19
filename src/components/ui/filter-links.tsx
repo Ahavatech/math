@@ -14,6 +14,7 @@ export function FilterLinks({ label, items }: { label: string; items: FilterLink
         {items.map((item) => (
           <li key={item.href}>
             <Link
+              prefetch={false}
               href={item.href}
               aria-current={item.active ? "true" : undefined}
               className="inline-flex min-h-11 items-center border border-foreground px-3.5 text-[0.9375rem] font-medium transition-colors hover:bg-secondary aria-[current=true]:bg-foreground aria-[current=true]:text-background"
@@ -36,6 +37,7 @@ export function UnderlineTabs({ label, items }: { label: string; items: FilterLi
         {items.map((item) => (
           <li key={item.href}>
             <Link
+              prefetch={false}
               href={item.href}
               aria-current={item.active ? "page" : undefined}
               className="relative inline-flex min-h-12 items-center font-heading text-xl font-semibold text-muted-foreground transition-colors hover:text-foreground aria-[current=page]:text-foreground after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:origin-left after:scale-x-0 after:bg-accent after:transition-transform after:duration-200 aria-[current=page]:after:scale-x-100"
@@ -65,7 +67,7 @@ export function PageNav({
       aria-label="Pagination"
     >
       {page > 1 ? (
-        <Link href={hrefFor(page - 1)} className="link-rule inline-flex min-h-11 items-center font-medium">
+        <Link prefetch={false} href={hrefFor(page - 1)} className="link-rule inline-flex min-h-11 items-center font-medium">
           Previous
         </Link>
       ) : (
@@ -75,7 +77,7 @@ export function PageNav({
         Page {page} of {totalPages}
       </span>
       {page < totalPages ? (
-        <Link href={hrefFor(page + 1)} className="link-rule inline-flex min-h-11 items-center font-medium">
+        <Link prefetch={false} href={hrefFor(page + 1)} className="link-rule inline-flex min-h-11 items-center font-medium">
           Next
         </Link>
       ) : (

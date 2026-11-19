@@ -4,9 +4,9 @@ Fast orientation for a new session. For scope, see SCOPE.md; for stage checklist
 
 ## Stack
 
-- Next.js 15 App Router, TypeScript strict, Tailwind CSS, shadcn/ui
+- Next.js 16 App Router (16.4.6), TypeScript strict, Tailwind CSS, shadcn/ui
 - PostgreSQL + Prisma ORM
-- Auth.js (JWT) with roles
+- Auth.js (JWT) with roles; password, two-factor (TOTP) and passkey (WebAuthn) sign-in
 - Cloudinary (public images, PDFs); private manuscript files on server disk
 - Resend for email; React Email for templates
 - Vitest (unit), Playwright (E2E, critical flows)

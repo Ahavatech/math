@@ -1,5 +1,7 @@
 "use server";
 
+import { notifyReviewerInvited, notifyReviewerResponded } from "@/server/services/journal-notifications";
+import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/rbac";
@@ -31,9 +33,15 @@ export async function inviteReviewerAction(formData: FormData): Promise<void> {
   try {
     const { rawToken } = await inviteReviewer(db, sessionUser(user), parsed.data.manuscriptId, parsed.data.roundId, parsed.data.reviewerUserId);
 
-    // Send invitation email asynchronously — fire and forget in this action
-    // (the send function is called from a separate service in production)
-    void rawToken; // token handed off to caller-side email service if needed
+    // Email the reviewer their accept and decline links, once the response has gone.
+    // (The link holds the only copy of the token: only its hash is stored.)
+    after(() =>
+      notifyReviewerInvited(db, {
+        manuscriptId: parsed.data.manuscriptId,
+        reviewerUserId: parsed.data.reviewerUserId,
+        rawToken,
+      }),
+    );
 
     revalidatePath(`/admin/journal/manuscripts/${parsed.data.manuscriptId}`);
   } catch {
@@ -63,6 +71,7 @@ export async function acceptInvitationAction(rawToken: string): Promise<{ error?
   const result = await acceptInvitation(db, sessionUser(user), rawToken);
   if (!result) return { error: "This invitation link is invalid, has already been used, or has expired." };
 
+  after(() => notifyReviewerResponded(db, { manuscriptId: result.manuscriptId, accepted: true }));
   revalidatePath("/journal/reviewer");
   return { manuscriptId: result.manuscriptId, roundId: result.roundId };
 }
@@ -74,5 +83,6 @@ export async function declineInvitationAction(rawToken: string, reason?: string)
   const result = await declineInvitation(db, sessionUser(user), rawToken, reason);
   if (!result) return { error: "This invitation link is invalid, has already been used, or has expired." };
 
+  after(() => notifyReviewerResponded(db, { manuscriptId: result.manuscriptId, accepted: false }));
   return {};
 }

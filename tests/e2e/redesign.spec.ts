@@ -250,9 +250,39 @@ test("the About page shows the department photograph, with its caption, at its o
   expect(await img.getAttribute("alt")).not.toBeNull();
   // Fully loaded, not broken.
   expect(await img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true);
+  // On a wide screen it sits beside the text, in the right-hand column, when there is About text.
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const prose = page.locator("main .prose, main [class*=prose]").first();
+  if ((await prose.count()) > 0) {
+    const [textBox, photoBox] = [await prose.boundingBox(), await img.boundingBox()];
+    expect(photoBox!.x).toBeGreaterThan(textBox!.x + textBox!.width - 5);
+  }
   // It never pushes the page sideways on a phone.
   await page.setViewportSize({ width: 360, height: 800 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+});
+
+test("no public page shows placeholder wording", async ({ page }) => {
+  for (const route of ["/", "/about", "/students", "/programmes", "/research", "/privacy", "/contact", "/donate"]) {
+    await page.goto(route);
+    const text = await page.locator("main").innerText();
+    expect(text, route).not.toMatch(/\[PLACEHOLDER/i);
+  }
+});
+
+test.describe("search bars on a wide screen", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("the Filter button sits on the same row as the fields (staff and courses)", async ({ page }) => {
+    for (const route of ["/staff", "/students/courses"]) {
+      await page.goto(route);
+      const form = page.getByRole("search").first();
+      const field = form.locator("input[type=search]").first();
+      const button = form.getByRole("button").first();
+      const [fieldBox, buttonBox] = [await field.boundingBox(), await button.boundingBox()];
+      expect(Math.abs(fieldBox!.y - buttonBox!.y), route).toBeLessThan(20);
+    }
+  });
 });
 
 test("every main public page has exactly one h1", async ({ page }) => {

@@ -47,3 +47,5 @@ Tick items as they are completed and note the AUDIT.md entry number.
 - [x] 21 Security hardening and admin UI audit items (Entry 062): server-side sign-out, database sign-in limiter, failed sign-in alerts, two-factor sign-in for admin roles, hardened reset for every user, password strength check; admin forms, editor toolbar, confirmations, labels, empty states; unit suite 3x faster.
 - [x] 22 Mobile pass and phone conventions (Entry 063): glass tab bars, sheets, grouped lists, tucking titles and sticky Back, success marks and haptics, dark mode from tokens, 44px tap targets, no sideways scroll at 375px.
 - [x] 23 Code review of stages 20 to 22 and follow-ups (Entry 064): inactive sessions refused everywhere, two-factor enforced in getCurrentUser, passkeys, persistent limits, breached-password check, lecturer More menu, About page photograph.
+- [x] 24 Final privacy text, About photo beside the text, sign-in security review, UI pass (Entry 065).
+- [x] 25 Final wrap-up sweep (Entry 066): journal emails wired, sign-in dead ends fixed, error pages, security record cleanup job, handover guide.

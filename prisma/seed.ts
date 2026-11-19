@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PLACEHOLDER_PROSE } from "../src/lib/placeholder";
+import { STUDENTS_INTRO_BODY } from "../src/lib/final-copy";
 import { watLocalInputToUtc } from "../src/lib/time";
 import { PRIVACY_NOTICE_BODY, PRIVACY_NOTICE_TITLE } from "../src/lib/privacy-notice";
 
@@ -415,63 +416,22 @@ export async function seed(db: PrismaClient): Promise<void> {
     });
   }
 
-  // The alumni directory's privacy notice (Stage 09). Unlike the
-  // imported pages above, this one is created PUBLISHED from the
-  // start - the alumni submission form links to it, so it must be
-  // live immediately - and is flagged for legal review through a
-  // separate settings key (pages.legalReviewFlags) rather than
-  // ContentStatus DRAFT, since "needs review" and "visible to the
-  // public" are not the same question for this page.
-  const privacyPage = await db.page.upsert({
+  // The site's privacy notice. Created PUBLISHED from the start, because the
+  // alumni form and the footer link to it. It reads as a finished notice, so
+  // it is not flagged for review.
+  await db.page.upsert({
     where: { slug: "privacy" },
     create: { slug: "privacy", title: PRIVACY_NOTICE_TITLE, body: PRIVACY_NOTICE_BODY, status: "PUBLISHED" },
     update: {},
   });
-  // Matches the pages.importFlags upsert above: `update: {}` means this
-  // never overwrites the setting once it exists, so an admin who has
-  // already cleared the flag (by saving the page after review) does
-  // not get it silently re-added on the next seed run.
-  await db.siteSetting.upsert({
-    where: { key: "pages.legalReviewFlags" },
-    create: { key: "pages.legalReviewFlags", value: { [privacyPage.slug]: true } },
-    update: {},
-  });
 
-  // The /students hub's intro text (Stage 10). Seeded PUBLISHED, like
-  // the privacy page above, since the hub page needs something to show
-  // from the start - flagged via the existing pages.importFlags key so
-  // it shows up for HOD review in /admin/pages without claiming to be
-  // imported from anywhere (the flag's badge wording is a close enough
-  // fit: "needs review" is the part that matters here).
-  const STUDENTS_INTRO_BODY =
-    "<p>[PLACEHOLDER - neutral starter text for the Students hub page. The department will provide final copy " +
-    "about student life, support services and where to get help.]</p>" +
-    "<p>Find the student handbook, course catalogue, academic calendar and downloadable forms below.</p>";
-
-  const studentsIntroPage = await db.page.upsert({
+  // The /students hub's intro text. Seeded PUBLISHED because the hub page needs
+  // something to show from the start; it is finished copy, not a placeholder.
+  await db.page.upsert({
     where: { slug: "students-intro" },
     create: { slug: "students-intro", title: "Students", body: STUDENTS_INTRO_BODY, status: "PUBLISHED" },
     update: {},
   });
-  // Gated on the page still holding the exact placeholder sentinel
-  // (PATTERNS.md item 8's rule), not on whether the flag key happens to
-  // exist yet: pages.importFlags is itself only ever written once per
-  // key by the PAGES loop above (`update: {}`), so a later stage like
-  // this one cannot rely on merging into that already-created row -
-  // re-adding this flag only while the page is provably unedited avoids
-  // ever reinstating a flag an admin has already cleared by saving it.
-  if (studentsIntroPage.body === STUDENTS_INTRO_BODY) {
-    const existingImportFlags = await db.siteSetting.findUnique({ where: { key: "pages.importFlags" } });
-    const importFlagsValue = (existingImportFlags?.value as Record<string, boolean> | undefined) ?? {};
-    if (!importFlagsValue[studentsIntroPage.slug]) {
-      await db.siteSetting.update({
-        where: { key: "pages.importFlags" },
-        data: { value: { ...importFlagsValue, [studentsIntroPage.slug]: true } },
-      }).catch(() =>
-        db.siteSetting.create({ data: { key: "pages.importFlags", value: { [studentsIntroPage.slug]: true } } }),
-      );
-    }
-  }
 
   // The four fixed journal pages (Stage 11). Seeded PUBLISHED with the
   // "Needs editor input" sentinel (journal-pages.ts's own

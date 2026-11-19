@@ -1,5 +1,7 @@
 "use server";
 
+import { notifyDecision } from "@/server/services/journal-notifications";
+import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/rbac";
@@ -32,6 +34,7 @@ export async function recordDecisionAction(formData: FormData): Promise<void> {
       allowOverride: parsed.data.allowOverride,
       overrideReason: parsed.data.overrideReason,
     });
+    after(() => notifyDecision(db, parsed.data.manuscriptId));
     revalidatePath(`/admin/journal/manuscripts/${parsed.data.manuscriptId}`);
     revalidatePath("/admin/journal/manuscripts");
   } catch {

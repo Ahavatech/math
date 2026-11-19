@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/rbac";
+import { getCurrentUser, hasPermission, type Permission } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { getLecturerByUserId, computeCompleteness } from "@/server/services/lecturers";
 import {
@@ -29,7 +29,11 @@ export default async function MyProfilePage() {
 
   const profile = await getLecturerByUserId(db, user.id);
   if (!profile) {
-    redirect("/403");
+    // Not a lecturer, so there is no profile to edit: go somewhere useful instead of an error page.
+    const journalWork = (["journal.editorial", "journal.manuscripts.read", "journal.edit", "journal.manage"] as Permission[]).some((p) =>
+      hasPermission(user, p),
+    );
+    redirect(journalWork ? "/admin/journal/manuscripts" : "/admin/my-profile/security");
   }
 
   const [existingMedia, allResearchAreas] = await Promise.all([

@@ -1,5 +1,7 @@
 "use server";
 
+import { notifyReviewSubmitted } from "@/server/services/journal-notifications";
+import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/rbac";
@@ -56,6 +58,7 @@ export async function submitReviewAction(formData: FormData): Promise<{ error?: 
       commentsToAuthor: parsed.data.commentsToAuthor,
       commentsToEditor: parsed.data.commentsToEditor,
     });
+    after(() => notifyReviewSubmitted(db, parsed.data.assignmentId));
     revalidatePath(`/journal/reviewer/assignments/${parsed.data.assignmentId}`);
     revalidatePath("/journal/reviewer");
     return {};
