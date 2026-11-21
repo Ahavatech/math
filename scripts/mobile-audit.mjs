@@ -69,6 +69,23 @@ function audit() {
   return out;
 }
 
+// Detail pages (one news post, one lecturer, one course...) are found by following the
+// first links on each list page, so the sweep covers them without hard-coding slugs.
+const LIST_PAGES = ["/news", "/events", "/staff", "/students/courses", "/students/handbook", "/research", "/programmes", "/journal/articles", "/journal/issues", "/alumni"];
+async function discoverDetailPages(page, base) {
+  const found = new Set();
+  for (const list of LIST_PAGES) {
+    try {
+      await page.goto(base + list, { waitUntil: "domcontentloaded", timeout: 20000 });
+      const hrefs = await page.$$eval("main a[href^='/']", (as) => as.map((a) => a.getAttribute("href")));
+      const section = list.split("/")[1];
+      const deeper = hrefs.filter((h) => h && h.split("?")[0].split("/").filter(Boolean).length >= 2 && !h.includes("#") && (h.startsWith("/" + section) || (section === "staff" && h.startsWith("/lecturer"))));
+      for (const h of [...new Set(deeper)].slice(0, 2)) found.add(h);
+    } catch {}
+  }
+  return [...found];
+}
+
 const browser = await chromium.launch();
 const context = await browser.newContext({
   viewport: { width, height: 812 },
@@ -79,7 +96,7 @@ const context = await browser.newContext({
 });
 const page = await context.newPage();
 
-let routes = [...PUBLIC];
+let routes = [...PUBLIC, ...(await discoverDetailPages(page, base))];
 if (admin) {
   const [email, password] = admin.split("|");
   await page.goto(base + "/login");
@@ -93,7 +110,8 @@ if (admin) {
 let problems = 0;
 for (const route of routes) {
   try {
-    const response = await page.goto(base + route, { waitUntil: "networkidle", timeout: 30000 });
+    const response = await page.goto(base + route, { waitUntil: "load", timeout: 30000 });
+    await page.waitForTimeout(700);
     const status = response?.status() ?? 0;
     const r = await page.evaluate(audit);
     const bad = r.scrollW > r.vw + 1 || r.overflow.length || r.small.length || r.tiny;

@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { registerAuthorSchema } from "@/lib/validators/manuscript";
 import { registerAuthor } from "@/server/services/author-registration";
+import { newPasswordProblem } from "@/server/services/account";
 import { checkHoneypot, verifyMinFillTime } from "@/lib/form-spam";
 import { journalRegisterIpRateLimiter } from "@/lib/rate-limit";
 
@@ -44,6 +45,10 @@ export async function registerAuthorAction(
     const first = parsed.error.issues[0];
     return { error: first?.message ?? "Invalid input." };
   }
+
+  // The same password rules as everywhere else (common, patterns, own name or email, leaked).
+  const problem = await newPasswordProblem(parsed.data.password, { email: parsed.data.email, name: parsed.data.name });
+  if (problem) return { error: problem };
 
   await registerAuthor(db, {
     name: parsed.data.name,

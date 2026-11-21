@@ -1,4 +1,6 @@
 "use server";
+import { notifySubmitted } from "@/server/services/journal-notifications";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db as prisma } from "@/lib/db";
@@ -128,5 +130,7 @@ export async function submitDraftAction(formData: FormData): Promise<never> {
   const draftId = formData.get("draftId") as string;
 
   await submitManuscript(prisma, user.id, draftId);
+  // Confirm to the author and alert the editors, once the response has gone.
+  after(() => notifySubmitted(prisma, draftId));
   redirect("/journal/dashboard");
 }

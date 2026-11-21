@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "@fontsource-variable/hanken-grotesk/wght.css";
 import "@fontsource-variable/source-serif-4/wght.css";
@@ -11,6 +11,15 @@ import { themeInitScript } from "@/lib/theme";
 // downloads the subsets it uses; latin-ext and vietnamese carry the
 // diacritics Yoruba orthography needs (e.g. Ọ, Ẹ, Ṣ). The --font-sans and
 // --font-heading variables are defined in globals.css.
+
+// The browser's own chrome (address bar on a phone) follows the paper colour, light or dark.
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fbfcfc" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1220" },
+  ],
+  colorScheme: "light dark",
+};
 
 export const metadata: Metadata = {
   title: "Department of Mathematics, OAU",

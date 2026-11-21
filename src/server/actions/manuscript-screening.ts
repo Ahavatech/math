@@ -1,5 +1,7 @@
 "use server";
 
+import { notifyDecision, notifyReturnedToAuthor, notifyMovedToReview } from "@/server/services/journal-notifications";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/rbac";
@@ -36,6 +38,8 @@ export async function deskRejectAction(formData: FormData): Promise<void> {
   const letter = z.string().min(1).parse(formData.get("letter"));
 
   await deskReject(prisma, sessionUser(user), manuscriptId, letter);
+  // The author is told there is a decision to read.
+  after(() => notifyDecision(prisma, manuscriptId));
   revalidatePath(`/admin/journal/manuscripts/${manuscriptId}`);
   revalidatePath("/admin/journal/manuscripts");
 }
@@ -48,6 +52,7 @@ export async function returnToAuthorAction(formData: FormData): Promise<void> {
   const message = z.string().min(1).parse(formData.get("message"));
 
   await returnToAuthor(prisma, sessionUser(user), manuscriptId, message);
+  after(() => notifyReturnedToAuthor(prisma, manuscriptId));
   revalidatePath(`/admin/journal/manuscripts/${manuscriptId}`);
 }
 
@@ -58,6 +63,7 @@ export async function approveForReviewAction(formData: FormData): Promise<void> 
   const manuscriptId = z.string().min(1).parse(formData.get("manuscriptId"));
 
   await approveForReview(prisma, sessionUser(user), manuscriptId);
+  after(() => notifyMovedToReview(prisma, manuscriptId));
   revalidatePath(`/admin/journal/manuscripts/${manuscriptId}`);
   revalidatePath("/admin/journal/manuscripts");
 }

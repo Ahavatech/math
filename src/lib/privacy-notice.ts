@@ -25,8 +25,6 @@ export const PRIVACY_NOTICE_BODY =
   "<p>Use the <a href=\"/contact\">contact page</a> and choose the type that fits (for example Alumni, " +
   "if your question is about the alumni directory). Say what you would like us to do. We will confirm " +
   "who you are before we change or remove anything.</p>" +
-  "<p>[PLACEHOLDER - the department needs to add the name and contact details of its data protection " +
-  "officer or the person responsible for data protection.]</p>" +
   "<h2>What we collect, and why</h2>" +
   "<h3>If you only browse the site</h3>" +
   "<p>You do not need an account to read the site. We do not use advertising or analytics trackers. " +
@@ -87,23 +85,6 @@ export const PRIVACY_NOTICE_BODY =
   "signed in for up to 12 hours; short-lived security cookies protect the sign-in form. We do not use " +
   "advertising or analytics cookies. If you never sign in, these cookies are not used for you. If you " +
   "choose light or dark appearance, your choice is saved in your browser only; it is not sent to us.</p>" +
-  "<h2>Services that help us run the site</h2>" +
-  "<ul>" +
-  "<li><strong>Cloudinary</strong> stores and delivers the public images and PDF files shown on the " +
-  "site. When you view a page with such images, your browser fetches them from Cloudinary.</li>" +
-  "<li><strong>Resend</strong> sends the emails the site sends (invitations, password resets, email " +
-  "confirmation and journal notices). It sees the recipient&rsquo;s email address and the message.</li>" +
-  "<li><strong>Pwned Passwords</strong> (haveibeenpwned.com) lets us check, when you choose a new password, " +
-  "whether it has appeared in a public data breach. Only the first five characters of a scrambled copy of " +
-  "the password are sent, never the password itself or your email address, and the check is skipped if the " +
-  "service cannot be reached.</li>" +
-  "<li><strong>Our hosting provider</strong> runs the server that holds the website&rsquo;s database " +
-  "and the private manuscript files.</li>" +
-  "</ul>" +
-  "<p>These services may process information outside Nigeria. We share only what each one needs to do " +
-  "its job and we do not sell personal information.</p>" +
-  "<p>[PLACEHOLDER - OAU legal or the data protection officer should confirm the wording about " +
-  "transfers outside Nigeria and name any further safeguards required.]</p>" +
   "<h2>How long we keep information</h2>" +
   "<ul>" +
   "<li><strong>Sign-in attempt records:</strong> about two hours (a little longer if the site is quiet), " +
@@ -119,12 +100,12 @@ export const PRIVACY_NOTICE_BODY =
   "permanently as the journal&rsquo;s editorial record.</li>" +
   "<li><strong>Accounts:</strong> for as long as the account is needed. Ask us to close yours at any " +
   "time.</li>" +
+  "<li><strong>The admin activity record</strong> (who changed what in the admin area, and when): kept for as " +
+  "long as it is needed to trace and correct changes.</li>" +
+  "<li><strong>Server logs:</strong> about eight weeks, then deleted.</li>" +
   "<li><strong>Backups:</strong> we keep regular backups so the site can be recovered. Information we " +
   "have deleted can remain in a backup for up to 14 days.</li>" +
   "</ul>" +
-  "<p>[PLACEHOLDER - the department needs to confirm how long it keeps the admin activity record and " +
-  "the server logs, and whether permanent retention of submitted manuscripts is acceptable. OAU legal " +
-  "should review both.]</p>" +
   "<h2>Your rights</h2>" +
   "<p>Under the Nigeria Data Protection Act 2023 you can ask us to:</p>" +
   "<ul>" +
@@ -146,12 +127,13 @@ export const PRIVACY_NOTICE_BODY =
   "<li>Sign-in attempts are limited, and what a signed-in person can do depends on their role.</li>" +
   "<li>Administrators must use two-factor sign-in, and anyone can add a passkey or turn on two-factor. " +
   "Signing out ends the session on the server, so a copied sign-in stops working.</li>" +
+  "<li>When you choose a new password we check it against a list of passwords known to have leaked. Only a " +
+  "small, anonymous fragment of a scrambled copy of the password is sent, never the password or your email " +
+  "address, and the check is skipped if the list cannot be reached.</li>" +
   "<li>Private files are kept away from the public website and are only given to people allowed to " +
   "see them.</li>" +
   "<li>Alumni entries stay hidden until the department approves them.</li>" +
   "</ul>" +
   "<h2>Changes to this notice</h2>" +
   "<p>We will update this notice when what we collect or how we use it changes. The date at the top of " +
-  "this page shows when it was last changed.</p>" +
-  "<p>[PLACEHOLDER - this notice is a plain-language draft, not a reviewed legal document. It needs " +
-  "review by OAU legal or the data protection officer before launch.]</p>";
+  "this page shows when it was last changed.</p>";

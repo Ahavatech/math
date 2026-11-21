@@ -29,6 +29,23 @@ const ADMIN = [
   "/admin/my-profile", "/admin/my-profile/security", "/two-factor",
 ];
 
+// Detail pages (one news post, one lecturer, one course...) are found by following the
+// first links on each list page, so the sweep covers them without hard-coding slugs.
+const LIST_PAGES = ["/news", "/events", "/staff", "/students/courses", "/students/handbook", "/research", "/programmes", "/journal/articles", "/journal/issues", "/alumni"];
+async function discoverDetailPages(page, base) {
+  const found = new Set();
+  for (const list of LIST_PAGES) {
+    try {
+      await page.goto(base + list, { waitUntil: "domcontentloaded", timeout: 20000 });
+      const hrefs = await page.$$eval("main a[href^='/']", (as) => as.map((a) => a.getAttribute("href")));
+      const section = list.split("/")[1];
+      const deeper = hrefs.filter((h) => h && h.split("?")[0].split("/").filter(Boolean).length >= 2 && !h.includes("#") && (h.startsWith("/" + section) || (section === "staff" && h.startsWith("/lecturer"))));
+      for (const h of [...new Set(deeper)].slice(0, 2)) found.add(h);
+    } catch {}
+  }
+  return [...found];
+}
+
 const browser = await chromium.launch();
 const schemes = only ? [only] : ["light", "dark"];
 let findings = 0;
@@ -52,7 +69,7 @@ for (const scheme of schemes) {
     if (r.status() >= 400 && !r.url().includes("/no-such-page-here")) failed.push(`${r.status()} ${r.url().replace(base, "")}`);
   });
 
-  let routes = [...PUBLIC];
+  let routes = [...PUBLIC, ...(await discoverDetailPages(page, base))];
   if (admin) {
     const [email, password] = admin.split("|");
     await page.goto(base + "/login");
@@ -67,7 +84,8 @@ for (const scheme of schemes) {
     consoleErrors.length = 0;
     failed.length = 0;
     try {
-      await page.goto(base + route, { waitUntil: "networkidle", timeout: 30000 });
+      await page.goto(base + route, { waitUntil: "load", timeout: 30000 });
+      await page.waitForTimeout(700);
       pages++;
       const results = await new AxeBuilder({ page })
         .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"])

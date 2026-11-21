@@ -261,4 +261,12 @@ test.describe("admin area", () => {
     // Leave the shared test session as it was.
     await group.getByRole("radio", { name: "System" }).click();
   });
+
+  test("the dashboard offers quick actions for the things done most often", async ({ page }) => {
+    await page.goto("/admin");
+    const quick = page.getByRole("region", { name: "Quick actions" });
+    await expect(quick.getByRole("link", { name: "Write a news post" })).toBeVisible();
+    await quick.getByRole("link", { name: "Write a news post" }).click();
+    await expect(page).toHaveURL(/\/admin\/news\/new/);
+  });
 });

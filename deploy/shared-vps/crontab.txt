@@ -30,5 +30,8 @@ PATH=/opt/node24/bin:/usr/local/bin:/usr/bin:/bin
 # Journal: review reminders, 09:00 WAT (08:00 UTC)
 0 8 * * * cd /opt/oaumaths/repo && set -a && . /etc/oaumaths/env && set +a && npx tsx scripts/journal-review-reminders.ts --apply >> /var/log/oaumaths/cron.log 2>&1
 
+# Security: remove sign-in attempt records older than two hours and expired session and passkey records, hourly
+10 * * * * cd /opt/oaumaths/repo && set -a && . /etc/oaumaths/env && set +a && npx tsx scripts/security-purge.ts --apply >> /var/log/oaumaths/cron.log 2>&1
+
 # Private storage: remove files with no database record, Sundays 05:00 WAT
 0 4 * * 0 cd /opt/oaumaths/repo && set -a && . /etc/oaumaths/env && set +a && npx tsx scripts/private-storage-orphans.ts --apply >> /var/log/oaumaths/cron.log 2>&1

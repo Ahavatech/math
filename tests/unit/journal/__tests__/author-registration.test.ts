@@ -181,6 +181,16 @@ describe("next param validation: open redirect prevention", () => {
     expect(validateNextParam("/journal/submit")).toBe("/journal/submit");
   });
 
+  it("validateNextParam rejects backslash and control-character tricks and paths outside the sign-in areas", async () => {
+    const { validateNextParam } = await import("@/server/services/author-registration");
+    const back = String.fromCharCode(92);
+    expect(validateNextParam("/" + back + "evil.com")).toBe("/journal/dashboard");
+    expect(validateNextParam("/journal/dashboard" + back + ".." + back + "x")).toBe("/journal/dashboard");
+    expect(validateNextParam("/journal/dashboard" + String.fromCharCode(13, 10) + "Set-Cookie: a=b")).toBe("/journal/dashboard");
+    expect(validateNextParam("/news")).toBe("/journal/dashboard");
+    expect(validateNextParam("/journal/submit/step2?draft=abc")).toBe("/journal/submit/step2?draft=abc");
+  });
+
   it("validateNextParam rejects absolute URLs", async () => {
     const { validateNextParam } = await import("@/server/services/author-registration");
     expect(validateNextParam("https://evil.com/phish")).toBe("/journal/dashboard");

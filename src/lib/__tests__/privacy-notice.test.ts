@@ -9,7 +9,6 @@ describe("privacy notice text", () => {
       "Contacting us about your information",
       "What we collect, and why",
       "Cookies",
-      "Services that help us run the site",
       "How long we keep information",
       "Your rights",
       "How we protect it",
@@ -19,6 +18,25 @@ describe("privacy notice text", () => {
     }
     expect(clean).toContain('href="/contact"');
     expect(renderRichText(PRIVACY_NOTICE_BODY).length).toBeGreaterThan(2000);
+  });
+
+  it("reads as a finished notice: no placeholders, no draft or review wording", () => {
+    expect(PRIVACY_NOTICE_BODY).not.toMatch(/placeholder/i);
+    expect(PRIVACY_NOTICE_BODY).not.toMatch(/this notice is a|plain-language draft|before launch|needs review|legal review/i);
+  });
+
+  it("no longer has the section on outside services that the head of department asked to remove", () => {
+    expect(PRIVACY_NOTICE_BODY).not.toContain("Services that help us run the site");
+    expect(PRIVACY_NOTICE_BODY).not.toContain("outside Nigeria");
+  });
+
+  it("states how long server logs are kept, matching the server's weekly rotation of eight", async () => {
+    expect(PRIVACY_NOTICE_BODY).toContain("about eight weeks");
+    const { readFileSync } = await import("node:fs");
+    const { resolve } = await import("node:path");
+    const logrotate = readFileSync(resolve(__dirname, "../../../deploy/shared-vps/logrotate-oaumaths"), "utf8");
+    expect(logrotate).toMatch(/weekly/);
+    expect(logrotate).toMatch(/rotate 8\b/);
   });
 
   it("uses no em dashes (house style) and no script or event handlers", () => {
@@ -40,12 +58,13 @@ describe("privacy notice text", () => {
     const { SESSION_MAX_AGE_SECONDS } = await import("@/auth");
     expect(SESSION_MAX_AGE_SECONDS / 3600).toBe(12);
     expect(PRIVACY_NOTICE_BODY).toContain("up to 12 hours");
-  });
+  }, 30_000); // importing the whole sign-in module is slow on a busy machine
 
   it("never invents department contact details or officer names", () => {
     expect(PRIVACY_NOTICE_BODY).not.toMatch(/@[a-z0-9-]+\.[a-z]{2,}/i);
     expect(PRIVACY_NOTICE_BODY).not.toMatch(/\+?\d[\d\s-]{8,}/);
-    expect(PRIVACY_NOTICE_BODY).toContain("[PLACEHOLDER");
+    // Contact is through the contact page, which the department edits; no officer is named.
+    expect(PRIVACY_NOTICE_BODY).toContain('href="/contact"');
   });
 
   it("has a title", () => {

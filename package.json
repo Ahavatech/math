@@ -33,7 +33,8 @@
     "journal:publish-scheduled": "tsx scripts/journal-publish-scheduled.ts",
     "journal:purge-drafts": "tsx scripts/journal-purge-drafts.ts",
     "journal:review-reminders": "tsx scripts/journal-review-reminders.ts",
-    "measure:first-load-js": "tsx scripts/measure-first-load-js.ts"
+    "measure:first-load-js": "tsx scripts/measure-first-load-js.ts",
+    "security:purge": "tsx scripts/security-purge.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

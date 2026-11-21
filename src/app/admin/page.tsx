@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CalendarPlus, FilePlus, Globe, Upload, UserPlus } from "lucide-react";
 import { db } from "@/lib/db";
 import { getCurrentUser, hasPermission, type Permission } from "@/lib/rbac";
 import { isUpcoming } from "@/lib/time";
@@ -24,7 +24,9 @@ export default async function AdminDashboardPage() {
   // bare LECTURER, redirected to their own profile instead.
   const hasDashboardAccess = !!user && ADMIN_PERMISSIONS.some((permission) => hasPermission(user, permission));
   if (!user || !hasDashboardAccess) {
-    redirect("/admin/my-profile");
+    // A journal editor has no dashboard but does have the manuscripts; a lecturer has a profile.
+    const journalWork = !!user && (["journal.editorial", "journal.manuscripts.read", "journal.edit", "journal.manage"] as Permission[]).some((p) => hasPermission(user, p));
+    redirect(journalWork ? "/admin/journal/manuscripts" : "/admin/my-profile");
   }
 
   const [
@@ -66,6 +68,15 @@ export default async function AdminDashboardPage() {
     { label: "draft news posts", value: draftNewsCount, href: "/admin/news?status=DRAFT", permission: "news.manage" as Permission },
   ].filter((item) => item.value > 0 && hasPermission(user, item.permission));
 
+  // The things most often done, one tap away, shown only where this person may do them.
+  const quickActions = [
+    { label: "Write a news post", href: "/admin/news/new", permission: "news.manage" as Permission, icon: FilePlus },
+    { label: "Add an event", href: "/admin/events/new", permission: "events.manage" as Permission, icon: CalendarPlus },
+    { label: "Upload a download", href: "/admin/downloads", permission: "students.manage" as Permission, icon: Upload },
+    { label: "Invite a user", href: "/admin/users", permission: "users.manage" as Permission, icon: UserPlus },
+    { label: "Edit the homepage", href: "/admin/site", permission: "site.edit" as Permission, icon: Globe },
+  ].filter((item) => hasPermission(user, item.permission));
+
   const overview = [
     {
       heading: "People",
@@ -96,6 +107,27 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-12">
       <h1 className="border-b-2 border-foreground pb-3 font-heading text-3xl font-semibold">Dashboard</h1>
+
+      {quickActions.length > 0 ? (
+        <section aria-labelledby="quick-heading">
+          <h2 id="quick-heading" className="font-heading text-xl font-semibold">
+            Quick actions
+          </h2>
+          <ul className="mt-3 flex flex-wrap gap-3">
+            {quickActions.map(({ label, href, icon: Icon }) => (
+              <li key={href}>
+                <Link
+                  href={href}
+                  className="inline-flex min-h-11 items-center gap-2 border border-foreground px-4 font-medium transition-colors hover:bg-foreground hover:text-background"
+                >
+                  <Icon className="size-4" aria-hidden="true" />
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <section aria-labelledby="waiting-heading">
         <h2 id="waiting-heading" className="font-heading text-xl font-semibold">

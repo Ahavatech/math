@@ -28,29 +28,40 @@ export default async function AboutPage() {
         <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "About" }]} />
         {/* Always a page title, even when the About text is not published yet. */}
         <PageHeader className="mt-4" title={page?.title ?? "About the department"} />
-        {aboutPhoto ? (
-          // The department building (or whatever the department chose), at its own proportions.
-          <figure className="mt-8 max-w-3xl">
-            <div className="border border-foreground">
-              <CloudImage
-                src={aboutPhoto.url}
-                alt={aboutPhoto.alt ?? ""}
-                width={aboutPhoto.width ?? 1200}
-                height={aboutPhoto.height ?? 800}
-                priority
-                sizes="(min-width: 1024px) 768px, 100vw"
-                className="h-auto w-full"
-              />
-            </div>
-            {about.caption ? (
-              <figcaption className="mt-2 border-l-2 border-accent pl-3 text-sm text-muted-foreground">
-                {about.caption}
-              </figcaption>
+        {/* The About text on the left; the department photograph in the empty space beside it. On a
+            phone the photograph comes first, then the text. */}
+        {page || aboutPhoto ? (
+          <div
+            className={`mt-8 grid gap-8 ${
+              page && aboutPhoto ? "lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-14 xl:grid-cols-[minmax(0,1fr)_26rem]" : ""
+            }`}
+          >
+            {page ? (
+              <Prose className="max-lg:order-2" dangerouslySetInnerHTML={{ __html: renderRichText(page.body) }} />
             ) : null}
-          </figure>
-        ) : null}
-        {page ? (
-          <Prose className="mt-8" dangerouslySetInnerHTML={{ __html: renderRichText(page.body) }} />
+            {aboutPhoto ? (
+              <figure
+                className={`max-lg:order-1 ${page ? "lg:sticky lg:top-24 lg:self-start" : "max-w-3xl"}`}
+              >
+                <div className="border border-foreground">
+                  <CloudImage
+                    src={aboutPhoto.url}
+                    alt={aboutPhoto.alt ?? ""}
+                    width={aboutPhoto.width ?? 1200}
+                    height={aboutPhoto.height ?? 800}
+                    priority
+                    sizes="(min-width: 1280px) 416px, (min-width: 1024px) 336px, 100vw"
+                    className="h-auto w-full"
+                  />
+                </div>
+                {about.caption ? (
+                  <figcaption className="mt-2 border-l-2 border-accent pl-3 text-sm text-muted-foreground">
+                    {about.caption}
+                  </figcaption>
+                ) : null}
+              </figure>
+            ) : null}
+          </div>
         ) : null}
 
         {hod.message ? (

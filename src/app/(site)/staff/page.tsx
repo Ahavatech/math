@@ -58,8 +58,8 @@ export default async function StaffPage({
           description="Find academic and non-teaching staff in the Department of Mathematics."
         />
 
-        <form method="get" role="search" className="mt-6 grid gap-3 sm:grid-cols-4">
-          <div className="sm:col-span-2">
+        <form method="get" role="search" className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_auto]">
+          <div className="sm:col-span-2 lg:col-span-1">
             <label htmlFor="staff-search" className="sr-only">
               Search by name
             </label>
@@ -103,7 +103,7 @@ export default async function StaffPage({
               ))}
             </select>
           </div>
-          <div className="flex items-center gap-5 sm:col-span-4">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 sm:col-span-2 lg:col-span-1">
             <button
               type="submit"
               className="h-12 bg-primary px-6 text-base font-medium text-primary-foreground transition-colors hover:bg-foreground"

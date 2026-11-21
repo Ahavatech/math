@@ -53,6 +53,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Do not announce the framework in a response header.
+  poweredByHeader: false,
   images: {
     remotePatterns: [
       {

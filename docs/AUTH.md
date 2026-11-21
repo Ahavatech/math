@@ -126,6 +126,22 @@ After five failed sign-ins on a real, active account within 30 minutes, the owne
 
 New passwords must be 10 to 128 characters, not a very common password, not a simple pattern, not built from the person's name or email, and not in the Pwned Passwords list. The last check sends only the first five characters of the SHA-1 of the password and fails open if the service is unreachable (`src/lib/breached-password.ts`; `BREACHED_PASSWORD_CHECK=false` turns it off).
 
+## Every way of signing in, and what protects it (reviewed in Stage 24)
+
+| Way in | Throttling | Second factor | Session | Notes |
+| --- | --- | --- | --- | --- |
+| Password at `/login` | 5 a minute per address, 5 a minute and 20 an hour per email, kept in the database | Required for SUPER_ADMIN, HOD and ADMIN; optional for everyone else (authenticator code or recovery code) | 12 hours from sign-in, `HttpOnly`, `SameSite=Lax`, `Secure` on https; a new random id per sign-in; ended on the server at sign-out | Same message for a wrong email and a wrong password; failed-sign-in email after five failures |
+| Passkey at `/login` | 20 a minute per address (options and sign-in) | Not needed: a passkey with user verification is two factors in one | Same as above | One-time challenge, 5 minutes, single use; credential counter checked |
+| Invite link (`/accept-invite`) | 10 a minute per address | Admin roles are asked to set it up on first admin visit | None created; the person signs in afterwards | Single-use hashed token, 7 days; password checked before the link is used up |
+| Password reset link (`/reset-password`) | 3 a minute per address and per email to request; 10 a minute to use | As for the password sign-in | None created; other sessions end | Single-use hashed token, 1 hour; inactive accounts refused; owner emailed |
+| Journal author registration and email verification | 5 registrations an hour per address | Optional | None created by verifying; the author signs in | Same response whether or not the email exists, with matching work done; the new password gets the same rules as any other; return address is checked against an allow-list |
+| Reviewer invitation link | Needs a signed-in session first | As above | Uses the session | Token hashed in the database; the signed-in user must be the invited reviewer |
+| Alumni form links | Per link and per address | Not applicable (no account) | None | Random, hashed, expiring tokens; nothing is public until approved |
+
+What applies to all of them: `auth()` refuses a session whose account is inactive, whose password changed, or that was signed out on the server; admin permissions are not given to an admin account that has not completed two-factor; sign-out ends the session on the server; the return address after sign-in must be on the allow-list in `src/lib/safe-redirect.ts`; every mutation checks permission on the server.
+
+Known limits, stated plainly: the session id is visible in the session JSON the browser can fetch (it is not a credential; the cookie is); someone who knows an email can make that email's sign-in refuse attempts for a minute at a time (the cost of per-email limits); a stolen unlocked phone with a passkey is as good as the phone; and none of this has been tested by an independent person.
+
 ## Open items (not done)
 
 - The contact, alumni-submission and search limits are still in memory (they reset on restart); everything that guards sign-in, reset, tokens, uploads and downloads is in the database.

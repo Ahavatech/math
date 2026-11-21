@@ -40,14 +40,14 @@ export default async function CoursesPage({
           description="Course codes, titles, units and semesters. Open a course for its description and prerequisites."
         />
 
-        <form method="get" role="search" className="mt-6 grid gap-3 sm:grid-cols-4 print:hidden">
+        <form method="get" role="search" className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_auto] print:hidden">
           <input
             type="search"
             name="q"
             aria-label="Search by code or title"
             defaultValue={params.q}
             placeholder="Search by code or title"
-            className={`${fieldControl} sm:col-span-2`}
+            className={`${fieldControl} sm:col-span-2 lg:col-span-1`}
           />
           <select name="programmeLevel" aria-label="Programme" defaultValue={params.programmeLevel ?? ""} className={fieldControl}>
             <option value="">Any programme</option>
@@ -60,7 +60,7 @@ export default async function CoursesPage({
             <option value="FIRST">First</option>
             <option value="SECOND">Second</option>
           </select>
-          <div className="flex items-center gap-5 sm:col-span-4">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 sm:col-span-2 lg:col-span-1">
             <button type="submit" className={fieldButton}>
               Filter
             </button>

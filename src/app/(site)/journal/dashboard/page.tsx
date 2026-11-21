@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { defaultLandingPath } from "@/lib/rbac";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { hasRole } from "@/lib/rbac";
@@ -34,7 +35,8 @@ export default async function JournalDashboardPage() {
 
   const user = session.user;
   if (!hasRole({ id: user.id, roles: user.roles, isActive: user.isActive ?? true }, "AUTHOR")) {
-    redirect("/login?callbackUrl=%2Fjournal%2Fdashboard");
+    // Signed in, just not as an author (a reviewer or an editor, say): send them to their own place.
+    redirect(defaultLandingPath(user.roles));
   }
 
   const manuscripts = await getAuthorManuscripts(prisma, user.id);
