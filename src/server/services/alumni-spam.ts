@@ -1,6 +1,6 @@
 import "server-only";
 import type { Prisma, PrismaClient } from "@prisma/client";
-import { InMemoryRateLimiter, PersistentRateLimiter } from "@/lib/rate-limit";
+import { PersistentRateLimiter } from "@/lib/rate-limit";
 
 type Db = PrismaClient | Prisma.TransactionClient;
 
@@ -9,15 +9,17 @@ type Db = PrismaClient | Prisma.TransactionClient;
 // re-exported here so existing imports of this module keep working.
 export { signFormTimestamp, verifyMinFillTime, checkHoneypot } from "@/lib/form-spam";
 
-export const alumniIpRateLimiter = new InMemoryRateLimiter({ limit: 5, windowMs: 60 * 60 * 1000 });
-export const alumniLinkRateLimiter = new InMemoryRateLimiter({ limit: 30, windowMs: 60 * 60 * 1000 });
+export const ALUMNI_IP_LIMIT = { name: "alumni-ip", limit: 5, windowMs: 60 * 60 * 1000 };
+export const ALUMNI_LINK_LIMIT = { name: "alumni-link", limit: 30, windowMs: 60 * 60 * 1000 };
+export const alumniIpRateLimiter = new PersistentRateLimiter(ALUMNI_IP_LIMIT);
+export const alumniLinkRateLimiter = new PersistentRateLimiter(ALUMNI_LINK_LIMIT);
 
 /** Separate, tighter limits for the photo upload-signing route (section 5 of the prompt), distinct from the submission limits above. */
 export const alumniPhotoSigningIpRateLimiter = new PersistentRateLimiter({ name: "alumni-photo-ip", limit: 5, windowMs: 60 * 60 * 1000 });
 export const alumniPhotoSigningLinkRateLimiter = new PersistentRateLimiter({ name: "alumni-photo-link", limit: 10, windowMs: 60 * 60 * 1000 });
 
 /** Token lookups (validating a link) get their own, higher-frequency per-IP limit, separate from submission. */
-export const alumniTokenLookupRateLimiter = new InMemoryRateLimiter({ limit: 20, windowMs: 60 * 1000 });
+export const alumniTokenLookupRateLimiter = new PersistentRateLimiter({ name: "alumni-token-lookup", limit: 20, windowMs: 60 * 1000 });
 
 /** True if an AlumniEntry with the same normalised email was created in the last 24 hours, any status. */
 export async function checkRecentDuplicateSubmission(

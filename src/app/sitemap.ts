@@ -104,6 +104,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     /* skip */
   }
 
+  // The pages under /about, listed only once they are published.
+  try {
+    const aboutPages = await db.page.findMany({
+      where: { slug: { in: ["mission-vision", "history"] }, status: "PUBLISHED" },
+      select: { slug: true, updatedAt: true },
+    });
+    for (const p of aboutPages) entries.push({ ...url(`/about/${p.slug}`, p.updatedAt) });
+  } catch {
+    /* skip */
+  }
+
   // Dynamic: research areas
   try {
     const areas = await db.researchArea.findMany({

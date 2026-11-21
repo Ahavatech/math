@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { getAboutImage, getHodWelcome, getPublishedPage } from "@/server/services/site-content";
 import { getHeroImage } from "@/server/services/homepage";
 import { Container } from "@/components/ui/container";
@@ -15,7 +17,18 @@ export const metadata: Metadata = {
 };
 
 export default async function AboutPage() {
-  const [page, hod, about] = await Promise.all([getPublishedPage("about"), getHodWelcome(), getAboutImage()]);
+  const [page, hod, about, missionPage, historyPage] = await Promise.all([
+    getPublishedPage("about"),
+    getHodWelcome(),
+    getAboutImage(),
+    getPublishedPage("mission-vision"),
+    getPublishedPage("history"),
+  ]);
+  // More about the department, shown only for the pages that are published.
+  const morePages = [
+    missionPage ? { href: "/about/mission-vision", title: missionPage.title, text: "What the department is for and the goals it has set." } : null,
+    historyPage ? { href: "/about/history", title: historyPage.title, text: "From its founding in 1962 to today." } : null,
+  ].filter((p): p is { href: string; title: string; text: string } => p !== null);
   const [hodPhoto, aboutPhoto] = await Promise.all([getHeroImage(hod.photoId), getHeroImage(about.imageId)]);
 
   if (!page && !hod.message) {
@@ -62,6 +75,24 @@ export default async function AboutPage() {
               </figure>
             ) : null}
           </div>
+        ) : null}
+
+        {morePages.length > 0 ? (
+          <nav aria-label="More about the department" className="mt-12 max-w-3xl">
+            <ul className="border-b border-border">
+              {morePages.map((item) => (
+                <li key={item.href} className="index-row border-t border-border">
+                  <Link href={item.href} className="flex min-h-20 items-center justify-between gap-4 py-4">
+                    <span>
+                      <span className="block font-heading text-xl font-semibold">{item.title}</span>
+                      <span className="mt-0.5 block text-muted-foreground">{item.text}</span>
+                    </span>
+                    <ArrowRight className="row-arrow size-5 shrink-0 text-accent" aria-hidden="true" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
         ) : null}
 
         {hod.message ? (

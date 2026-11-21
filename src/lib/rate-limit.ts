@@ -54,19 +54,25 @@ export class PersistentRateLimiter {
   private readonly name: string;
   private readonly limit: number;
   private readonly windowMs: number;
+  private readonly injectedDb: Parameters<typeof import("@/server/services/rate-limits").checkPersistentLimit>[0] | undefined;
 
-  constructor(options: { name: string; limit: number; windowMs: number }) {
+  constructor(options: {
+    name: string;
+    limit: number;
+    windowMs: number;
+    /** Only for tests: count in this database instead of the application's. */
+    db?: Parameters<typeof import("@/server/services/rate-limits").checkPersistentLimit>[0];
+  }) {
     this.name = options.name;
     this.limit = options.limit;
     this.windowMs = options.windowMs;
+    this.injectedDb = options.db;
   }
 
   async check(key: string): Promise<RateLimitResult> {
     // Loaded on demand so importing this file never needs a database.
-    const [{ db }, { checkPersistentLimit }] = await Promise.all([
-      import("@/lib/db"),
-      import("@/server/services/rate-limits"),
-    ]);
+    const { checkPersistentLimit } = await import("@/server/services/rate-limits");
+    const db = this.injectedDb ?? (await import("@/lib/db")).db;
     return checkPersistentLimit(db, { name: this.name, key, limit: this.limit, windowMs: this.windowMs });
   }
 }

@@ -936,12 +936,16 @@ model ManuscriptAuthor {
 }
 
 model ManuscriptRound {
-  id           String   @id @default(cuid())
-  manuscriptId String
-  number       Int
-  submittedAt  DateTime
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                  String    @id @default(cuid())
+  manuscriptId        String
+  number              Int
+  submittedAt         DateTime
+  /// The author's reply to the reviewers' comments, set when a revision is resubmitted.
+  responseToReviewers String?
+  /// When the author sent the revision back (null while it is still being prepared).
+  resubmittedAt       DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   manuscript Manuscript @relation(fields: [manuscriptId], references: [id], onDelete: Cascade)
 

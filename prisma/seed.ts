@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PLACEHOLDER_PROSE } from "../src/lib/placeholder";
 import { STUDENTS_INTRO_BODY } from "../src/lib/final-copy";
+import { applyHandbookContent } from "../src/lib/content-apply";
 import { watLocalInputToUtc } from "../src/lib/time";
 import { PRIVACY_NOTICE_BODY, PRIVACY_NOTICE_TITLE } from "../src/lib/privacy-notice";
 
@@ -177,34 +178,6 @@ const SITE_SETTINGS: Array<{ key: string; value: unknown }> = [
  * See docs/prompts/05-media-site-content.md item 5.
  */
 const PAGES: Array<{ slug: string; title: string; body: string; needsReview: boolean }> = [
-  {
-    slug: "about",
-    title: "About",
-    body:
-      "<p>The Department of Mathematics at OAU is committed to excellence in mathematical " +
-      "education, cutting-edge research, and forming mathematical minds from Ile-Ife to the " +
-      "global stage.</p>" +
-      "<p>[PLACEHOLDER - the live site has no further About prose beyond this fragment. " +
-      "Imported from the old site, needs HOD review.]</p>",
-    needsReview: true,
-  },
-  {
-    slug: "history",
-    title: "History",
-    body:
-      "<p>Faculty of Science, established 1962. 60+ years of excellence.</p>" +
-      "<p>[PLACEHOLDER - the live site has no narrative department history beyond these two " +
-      "facts. Imported from the old site, needs HOD review.]</p>",
-    needsReview: true,
-  },
-  {
-    slug: "mission-vision",
-    title: "Mission and Vision",
-    body:
-      "<p>[PLACEHOLDER - no mission or vision statement was found on the live site. " +
-      "Imported from the old site, needs HOD review.]</p>",
-    needsReview: true,
-  },
   {
     slug: "statistics-note",
     title: "Statistics Note",
@@ -424,6 +397,10 @@ export async function seed(db: PrismaClient): Promise<void> {
     create: { slug: "privacy", title: PRIVACY_NOTICE_TITLE, body: PRIVACY_NOTICE_BODY, status: "PUBLISHED" },
     update: {},
   });
+
+  // About, Mission and Vision and History come from the department handbook (published),
+  // together with the student handbook's introduction chapter and the student association link.
+  for (const line of await applyHandbookContent(db)) console.log(line);
 
   // The /students hub's intro text. Seeded PUBLISHED because the hub page needs
   // something to show from the start; it is finished copy, not a placeholder.

@@ -4,6 +4,7 @@ import {
   sendDecisionAvailableEmail,
   sendMovedToReviewEmail,
   sendNewSubmissionToEditorsEmail,
+  sendRevisionReceivedEmail,
   sendReturnedToAuthorEmail,
   sendReviewSubmittedEmail,
   sendReviewerAcceptedEmail,
@@ -174,5 +175,23 @@ export async function notifyDecision(db: Db, manuscriptId: string): Promise<void
     const ms = await manuscriptBasics(db, manuscriptId);
     if (!ms?.reference || !ms.submittedBy?.isActive) return;
     await sendDecisionAvailableEmail({ to: ms.submittedBy.email, reference: ms.reference });
+  });
+}
+
+/** The author sent a revised manuscript: tell the editor in charge. */
+export async function notifyRevisionReceived(db: Db, manuscriptId: string): Promise<void> {
+  await safely("revision received", async () => {
+    const ms = await manuscriptBasics(db, manuscriptId);
+    if (!ms?.reference) return;
+    const round = await db.manuscript.findUnique({ where: { id: manuscriptId }, select: { currentRound: true } });
+    const emails = await editorEmailsFor(db, ms);
+    if (emails.length === 0) return;
+    await sendRevisionReceivedEmail({
+      emails,
+      reference: ms.reference,
+      round: round?.currentRound ?? 2,
+      manuscriptId: ms.id,
+      journalName: await journalName(db),
+    });
   });
 }

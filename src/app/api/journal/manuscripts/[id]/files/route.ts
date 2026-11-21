@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Readable } from "node:stream";
 import { getCurrentUser } from "@/lib/rbac";
 import { db as prisma } from "@/lib/db";
+import { env } from "@/lib/env";
 import { journalUploadRateLimiter } from "@/lib/rate-limit";
 import { processManuscriptUpload } from "@/server/services/manuscript-upload";
 
@@ -38,16 +39,30 @@ export async function POST(
   // CSRF headers — validated inside processManuscriptUpload
   const hasXRW = request.headers.get("X-Requested-With") === "fetch";
   const origin = request.headers.get("Origin");
-  const allowedOrigins = process.env.NEXT_PUBLIC_APP_URL
-    ? [process.env.NEXT_PUBLIC_APP_URL]
-    : [];
+  // The site's own address(es): the sign-in address always, plus the public ones if set.
+  const allowedOrigins = [env.AUTH_URL, env.NEXT_PUBLIC_SITE_URL, process.env.NEXT_PUBLIC_APP_URL]
+    .filter((v): v is string => Boolean(v))
+    .map((v) => {
+      try {
+        return new URL(v).origin;
+      } catch {
+        return "";
+      }
+    })
+    .filter(Boolean);
 
   const kind = request.headers.get("X-File-Kind") ?? "";
   if (!ALLOWED_KINDS.has(kind)) {
     return new NextResponse("Invalid X-File-Kind", { status: 400 });
   }
 
-  const rawName = request.headers.get("X-File-Name") ?? "upload";
+  // Sent percent-encoded, since a header can only carry plain ASCII.
+  let rawName = request.headers.get("X-File-Name") ?? "upload";
+  try {
+    rawName = decodeURIComponent(rawName);
+  } catch {
+    /* keep the raw value */
+  }
   const mimeType = request.headers.get("Content-Type") ?? "application/octet-stream";
 
   if (!request.body) {

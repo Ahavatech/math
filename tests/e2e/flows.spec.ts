@@ -30,6 +30,17 @@ test.describe("visitor journeys", () => {
     await expect(page.getByText(/no results|nothing matched|did not match|no matches/i).first()).toBeVisible();
   });
 
+  test("the handbook-based About pages and the student association link are shown", async ({ page }) => {
+    await page.goto("/about/history");
+    await expect(page.locator("main h1")).toBeVisible();
+    await page.goto("/about/mission-vision");
+    await expect(page.locator("main h1")).toBeVisible();
+    await page.goto("/students");
+    await expect(page.locator('a[href^="https://namssn.oauife.edu.ng"]').first()).toBeVisible();
+    await page.goto("/students/handbook");
+    await expect(page.getByText("About the Department and the University").first()).toBeVisible();
+  });
+
   test("the academic calendar can be subscribed to as a real calendar file", async ({ request }) => {
     const res = await request.get("/students/calendar/feed.ics");
     expect(res.status()).toBe(200);

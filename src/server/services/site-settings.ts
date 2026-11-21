@@ -33,6 +33,14 @@ const aboutImageSchema = z.object({
   caption: z.string().max(200),
 });
 
+// A link to the student association's own website, shown on the Students page.
+// Empty means no link is shown.
+const studentAssociationSchema = z.object({
+  label: z.string().max(80),
+  url: z.string().refine((v) => v === "" || /^https:\/\/[^\s]+$/.test(v), { message: "Must be empty or a web address starting with https://" }),
+  description: z.string().max(200),
+});
+
 const announcementSchema = z.object({
   enabled: z.boolean(),
   message: z.string(),
@@ -94,6 +102,12 @@ export const SETTINGS_REGISTRY = {
     default: { heading: "", subheading: "", imageId: null, ctaLabel: "", ctaHref: "" },
     label: "Homepage hero",
     section: "Homepage hero",
+  },
+  "students.association": {
+    schema: studentAssociationSchema,
+    default: { label: "", url: "", description: "" },
+    label: "Student association link",
+    section: "Student association link",
   },
   "about.image": {
     schema: aboutImageSchema,
@@ -234,6 +248,7 @@ const PUBLIC_REVALIDATE_PATHS: Partial<Record<SettingsKey, string[]>> = {
   "hod.welcomeAddress": ["/", "/about"],
   "homepage.hero": ["/"],
   "about.image": ["/about"],
+  "students.association": ["/students"],
   "site.announcement": ["/"],
   "homepage.stats": ["/"],
   "homepage.featuredLecturer": ["/"],
