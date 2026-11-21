@@ -37,8 +37,13 @@ test.describe("visitor journeys", () => {
     await expect(page.locator("main h1")).toBeVisible();
     await page.goto("/students");
     await expect(page.locator('a[href^="https://namssn.oauife.edu.ng"]').first()).toBeVisible();
+    await expect(page.locator('a[href="/documents/department-handbook.pdf"]').first()).toBeVisible();
     await page.goto("/students/handbook");
     await expect(page.getByText("About the Department and the University").first()).toBeVisible();
+    await expect(page.getByRole("link", { name: "Download the handbook PDF" })).toBeVisible();
+    const pdf = await page.request.get("/documents/department-handbook.pdf");
+    expect(pdf.status()).toBe(200);
+    expect(pdf.headers()["content-type"]).toContain("pdf");
   });
 
   test("the academic calendar can be subscribed to as a real calendar file", async ({ request }) => {

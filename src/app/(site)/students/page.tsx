@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight, Download, ExternalLink } from "lucide-react";
 import { db } from "@/lib/db";
 import { getPublishedPage, getStudentAssociation } from "@/server/services/site-content";
 import { listHandbookTreePublic } from "@/server/services/handbook";
@@ -21,13 +21,14 @@ export const metadata: Metadata = {
 };
 
 export default async function StudentsHubPage() {
-  const [page, handbookTree, { courses }, calendarEntries, downloads, association] = await Promise.all([
+  const [page, handbookTree, { courses }, calendarEntries, downloads, association, handbookDownload] = await Promise.all([
     getPublishedPage("students-intro"),
     listHandbookTreePublic(db),
     listCoursesPublic(db, {}),
     listCalendarEntriesPublic(db),
     listDownloadsPublic(db),
     getStudentAssociation(),
+    db.download.findFirst({ where: { category: "HANDBOOK", status: "PUBLISHED" }, orderBy: { updatedAt: "desc" } }).catch(() => null),
   ]);
 
   const sections = [
@@ -54,7 +55,7 @@ export default async function StudentsHubPage() {
             )}
           </div>
 
-          {sections.length > 0 || association.url ? (
+          {
             <nav aria-label="Student resources">
               <ul className="border-b border-border">
                 {sections.map((section) => (
@@ -78,6 +79,21 @@ export default async function StudentsHubPage() {
                     </Link>
                   </li>
                 ))}
+                <li className="index-row border-t border-border">
+                  <a
+                    href={handbookDownload?.fileUrl ?? "/documents/department-handbook.pdf"}
+                    download
+                    className="flex min-h-20 items-center justify-between gap-4 py-4"
+                  >
+                    <span>
+                      <span className="block font-heading text-xl font-semibold">Download the handbook</span>
+                      <span className="mt-0.5 block text-muted-foreground">
+                        {handbookDownload?.description || "The Department of Mathematics Handbook, 2019 to 2022 (PDF)."}
+                      </span>
+                    </span>
+                    <Download className="row-arrow size-5 shrink-0 text-accent" aria-hidden="true" />
+                  </a>
+                </li>
                 {association.url ? (
                   <li className="index-row border-t border-border">
                     <a
@@ -101,7 +117,7 @@ export default async function StudentsHubPage() {
                 ) : null}
               </ul>
             </nav>
-          ) : null}
+          }
         </div>
 
         <p className="mt-12 border-t border-border pt-5">
