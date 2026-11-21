@@ -8,7 +8,10 @@ export const MAX_FILE_BYTES = 25 * 1024 * 1024; // 25 MB
 export const MAX_TOTAL_BYTES = 100 * 1024 * 1024; // 100 MB
 export const MAX_FILE_COUNT = 10;
 
-const UPLOADABLE_STATUSES = new Set(["INCOMPLETE", "RETURNED_TO_AUTHOR"]);
+const UPLOADABLE_STATUSES = new Set(["INCOMPLETE", "RETURNED_TO_AUTHOR", "REVISION_REQUESTED"]);
+
+/** What an author may add while a revision is being prepared. */
+export const REVISION_FILE_KINDS = new Set(["REVISED", "RESPONSE_TO_REVIEWERS", "SUPPLEMENTARY", "TITLE_PAGE"]);
 
 /** Allowed ManuscriptFileKind → PrivateFileKind mapping */
 const KIND_TO_STORAGE: Record<string, PrivateFileKind> = {
@@ -159,13 +162,28 @@ export async function processManuscriptUpload(
   // --- Ownership and status check ---
   const ms = await db.manuscript.findUnique({
     where: { id: input.manuscriptId },
-    select: { submittedById: true, status: true },
+    select: { submittedById: true, status: true, currentRound: true },
   });
   if (!ms || ms.submittedById !== input.userId) {
     throw new Error("Manuscript not found");
   }
   if (!UPLOADABLE_STATUSES.has(ms.status)) {
     throw new Error(`Cannot upload files to a manuscript with status ${ms.status}`);
+  }
+
+  // While a revision is being prepared, files belong to the new round and only
+  // revision kinds are accepted; the original submission is left untouched.
+  let roundId: string | null = null;
+  if (ms.status === "REVISION_REQUESTED") {
+    if (!REVISION_FILE_KINDS.has(input.kind)) {
+      throw new Error("This kind of file cannot be added in the manuscript's current status");
+    }
+    const round = await db.manuscriptRound.findFirst({
+      where: { manuscriptId: input.manuscriptId, number: ms.currentRound },
+      select: { id: true },
+    });
+    if (!round) throw new Error("Manuscript not found");
+    roundId = round.id;
   }
 
   // --- Total size cap check (pre-upload) ---
@@ -228,11 +246,24 @@ export async function processManuscriptUpload(
     }
   }
 
+  // --- Replace an earlier revised file or reply in the same round (one of each) ---
+  if (roundId && (input.kind === "REVISED" || input.kind === "RESPONSE_TO_REVIEWERS")) {
+    const earlier = await db.manuscriptFile.findMany({
+      where: { manuscriptId: input.manuscriptId, roundId, kind: input.kind as import("@prisma/client").ManuscriptFileKind },
+      select: { id: true, storageKey: true },
+    });
+    for (const old of earlier) {
+      await db.manuscriptFile.delete({ where: { id: old.id } });
+      await storage.remove(old.storageKey).catch(() => {});
+    }
+  }
+
   // --- Persist file record ---
   const sanitised = sanitiseFilename(input.originalName);
   const file = await db.manuscriptFile.create({
     data: {
       manuscriptId: input.manuscriptId,
+      roundId,
       kind: input.kind as import("@prisma/client").ManuscriptFileKind,
       originalName: sanitised,
       storageKey: putResult.key,
@@ -270,7 +301,13 @@ export async function deleteManuscriptFile(
 ): Promise<void> {
   const file = await db.manuscriptFile.findUnique({
     where: { id: input.fileId },
-    select: { id: true, storageKey: true, manuscript: { select: { submittedById: true, status: true } } },
+    select: {
+      id: true,
+      kind: true,
+      roundId: true,
+      storageKey: true,
+      manuscript: { select: { submittedById: true, status: true } },
+    },
   });
 
   if (!file || file.manuscript.submittedById !== input.userId) {
@@ -278,6 +315,10 @@ export async function deleteManuscriptFile(
   }
 
   if (!UPLOADABLE_STATUSES.has(file.manuscript.status)) {
+    throw new Error("Cannot delete files from a manuscript in this state");
+  }
+  // During a revision only the files added for it can be removed, never the original submission.
+  if (file.manuscript.status === "REVISION_REQUESTED" && (!file.roundId || !REVISION_FILE_KINDS.has(file.kind))) {
     throw new Error("Cannot delete files from a manuscript in this state");
   }
 

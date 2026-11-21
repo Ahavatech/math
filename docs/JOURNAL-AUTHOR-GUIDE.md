@@ -46,7 +46,9 @@ You can track the status of all your submissions from your dashboard.
 
 ## Resubmitting after return
 
-If your submission is returned for corrections, you can upload revised files from the submission detail page. Once you have addressed all the points, resubmit.
+If your submission is returned at screening, open it from your dashboard, choose "Revise and resubmit", replace the manuscript file with the corrected one and press Resubmit.
+
+If the editor asks for a revision after peer review, the same button opens a page where you upload the revised manuscript (and, if you like, your response letter as a file), write your response to the reviewers, and press Send revision. Nothing reaches the editor until you press that button. The editor is emailed, and the revision goes to the reviewers as a new round.
 
 ## Withdrawing a submission
 

@@ -121,6 +121,14 @@ export async function getHomepageHero() {
   }
 }
 
+export async function getStudentAssociation() {
+  try {
+    return await getSetting(db, "students.association");
+  } catch {
+    return { label: "", url: "", description: "" };
+  }
+}
+
 export async function getAboutImage() {
   try {
     return await getSetting(db, "about.image");

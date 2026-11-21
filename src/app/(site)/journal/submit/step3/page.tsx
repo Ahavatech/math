@@ -6,6 +6,7 @@ import { Section } from "@/components/ui/section";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { FileUploader } from "@/components/journal/file-uploader";
 import { saveStep3Action } from "@/server/actions/manuscript-submission";
 
 export function generateMetadata() {
@@ -47,36 +48,12 @@ export default async function SubmitStep3Page({
         <h1 className="mb-6 border-b-2 border-foreground pb-4 font-heading text-4xl leading-[1.08] font-semibold text-balance">Files and cover letter</h1>
 
         <div className="mt-4 border-t border-border py-4">
-          <p className="font-medium text-sm">Manuscript file (PDF or DOCX)</p>
-          {manuscriptFile ? (
-            <p className="text-muted-foreground mt-1 text-sm">
-              Uploaded: {manuscriptFile.originalName} ({Math.round(manuscriptFile.size / 1024)} KB)
-            </p>
-          ) : (
-            <p className="text-muted-foreground mt-1 text-sm">No file uploaded yet.</p>
-          )}
-          {/* JS upload target — graceful degradation via direct form POST */}
-          <form
-            method="POST"
-            action={`/api/journal/manuscripts/${ms.id}/files`}
-            encType="multipart/form-data"
-            className="mt-3"
-          >
-            <input type="hidden" name="X-File-Kind" value="MANUSCRIPT" />
-            <Label htmlFor="ms-file" className="sr-only">
-              Upload manuscript
-            </Label>
-            <input
-              id="ms-file"
-              type="file"
-              name="file"
-              accept=".pdf,.docx"
-              className="text-sm"
-            />
-            <Button type="submit" variant="outline" size="sm" className="mt-2">
-              Upload file
-            </Button>
-          </form>
+          <FileUploader
+            manuscriptId={ms.id}
+            kind="MANUSCRIPT"
+            label="Manuscript file (PDF or DOCX)"
+            currentName={manuscriptFile ? `${manuscriptFile.originalName} (${Math.round(manuscriptFile.size / 1024)} KB)` : null}
+          />
         </div>
 
         <form action={saveStep3Action} className="mt-6 space-y-5">

@@ -30,8 +30,10 @@ const EVENT_LABELS: Record<string, string> = {
 
 export default async function ManuscriptDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ revised?: string }>;
 }) {
   const session = await auth();
   if (!session?.user) {
@@ -44,6 +46,7 @@ export default async function ManuscriptDetailPage({
   }
 
   const { id } = await params;
+  const { revised } = await searchParams;
 
   const ms = await getAuthorManuscriptDetail(prisma, user.id, id).catch(() => null);
   if (!ms) notFound();
@@ -72,6 +75,12 @@ export default async function ManuscriptDetailPage({
             {ms.reference ?? "Not yet submitted"} &middot; {ms.plainLanguageStatus}
           </p>
         </div>
+
+        {revised === "1" ? (
+          <p role="status" className="mt-4 border border-border bg-secondary p-3 text-sm">
+            Your revision has been sent to the editor. You will get an email when there is a decision.
+          </p>
+        ) : null}
 
         {/* Files */}
         {ms.files.length > 0 && (
@@ -169,7 +178,7 @@ export default async function ManuscriptDetailPage({
         {ms.status === "RETURNED_TO_AUTHOR" && (
           <section className="mt-6">
             <Link
-              href={`/journal/submit/step1?draft=${ms.id}`}
+              href={`/journal/dashboard/${ms.id}/revise`}
               className="inline-flex min-h-12 items-center bg-primary px-6 text-base font-medium text-primary-foreground transition-colors hover:bg-foreground disabled:opacity-50"
             >
               Upload corrected files and resubmit
@@ -186,10 +195,10 @@ export default async function ManuscriptDetailPage({
               revised manuscript.
             </p>
             <Link
-              href={`/journal/submit/step1?draft=${ms.id}&revision=1`}
+              href={`/journal/dashboard/${ms.id}/revise`}
               className="inline-flex min-h-12 items-center bg-primary px-6 text-base font-medium text-primary-foreground transition-colors hover:bg-foreground disabled:opacity-50"
             >
-              Upload revised manuscript
+              Revise and resubmit
             </Link>
           </section>
         )}

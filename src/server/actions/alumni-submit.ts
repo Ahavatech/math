@@ -33,7 +33,7 @@ export async function submitAlumniEntryAction(
   const h = await headers();
   const ip = (h.get("x-forwarded-for") ?? "unknown").split(",")[0].trim();
 
-  if (!alumniIpRateLimiter.check(ip).allowed) {
+  if (!(await alumniIpRateLimiter.check(ip)).allowed) {
     return { error: "Too many submissions. Please try again later." };
   }
 
@@ -42,7 +42,7 @@ export async function submitAlumniEntryAction(
     return { error: "This link is no longer valid. Please contact the department." };
   }
 
-  if (!alumniLinkRateLimiter.check(validation.link.id).allowed) {
+  if (!(await alumniLinkRateLimiter.check(validation.link.id)).allowed) {
     return { error: "Too many submissions. Please try again later." };
   }
 

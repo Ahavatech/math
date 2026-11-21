@@ -1,5 +1,5 @@
 "use server";
-import { notifySubmitted } from "@/server/services/journal-notifications";
+import { notifyRevisionReceived, notifySubmitted } from "@/server/services/journal-notifications";
 import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
@@ -10,6 +10,8 @@ import {
   updateDraftStep,
   submitManuscript,
 } from "@/server/services/manuscript-submission";
+import { transition } from "@/server/services/manuscript-workflow";
+import { submitRevision } from "@/server/services/manuscript-revision";
 import { JOURNAL_AUTHOR_AGREEMENT_V1 } from "@/lib/constants";
 
 async function requireAuthor() {
@@ -133,4 +135,49 @@ export async function submitDraftAction(formData: FormData): Promise<never> {
   // Confirm to the author and alert the editors, once the response has gone.
   after(() => notifySubmitted(prisma, draftId));
   redirect("/journal/dashboard");
+}
+
+export type RevisionActionState = { error?: string } | null;
+
+export async function submitRevisionAction(
+  _prev: RevisionActionState,
+  formData: FormData,
+): Promise<RevisionActionState> {
+  const user = await requireAuthor();
+  const manuscriptId = String(formData.get("manuscriptId") ?? "");
+  try {
+    await submitRevision(prisma, user.id, manuscriptId, { response: String(formData.get("response") ?? "") });
+  } catch (error) {
+    if (error instanceof Error && "issues" in error) {
+      const issues = (error as unknown as { issues: Array<{ message: string }> }).issues;
+      return { error: issues[0]?.message ?? "Please check the response and try again." };
+    }
+    const message = error instanceof Error ? error.message : "";
+    // Messages written for the author in the service are safe to show; anything else is not.
+    const friendly = ["Upload your revised manuscript", "A revision has not been requested"];
+    return {
+      error: friendly.some((f) => message.startsWith(f))
+        ? message
+        : "The revision could not be sent. Please try again.",
+    };
+  }
+  after(() => notifyRevisionReceived(prisma, manuscriptId));
+  redirect(`/journal/dashboard/${manuscriptId}?revised=1`);
+}
+
+/** Screening sent the manuscript back; the author has replaced the file and sends it again. */
+export async function resubmitReturnedAction(formData: FormData): Promise<void> {
+  const user = await requireAuthor();
+  const manuscriptId = String(formData.get("manuscriptId") ?? "");
+  const hasFile = await prisma.manuscriptFile.count({ where: { manuscriptId, kind: "MANUSCRIPT" } });
+  if (hasFile === 0) redirect(`/journal/dashboard/${manuscriptId}/revise`);
+  const result = await transition(
+    prisma,
+    { id: user.id, roles: user.roles, isActive: user.isActive ?? true },
+    manuscriptId,
+    "RESUBMIT",
+  );
+  if (!result.ok) redirect(`/journal/dashboard/${manuscriptId}`);
+  after(() => notifySubmitted(prisma, manuscriptId));
+  redirect(`/journal/dashboard/${manuscriptId}?revised=1`);
 }

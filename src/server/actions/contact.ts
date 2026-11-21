@@ -38,7 +38,7 @@ export async function submitContactMessageAction(
   const h = await headers();
   const ip = (h.get("x-forwarded-for") ?? "unknown").split(",")[0].trim();
 
-  if (!contactIpRateLimiter.check(ip).allowed) {
+  if (!(await contactIpRateLimiter.check(ip)).allowed) {
     return CALM_SUCCESS;
   }
 

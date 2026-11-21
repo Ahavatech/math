@@ -4,12 +4,14 @@ import {
   signFormTimestamp,
   verifyMinFillTime,
   checkHoneypot,
-  alumniIpRateLimiter,
-  alumniLinkRateLimiter,
+  ALUMNI_IP_LIMIT,
+  ALUMNI_LINK_LIMIT,
   checkRecentDuplicateSubmission,
 } from "../alumni-spam";
+import { PersistentRateLimiter } from "@/lib/rate-limit";
 
 const db = await getTestDb();
+const limiterDb = db;
 
 const SECRET = "test-secret-at-least-16-chars";
 
@@ -55,21 +57,27 @@ describe("signFormTimestamp / verifyMinFillTime", () => {
   });
 });
 
-describe("rate limiters", () => {
-  it("alumniIpRateLimiter allows 5 then blocks the 6th within an hour", () => {
-    const key = `test-ip-${Math.random()}`;
-    for (let i = 0; i < 5; i++) {
-      expect(alumniIpRateLimiter.check(key).allowed).toBe(true);
-    }
-    expect(alumniIpRateLimiter.check(key).allowed).toBe(false);
+describe.skipIf(limiterDb === null)("rate limiters (counted in the database)", () => {
+  afterAll(async () => {
+    await limiterDb!.loginAttempt.deleteMany({ where: { key: { startsWith: "rl:alumni-" } } });
   });
 
-  it("alumniLinkRateLimiter allows 30 then blocks the 31st within an hour", () => {
+  it("the address limit allows 5 then blocks the 6th within an hour", async () => {
+    const limiter = new PersistentRateLimiter({ ...ALUMNI_IP_LIMIT, name: "alumni-ip-test", db: limiterDb! });
+    const key = `test-ip-${Math.random()}`;
+    for (let i = 0; i < 5; i++) {
+      expect((await limiter.check(key)).allowed).toBe(true);
+    }
+    expect((await limiter.check(key)).allowed).toBe(false);
+  });
+
+  it("the link limit allows 30 then blocks the 31st within an hour", async () => {
+    const limiter = new PersistentRateLimiter({ ...ALUMNI_LINK_LIMIT, name: "alumni-link-test", db: limiterDb! });
     const key = `test-link-${Math.random()}`;
     for (let i = 0; i < 30; i++) {
-      expect(alumniLinkRateLimiter.check(key).allowed).toBe(true);
+      expect((await limiter.check(key)).allowed).toBe(true);
     }
-    expect(alumniLinkRateLimiter.check(key).allowed).toBe(false);
+    expect((await limiter.check(key)).allowed).toBe(false);
   });
 });
 

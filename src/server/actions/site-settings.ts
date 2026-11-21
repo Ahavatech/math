@@ -103,6 +103,22 @@ export async function saveHeroAction(
   }
 }
 
+export async function saveStudentAssociationAction(
+  _prevState: ActionResult | undefined,
+  formData: FormData,
+): Promise<ActionResult> {
+  try {
+    await saveAndRevalidate("students.association", {
+      label: str(formData, "label").trim().slice(0, 80),
+      url: str(formData, "url").trim(),
+      description: str(formData, "description").trim().slice(0, 200),
+    });
+    return { success: true };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not save" };
+  }
+}
+
 export async function saveAboutImageAction(
   _prevState: ActionResult | undefined,
   formData: FormData,

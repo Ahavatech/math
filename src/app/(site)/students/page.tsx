@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import { db } from "@/lib/db";
-import { getPublishedPage } from "@/server/services/site-content";
+import { getPublishedPage, getStudentAssociation } from "@/server/services/site-content";
 import { listHandbookTreePublic } from "@/server/services/handbook";
 import { listCoursesPublic } from "@/server/services/courses";
 import { listCalendarEntriesPublic } from "@/server/services/academic-calendar";
@@ -21,12 +21,13 @@ export const metadata: Metadata = {
 };
 
 export default async function StudentsHubPage() {
-  const [page, handbookTree, { courses }, calendarEntries, downloads] = await Promise.all([
+  const [page, handbookTree, { courses }, calendarEntries, downloads, association] = await Promise.all([
     getPublishedPage("students-intro"),
     listHandbookTreePublic(db),
     listCoursesPublic(db, {}),
     listCalendarEntriesPublic(db),
     listDownloadsPublic(db),
+    getStudentAssociation(),
   ]);
 
   const sections = [
@@ -53,7 +54,7 @@ export default async function StudentsHubPage() {
             )}
           </div>
 
-          {sections.length > 0 ? (
+          {sections.length > 0 || association.url ? (
             <nav aria-label="Student resources">
               <ul className="border-b border-border">
                 {sections.map((section) => (
@@ -77,6 +78,27 @@ export default async function StudentsHubPage() {
                     </Link>
                   </li>
                 ))}
+                {association.url ? (
+                  <li className="index-row border-t border-border">
+                    <a
+                      href={association.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex min-h-20 items-center justify-between gap-4 py-4"
+                    >
+                      <span>
+                        <span className="block font-heading text-xl font-semibold">
+                          {association.label || "Student association"}
+                        </span>
+                        <span className="mt-0.5 block text-muted-foreground">
+                          {association.description || association.url.replace(/^https:\/\//, "")}
+                        </span>
+                        <span className="sr-only"> (opens in a new tab)</span>
+                      </span>
+                      <ExternalLink className="row-arrow size-5 shrink-0 text-accent" aria-hidden="true" />
+                    </a>
+                  </li>
+                ) : null}
               </ul>
             </nav>
           ) : null}

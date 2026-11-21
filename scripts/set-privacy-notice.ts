@@ -1,7 +1,9 @@
 /**
  * Applies the finished page text that ships with the site to an existing
  * database: the privacy notice (src/lib/privacy-notice.ts) on /privacy, and the
- * Students page intro if it still holds its old placeholder. It also removes the
+ * Students page intro if it still holds its old placeholder, and the text taken
+ * from the department handbook (About, Mission and Vision, History, the student
+ * handbook's introduction chapter, the student association link). It also removes the
  * old "needs legal review" badge from the privacy page.
  *
  *   npx tsx scripts/set-privacy-notice.ts           update if the page is still the old draft
@@ -15,6 +17,7 @@ import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { STUDENTS_INTRO_BODY } from "../src/lib/final-copy";
+import { applyHandbookContent } from "../src/lib/content-apply";
 import { OLD_PRIVACY_DRAFT_START, PRIVACY_NOTICE_BODY, PRIVACY_NOTICE_TITLE } from "../src/lib/privacy-notice";
 
 /** The page is a finished notice now: take away the old "needs legal review" badge in /admin/pages. */
@@ -52,6 +55,7 @@ async function main() {
   const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }) });
   try {
     await finishStudentsIntro(db);
+    for (const line of await applyHandbookContent(db, { force })) console.log(line);
     const page = await db.page.findUnique({ where: { slug: "privacy" } });
 
     if (!page) {

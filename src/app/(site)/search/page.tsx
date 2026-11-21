@@ -7,7 +7,7 @@ import type { SearchResultType } from "@/server/services/site-search";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { InMemoryRateLimiter } from "@/lib/rate-limit";
+import { PersistentRateLimiter } from "@/lib/rate-limit";
 import { formatDateWAT } from "@/lib/time";
 import { Search } from "lucide-react";
 
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 };
 
 // Per-IP: 30 searches per minute
-const searchLimiter = new InMemoryRateLimiter({ limit: 30, windowMs: 60_000 });
+const searchLimiter = new PersistentRateLimiter({ name: "search", limit: 30, windowMs: 60_000 });
 
 const TYPE_LABELS: Record<SearchResultType, string> = {
   news: "News",
@@ -55,7 +55,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     headerList.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     headerList.get("x-real-ip") ??
     "unknown";
-  const rl = searchLimiter.check(ip);
+  // Only an actual search counts against the limit; opening the empty search page does not.
+  const rl = rawQ.trim() ? await searchLimiter.check(ip) : { allowed: true, retryAfterMs: 0 };
 
   const q = validateSearchQuery(rawQ);
   const tooShort = rawQ.trim().length > 0 && q === null && rawQ.trim().length < 2;

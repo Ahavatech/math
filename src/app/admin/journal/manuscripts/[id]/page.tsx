@@ -137,6 +137,13 @@ export default async function ManuscriptDetailAdminPage({
       })
     : null;
 
+  // The author's replies to the reviewers, one per resubmitted round.
+  const authorResponses = await prisma.manuscriptRound.findMany({
+    where: { manuscriptId: id, responseToReviewers: { not: null } },
+    orderBy: { number: "asc" },
+    select: { number: true, resubmittedAt: true, responseToReviewers: true },
+  });
+
   // Check if an article already exists for this manuscript (for prepare-for-publication)
   const existingArticle = ms?.status === "ACCEPTED"
     ? await prisma.article.findFirst({ where: { manuscriptId: id }, select: { id: true } })
@@ -180,6 +187,21 @@ export default async function ManuscriptDetailAdminPage({
         <h2 className="font-semibold mb-2">Abstract</h2>
         <p className="text-sm whitespace-pre-wrap">{ms.abstract}</p>
       </section>
+
+      {authorResponses.length > 0 && (
+        <section className="mb-6">
+          <h2 className="font-semibold mb-2">Author response to reviewers</h2>
+          {authorResponses.map((r) => (
+            <div key={r.number} className="mb-3 border border-border p-3">
+              <p className="text-muted-foreground text-xs">
+                Round {r.number}
+                {r.resubmittedAt ? ` · sent ${new Date(r.resubmittedAt).toLocaleDateString()}` : ""}
+              </p>
+              <p className="mt-1 whitespace-pre-wrap text-sm">{r.responseToReviewers}</p>
+            </div>
+          ))}
+        </section>
+      )}
 
       {/* Files */}
       {ms.files.length > 0 && (

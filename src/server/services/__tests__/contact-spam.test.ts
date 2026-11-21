@@ -1,16 +1,25 @@
 import { describe, expect, it, afterAll } from "vitest";
 import { getTestDb } from "../../../../tests/unit/database/test-db";
-import { contactIpRateLimiter, checkRecentDuplicateContact } from "../contact-spam";
+import { PersistentRateLimiter } from "@/lib/rate-limit";
+import { CONTACT_IP_LIMIT, checkRecentDuplicateContact } from "../contact-spam";
 
 const db = await getTestDb();
 
-describe("contactIpRateLimiter", () => {
-  it("allows 5 then blocks the 6th within an hour", () => {
+describe.skipIf(db === null)("contact address limit (counted in the database)", () => {
+  it("allows 5 then blocks the 6th within an hour, and a different address is unaffected", async () => {
+    const limiter = new PersistentRateLimiter({ ...CONTACT_IP_LIMIT, name: `${CONTACT_IP_LIMIT.name}-test`, db: db! });
     const key = `test-ip-${Math.random()}`;
     for (let i = 0; i < 5; i++) {
-      expect(contactIpRateLimiter.check(key).allowed).toBe(true);
+      expect((await limiter.check(key)).allowed).toBe(true);
     }
-    expect(contactIpRateLimiter.check(key).allowed).toBe(false);
+    expect((await limiter.check(key)).allowed).toBe(false);
+    expect((await limiter.check(`other-${key}`)).allowed).toBe(true);
+    await db!.loginAttempt.deleteMany({ where: { key: { startsWith: `rl:${CONTACT_IP_LIMIT.name}-test:` } } });
+  });
+
+  it("keeps the limits the privacy-relevant forms rely on", () => {
+    expect(CONTACT_IP_LIMIT.limit).toBe(5);
+    expect(CONTACT_IP_LIMIT.windowMs).toBe(60 * 60 * 1000);
   });
 });
 
