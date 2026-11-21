@@ -13,6 +13,9 @@ import { BookOpen } from "lucide-react";
 
 export const revalidate = 300;
 
+/** The department handbook (2019 to 2022), shipped with the site; a published HANDBOOK download replaces it. */
+const HANDBOOK_PDF = "/documents/department-handbook.pdf";
+
 export const metadata: Metadata = {
   title: "Student Handbook",
 };
@@ -23,7 +26,7 @@ export default async function HandbookIndexPage({ searchParams }: { searchParams
 
   const [tree, handbookDownload, searchResults] = await Promise.all([
     listHandbookTreePublic(db),
-    db.download.findFirst({ where: { category: "HANDBOOK", status: "PUBLISHED" } }).catch(() => null),
+    db.download.findFirst({ where: { category: "HANDBOOK", status: "PUBLISHED" }, orderBy: { updatedAt: "desc" } }).catch(() => null),
     q ? searchHandbookPublic(db, q) : Promise.resolve(null),
   ]);
 
@@ -39,14 +42,13 @@ export default async function HandbookIndexPage({ searchParams }: { searchParams
           title="Student Handbook"
           description="Policies, regulations and guidance for students, as searchable pages."
           actions={
-            handbookDownload ? (
-              <a
-                href={handbookDownload.fileUrl ?? "#"}
-                className="inline-flex min-h-11 items-center bg-primary px-4 text-[0.9375rem] font-medium text-primary-foreground transition-colors hover:bg-foreground"
-              >
-                Download the handbook PDF
-              </a>
-            ) : undefined
+            <a
+              href={handbookDownload?.fileUrl ?? HANDBOOK_PDF}
+              download
+              className="inline-flex min-h-11 items-center bg-primary px-4 text-[0.9375rem] font-medium text-primary-foreground transition-colors hover:bg-foreground"
+            >
+              Download the handbook PDF
+            </a>
           }
         />
 
